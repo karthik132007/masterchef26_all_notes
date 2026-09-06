@@ -1,0 +1,1066 @@
+<style>
+/* ── GenAI Day 1: Beginner-Friendly Notebook Styling ── */
+.gen-fig { margin: 16px auto 8px; max-width: 640px; text-align: center; }
+.gen-fig svg { width: 100%; height: auto; display: block; }
+.gen-fig figcaption { font-family: var(--font-mono); font-size: 12px; color: var(--ink-soft); margin-top: 6px; line-height: 1.5; }
+.note-body figure.gen-fig { animation: gen-rise .7s ease both; animation-timeline: view(); animation-range: entry 0% cover 22%; }
+@keyframes gen-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+.gen-flow { stroke-dasharray: 7 7; animation: gen-dash 1.2s linear infinite; }
+@keyframes gen-dash { to { stroke-dashoffset: -14; } }
+@media (prefers-reduced-motion: reduce) { .gen-flow { animation: none; } .note-body figure.gen-fig { animation: none; } }
+
+/* Interactive Toy Labs */
+.gen-lab {
+  border: 2.5px solid var(--ink);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: var(--card-shadow);
+  padding: 20px;
+  margin: 22px 0;
+}
+.gen-lab-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  border-bottom: 2px dashed #c9c0ae;
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+}
+.gen-lab-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  text-transform: lowercase;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.gen-lab-badge {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: var(--yellow);
+}
+
+/* Big Friendly Sliders */
+.slider-control {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 14px 0;
+}
+.slider-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  font-size: 15px;
+}
+.slider-val {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  padding: 3px 10px;
+  border-radius: 8px;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+.gen-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 12px;
+  border-radius: 999px;
+  background: #e2d9c3;
+  outline: none;
+  border: 2px solid var(--ink);
+  cursor: pointer;
+}
+.gen-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--yellow);
+  border: 2.5px solid var(--ink);
+  box-shadow: 2px 2px 0 var(--ink);
+  cursor: grab;
+  transition: transform 0.1s ease;
+}
+.gen-range::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.15);
+  background: var(--pink);
+}
+
+/* Preset Buttons */
+.preset-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 10px 0;
+}
+.preset-btn {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  background: var(--paper);
+  cursor: pointer;
+  transition: all 0.12s ease;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+.preset-btn:hover {
+  background: var(--yellow);
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+/* Probability Bars */
+.prob-item {
+  margin: 8px 0;
+}
+.prob-header {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+.prob-token {
+  font-weight: 700;
+}
+.prob-bar-track {
+  height: 22px;
+  background: #f1ebd9;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.prob-bar-fill {
+  height: 100%;
+  background: var(--yellow);
+  border-right: 2px solid var(--ink);
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease;
+}
+.prob-bar-fill.highlight {
+  background: var(--mint);
+}
+.prob-bar-fill.chaos {
+  background: var(--pink);
+}
+
+/* Tokenizer Chips */
+.tokens-stream {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  min-height: 52px;
+  align-items: center;
+}
+.token-chip {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  padding: 3px 8px;
+  box-shadow: 2px 2px 0 var(--ink);
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+  font-weight: 700;
+}
+.token-chip .token-id {
+  font-size: 9.5px;
+  color: var(--ink-soft);
+  font-weight: 500;
+  border-top: 1px dashed rgba(28,26,21,0.3);
+  margin-top: 2px;
+  padding-top: 1px;
+}
+
+/* Context Window Track */
+.ctx-window-track {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 12px 2px;
+}
+.ctx-token-slot {
+  min-width: 82px;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  padding: 8px 6px;
+  text-align: center;
+  background: #fff;
+  box-shadow: 2px 2px 0 var(--ink);
+  transition: all 0.2s ease;
+}
+.ctx-token-slot.in-ctx {
+  background: #dcf9e8;
+}
+.ctx-token-slot.evicted {
+  background: #eae6db;
+  color: #9c9586;
+  border-style: dashed;
+  box-shadow: none;
+  transform: scale(0.92);
+}
+.ctx-token-slot .slot-role {
+  font-size: 9.5px;
+  text-transform: uppercase;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  margin-bottom: 4px;
+}
+
+/* Attention Sentence */
+.attn-sentence {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  font-size: 19px;
+  font-family: var(--font-display);
+  padding: 14px;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  margin: 12px 0;
+}
+.attn-word {
+  padding: 4px 8px;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+.attn-word.target {
+  background: var(--ink);
+  color: #fff;
+  border-color: var(--ink);
+  box-shadow: 3px 3px 0 var(--yellow);
+}
+.attn-word.focused {
+  background: var(--yellow);
+  border-color: var(--ink);
+  box-shadow: 2px 2px 0 var(--ink);
+  transform: scale(1.06);
+}
+.attn-word.low {
+  opacity: 0.4;
+}
+
+/* Expandable Quiz */
+details.quiz-box {
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  background: #fff;
+  padding: 12px 14px;
+  margin: 10px 0;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+details.quiz-box summary {
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 15px;
+}
+details.quiz-box[open] summary {
+  border-bottom: 2px dashed #c9c0ae;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
+</style>
+
+<p class="kicker">no scary math, no heavy equations — just the fun, intuitive secret of how AI actually talks.</p>
+
+<h2>the 30-second idea</h2>
+<p><b>An LLM (Large Language Model) is the world's most powerful autocomplete.</b></p>
+<p>You know how when you type <code>"Happy..."</code> on your phone keyboard, it suggests <code>"Birthday"</code> or <code>"New Year"</code>? An LLM does the exact same thing — but it has read almost the entire internet! It doesn't "think" or have feelings. It plays one simple game over and over:</p>
+<p style="font-size:19px; font-weight:700; text-align:center; padding:12px; background:var(--yellow); border:2px solid var(--ink); border-radius:12px; box-shadow:3px 3px 0 var(--ink); margin:14px 0;">
+  "Looking at all the words written so far, what is the single most likely next word piece?"
+</p>
+
+<div class="callout remember">
+  <b class="label">🧷 the golden rule</b><br />
+  <b>AI generates text one tiny piece at a time.</b> When ChatGPT gives you a 100-word explanation, it didn't write it in one flash. It guessed word #1, added it, guessed word #2, added it, and repeated that loop 100 times!
+</div>
+
+<!-- ============================================================ -->
+<!-- 1. HOW AN LLM TALKS (THE VISUAL LOOP) -->
+<!-- ============================================================ -->
+<h2>how an LLM talks: the guessing loop</h2>
+<p>Here is what happens behind the scenes every single time you hit enter:</p>
+
+<figure class="gen-fig">
+<svg viewBox="0 0 640 230" role="img" aria-label="Visual LLM Loop">
+  <defs>
+    <marker id="ga-arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1c1a15"></path>
+    </marker>
+  </defs>
+
+  <!-- Step 1 -->
+  <rect x="10" y="60" width="125" height="74" rx="12" fill="#fff4c2" stroke="#1c1a15" stroke-width="2.5"></rect>
+  <text x="72" y="85" text-anchor="middle" font-size="11.5" font-weight="800">1. YOUR PROMPT</text>
+  <text x="72" y="104" text-anchor="middle" font-size="11" font-family="monospace">"The sky is"</text>
+  <text x="72" y="122" text-anchor="middle" font-size="9.5" fill="#575046">reads your text</text>
+
+  <line x1="135" y1="97" x2="175" y2="97" stroke="#1c1a15" stroke-width="2.5" marker-end="url(#ga-arr)" class="gen-flow"></line>
+
+  <!-- Step 2 -->
+  <rect x="177" y="45" width="145" height="104" rx="12" fill="#e3f1ff" stroke="#1c1a15" stroke-width="2.5"></rect>
+  <text x="249" y="72" text-anchor="middle" font-size="12" font-weight="800">2. THE BRAIN</text>
+  <text x="249" y="92" text-anchor="middle" font-size="10.5" fill="#575046">Transformer Engine</text>
+  <text x="249" y="110" text-anchor="middle" font-size="10.5" fill="#575046">Weighs connections</text>
+  <text x="249" y="130" text-anchor="middle" font-size="10" font-weight="700">Scores all options</text>
+
+  <line x1="322" y1="97" x2="362" y2="97" stroke="#1c1a15" stroke-width="2.5" marker-end="url(#ga-arr)" class="gen-flow"></line>
+
+  <!-- Step 3 -->
+  <rect x="364" y="60" width="130" height="74" rx="12" fill="#ffe3ef" stroke="#1c1a15" stroke-width="2.5"></rect>
+  <text x="429" y="85" text-anchor="middle" font-size="11.5" font-weight="800">3. PROBABILITIES</text>
+  <text x="429" y="104" text-anchor="middle" font-size="10.5" font-family="monospace">"blue" (85%)</text>
+  <text x="429" y="122" text-anchor="middle" font-size="10" font-family="monospace">"dark" (10%)</text>
+
+  <line x1="494" y1="97" x2="534" y2="97" stroke="#1c1a15" stroke-width="2.5" marker-end="url(#ga-arr)" class="gen-flow"></line>
+
+  <!-- Step 4 -->
+  <rect x="536" y="60" width="95" height="74" rx="12" fill="#dcf9e8" stroke="#1c1a15" stroke-width="2.5"></rect>
+  <text x="583" y="85" text-anchor="middle" font-size="11.5" font-weight="800">4. NEXT WORD</text>
+  <text x="583" y="108" text-anchor="middle" font-size="13" font-family="monospace" font-weight="800">"blue"</text>
+  <text x="583" y="124" text-anchor="middle" font-size="9" fill="#2e9e5b">Appended ✓</text>
+
+  <!-- Loop back -->
+  <path d="M 583 134 L 583 185 L 72 185 L 72 134" fill="none" stroke="#ff6b35" stroke-width="2.5" stroke-dasharray="6 5" marker-end="url(#ga-arr)"></path>
+  <text x="328" y="208" text-anchor="middle" font-size="11" font-weight="800" fill="#ff6b35">LOOP REPEATS: "The sky is blue..." feeds back into Step 1!</text>
+</svg>
+<figcaption>the continuous loop: guess one word → attach it → guess the next word → repeat!</figcaption>
+</figure>
+
+<!-- ============================================================ -->
+<!-- 2. TOKENS: THE LEGO BRICKS -->
+<!-- ============================================================ -->
+<h2>tokens: the lego bricks of AI</h2>
+<p>Computers cannot read human letters directly. But human languages have millions of distinct words (and people make up new slang like <i>"rizz"</i> and <i>"delulu"</i> every week!).</p>
+<p>Instead of memorizing every word, AI breaks text into bite-sized Lego bricks called <b>Tokens</b>:</p>
+<ul>
+  <li><b>Common words</b> are usually 1 token: <code>"cat"</code>, <code>"pizza"</code>, <code>"happy"</code>.</li>
+  <li><b>Long or unusual words</b> get split into pieces: <code>"unbelievable"</code> $\to$ <code>[un]</code> <code>[believ]</code> <code>[able]</code>.</li>
+  <li><b>Rule of thumb:</b> In English, <b>1 token is roughly 3/4 of a word</b> (or about 4 characters). A 75-word paragraph is about 100 tokens.</li>
+</ul>
+
+<!-- Interactive Tokenizer Lab -->
+<div class="gen-lab" id="tok-lab">
+  <div class="gen-lab-head">
+    <div class="gen-lab-title">
+      <span>🧱</span> toy lab: see text turn into colored tokens
+    </div>
+    <span class="gen-lab-badge">interactive</span>
+  </div>
+  <p style="margin-top:0; font-size:14px; color:var(--ink-soft);">
+    Type anything below or click a button to see how the AI chops sentences into colored Lego pieces (with internal ID numbers):
+  </p>
+
+  <div class="preset-row">
+    <button class="preset-btn" onclick="setTokenPrompt('The quick brown fox')">"The quick brown fox"</button>
+    <button class="preset-btn" onclick="setTokenPrompt('Transformers are awesome')">"Transformers are awesome"</button>
+    <button class="preset-btn" onclick="setTokenPrompt('The capital of France is')">"The capital of France is"</button>
+    <button class="preset-btn" onclick="setTokenPrompt('Attention is all you need')">"Attention is all you need"</button>
+  </div>
+
+  <div style="margin:12px 0;">
+    <input type="text" id="tok-input" value="The capital of France is" style="width:100%; padding:10px 12px; font-family:var(--font-mono); font-size:15px; border:2.5px solid var(--ink); border-radius:10px; outline:none; background:#fff;" oninput="updateTokenizer()">
+  </div>
+
+  <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
+    <span style="font-family:var(--font-mono); font-size:13px; font-weight:700; background:#fff; border:2px solid var(--ink); border-radius:999px; padding:3px 12px; box-shadow:2px 2px 0 var(--ink);">
+      Characters: <span id="tok-char-cnt">24</span>
+    </span>
+    <span style="font-family:var(--font-mono); font-size:13px; font-weight:700; background:#fff; border:2px solid var(--ink); border-radius:999px; padding:3px 12px; box-shadow:2px 2px 0 var(--ink);">
+      Words: <span id="tok-word-cnt">5</span>
+    </span>
+    <span style="font-family:var(--font-mono); font-size:13px; font-weight:700; background:var(--yellow); border:2px solid var(--ink); border-radius:999px; padding:3px 12px; box-shadow:2px 2px 0 var(--ink);">
+      Tokens: <span id="tok-count">5</span>
+    </span>
+  </div>
+
+  <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; color:var(--ink-soft);">
+    Token Lego Bricks (What the AI sees):
+  </div>
+  <div class="tokens-stream" id="tok-stream-display">
+    <!-- Populated by JS -->
+  </div>
+
+  <div style="margin-top:16px; border-top:2px dashed #c9c0ae; padding-top:14px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+      <b>What the AI predicts comes next:</b>
+      <button class="btn mint" style="padding:6px 12px; font-size:13px;" onclick="appendTopToken()">
+        ⚡ Append Next Word
+      </button>
+    </div>
+    <div id="tok-next-candidates" style="margin-top:8px;">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+</div>
+
+<div class="callout gotcha">
+  <b class="label">⚠️ fun fact</b><br />
+  <b>Ever wonder why ChatGPT used to struggle with <em>"How many r's in strawberry?"</em></b><br />
+  Because the AI never sees the individual letters! It only sees two Lego bricks: <code>[straw]</code> and <code>[berry]</code>. Asking it to count characters inside a token is like asking someone to count how many screws are inside a sealed toaster!
+</div>
+
+<!-- ============================================================ -->
+<!-- 3. TEMPERATURE: THE CREATIVITY KNOB -->
+<!-- ============================================================ -->
+<h2>temperature &amp; sampling: the creativity knob</h2>
+<p>When the model predicts the next word, it doesn't just have one answer. It creates a list of possibilities with percentages.</p>
+<p><b>Temperature ($T$) is the creativity slider:</b></p>
+<ul>
+  <li><b>❄️ Cold ($T = 0.0$ to $0.2$):</b> The <b>boring robot mode</b>. It always picks the #1 most obvious word with 100% certainty. Zero surprises. Perfect for code, math, and factual answers!</li>
+  <li><b>✨ Warm ($T = 0.7$):</b> The <b>sweet spot</b>. Used by ChatGPT for chatting. Mostly sticks to good words, but adds enough spice to sound natural and human.</li>
+  <li><b>🔥 Super Hot ($T \ge 1.5$):</b> The <b>crazy chaos mode</b>. Rare, bizarre words get boosted. The model starts rambling and making up wild nonsense (hallucinations!).</li>
+</ul>
+
+<!-- Interactive Temperature Slider -->
+<div class="gen-lab" id="temperature-lab">
+  <div class="gen-lab-head">
+    <div class="gen-lab-title">
+      <span>🎛️</span> toy lab: slide the temperature knob
+    </div>
+    <span class="gen-lab-badge" id="temp-badge">Balanced (T = 0.70)</span>
+  </div>
+  <p style="margin-top:0; font-size:14px; color:var(--ink-soft);">
+    Prompt: <code>"The capital of France is [ ... ]"</code>. Slide the knob left and right to see how confidence bars change:
+  </p>
+
+  <div class="slider-control">
+    <div class="slider-label-row">
+      <span>Temperature Dial ($T$):</span>
+      <span class="slider-val" id="temp-val-display">0.70</span>
+    </div>
+    <input type="range" class="gen-range" id="temp-slider" min="0.05" max="2.0" step="0.05" value="0.70" oninput="updateTemperatureLab()">
+  </div>
+
+  <div class="preset-row">
+    <button class="preset-btn" onclick="setTempPreset(0.05)">❄️ 0.0 (Robotic / Code)</button>
+    <button class="preset-btn" onclick="setTempPreset(0.3)">🎯 0.3 (Strict Facts)</button>
+    <button class="preset-btn" onclick="setTempPreset(0.7)">✨ 0.7 (Default Chat)</button>
+    <button class="preset-btn" onclick="setTempPreset(1.4)">🎨 1.4 (Creative Story)</button>
+    <button class="preset-btn" onclick="setTempPreset(2.0)">🔥 2.0 (Pure Chaos)</button>
+  </div>
+
+  <div style="margin: 16px 0 10px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+      <b style="font-size:13px; text-transform:uppercase; letter-spacing:0.8px;">Likelihood of each word:</b>
+      <button class="btn yellow" style="padding:6px 14px; font-size:13px;" onclick="sampleFromTemperature()">
+        🎲 Roll the Dice (Pick a Word)
+      </button>
+    </div>
+    <div id="temp-bars-container">
+      <!-- Generated by JS -->
+    </div>
+    <div id="sample-result-box" style="margin-top:12px; font-family:var(--font-mono); font-size:13.5px; padding:10px 12px; background:var(--paper); border:2px solid var(--ink); border-radius:10px; display:none;">
+      <!-- Sample output display -->
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 4. CONTEXT WINDOW: GOLDFISH MEMORY -->
+<!-- ============================================================ -->
+<h2>context window: the goldfish memory desk</h2>
+<p>Does ChatGPT remember what you told it last week? <b>No!</b></p>
+<p>An LLM does not have a human brain that stores memories while it sleeps. Instead, it has a small desk called the <b>Context Window</b>:</p>
+<ul>
+  <li>Imagine a desk that can only hold <b>8 sheets of paper</b>.</li>
+  <li>Every time you say something, you put a sheet on the desk. Every time the AI answers, it puts another sheet on the desk.</li>
+  <li><b>What happens when the desk is full?</b> If you add sheet #9, <b>sheet #1 falls off into the trash can!</b></li>
+  <li>This is called <b>FIFO eviction</b> (First In, First Out). Once a message falls off the desk, the AI has 100% forgotten it ever existed!</li>
+</ul>
+
+<!-- Interactive Context Window Slider -->
+<div class="gen-lab" id="ctx-lab">
+  <div class="gen-lab-head">
+    <div class="gen-lab-title">
+      <span>🪟</span> toy lab: watch messages slide out of memory
+    </div>
+    <span class="gen-lab-badge">Desk Limit: 4 Messages</span>
+  </div>
+  <p style="margin-top:0; font-size:14px; color:var(--ink-soft);">
+    Slide the conversation forward to watch older messages get pushed off the desk and forgotten:
+  </p>
+
+  <div class="slider-control">
+    <div class="slider-label-row">
+      <span>Conversation Turns:</span>
+      <span class="slider-val" id="ctx-turn-val">Turn 3 of 7</span>
+    </div>
+    <input type="range" class="gen-range" id="ctx-slider" min="1" max="7" step="1" value="3" oninput="updateContextLab()">
+  </div>
+
+  <div style="font-size:12px; font-weight:700; color:var(--ink-soft); margin-bottom:6px;">
+    Active Memory on the Desk:
+  </div>
+
+  <div class="ctx-window-track" id="ctx-slots-container">
+    <!-- Rendered by JS -->
+  </div>
+
+  <div id="ctx-status-msg" style="margin-top:12px; font-family:var(--font-mono); font-size:13px; padding:10px 12px; border-radius:10px; border:2px solid var(--ink); background:#dcf9e8;">
+    <!-- Explanatory note rendered by JS -->
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 5. ATTENTION: THE FLASHLIGHT -->
+<!-- ============================================================ -->
+<h2>attention: the brain's flashlight</h2>
+<p>Words are chameleons. The exact same word can mean completely different things depending on context:</p>
+<ul>
+  <li><i>"I sat on the river <b>bank</b>."</i> (dirt edge of water)</li>
+  <li><i>"I put money in the <b>bank</b>."</i> (financial building)</li>
+</ul>
+<p>How does a computer know which meaning to use? Through <b>Attention</b>!</p>
+<p>Think of Attention as a <b>flashlight</b>. When the model reads a word like <code>"it"</code>, its flashlight shines backward across the whole sentence to illuminate which word <code>"it"</code> is referring to.</p>
+
+<!-- Interactive Attention Flashlight -->
+<div class="gen-lab" id="attention-lab">
+  <div class="gen-lab-head">
+    <div class="gen-lab-title">
+      <span>🔦</span> toy lab: the pronoun flashlight
+    </div>
+    <span class="gen-lab-badge" id="attn-mode-badge">Mode: "tired"</span>
+  </div>
+  <p style="margin-top:0; font-size:14px; color:var(--ink-soft);">
+    Look at the sentence below. Swap the last word between <b>"tired"</b> and <b>"wide"</b> to see who <code>[it]</code> shines its flashlight on!
+  </p>
+
+  <div style="display:flex; gap:10px; margin:10px 0;">
+    <button class="btn yellow" id="btn-tired" onclick="setAttnCondition('tired')">🐾 "...too tired"</button>
+    <button class="btn" id="btn-wide" onclick="setAttnCondition('wide')">🛣️ "...too wide"</button>
+  </div>
+
+  <div class="attn-sentence" id="attn-sentence-container">
+    <!-- Populated by JS -->
+  </div>
+
+  <div style="font-size:12.5px; font-family:var(--font-mono); margin:10px 0 4px; font-weight:700;">
+    Flashlight Spotlight from <code>[it]</code>:
+  </div>
+  <div id="attn-weight-bars">
+    <!-- Populated by JS -->
+  </div>
+
+  <div id="attn-insight-box" style="margin-top:12px; font-size:14px; padding:10px 12px; background:var(--paper); border:2px solid var(--ink); border-radius:10px; line-height:1.5;">
+    <!-- Dynamic insight text -->
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 6. ATTENTION IS ALL YOU NEED: THE PAPER -->
+<!-- ============================================================ -->
+<h2>"attention is all you need" — the paper that changed the world</h2>
+<p>In 2017, a team of Google researchers published a legendary paper titled <b>"Attention Is All You Need"</b>. It introduced the <b>Transformer</b> architecture, which powers ChatGPT, Claude, Gemini, and every modern AI model today.</p>
+
+<h3>why was it so revolutionary?</h3>
+<p>Before 2017, older AI models read text like a first-grader pointing a finger at a book: one word, then the next, then the next. It was painfully slow and couldn't run in parallel across modern computer chips.</p>
+<p>The Transformer tossed that out the window! It said: <b>"Why read sequentially? Let's look at all words at the same time and connect them with Attention!"</b></p>
+
+<div class="callout remember">
+  <b class="label">📚 the youtube library analogy</b><br />
+  Inside the Transformer, every word looks up information using three simple things:
+  <ul>
+    <li><b>Query (Search):</b> What you type into the YouTube search bar (e.g. <em>"how to bake cookies"</em>).</li>
+    <li><b>Key (Title/Tag):</b> The video title on YouTube (e.g. <em>"Grandma's Cookie Recipe"</em>).</li>
+    <li><b>Value (Content):</b> The actual video you watch!</li>
+  </ul>
+  Attention simply checks how well your <b>Query</b> matches each <b>Key</b>, and grabs the <b>Values</b> of the best matches!
+</div>
+
+<!-- ============================================================ -->
+<!-- 7. CHEATSHEET TABLE -->
+<!-- ============================================================ -->
+<h2>the beginner cheatsheet</h2>
+<table>
+  <tr>
+    <th>Term</th>
+    <th>What It Means in Plain English</th>
+    <th>Real-World Example</th>
+  </tr>
+  <tr>
+    <td><b>LLM</b></td>
+    <td>Supercharged autocomplete trained on the internet</td>
+    <td>ChatGPT, Claude, Gemini</td>
+  </tr>
+  <tr>
+    <td><b>Token</b></td>
+    <td>Lego block of text (~3/4 of an English word)</td>
+    <td><code>"apple"</code> = 1 token, <code>"strawberry"</code> = 2 tokens</td>
+  </tr>
+  <tr>
+    <td><b>Transformer</b></td>
+    <td>The AI engine that reads all words in parallel</td>
+    <td>The blueprint created in 2017</td>
+  </tr>
+  <tr>
+    <td><b>Attention</b></td>
+    <td>The flashlight connecting related words</td>
+    <td>Linking <code>"it"</code> to <code>"animal"</code></td>
+  </tr>
+  <tr>
+    <td><b>Context Window</b></td>
+    <td>The size of the AI's temporary desk</td>
+    <td>128,000 tokens of chat history</td>
+  </tr>
+  <tr>
+    <td><b>Temperature</b></td>
+    <td>The creativity / randomness dial</td>
+    <td>0.0 for coding, 0.7 for chatting</td>
+  </tr>
+</table>
+
+<!-- ============================================================ -->
+<!-- 8. QUICK QUIZ -->
+<!-- ============================================================ -->
+<h2>quick check: test what you learned!</h2>
+
+<details class="quiz-box">
+  <summary>1. Does ChatGPT write an entire essay in one single go?</summary>
+  <div style="margin-top:8px; font-size:14.5px; color:var(--ink-soft);">
+    <b>Nope!</b> It writes one token at a time. It predicts the next word piece, slaps it on the end, and loops until it decides to stop.
+  </div>
+</details>
+
+<details class="quiz-box">
+  <summary>2. What temperature would you set if you want an AI to write Python code?</summary>
+  <div style="margin-top:8px; font-size:14.5px; color:var(--ink-soft);">
+    <b>Near zero (e.g. 0.0 or 0.1)!</b> In coding, you want the single most accurate, correct syntax. You don't want the AI being "creative" and making up fake programming commands!
+  </div>
+</details>
+
+<details class="quiz-box">
+  <summary>3. If your conversation gets too long, what happens to the oldest messages?</summary>
+  <div style="margin-top:8px; font-size:14.5px; color:var(--ink-soft);">
+    <b>They get evicted from the context window!</b> Just like papers falling off a small desk, once messages slide out of the buffer, the AI has completely forgotten them.
+  </div>
+</details>
+
+<details class="quiz-box">
+  <summary>4. Why was the 2017 Transformer paper called "Attention Is All You Need"?</summary>
+  <div style="margin-top:8px; font-size:14.5px; color:var(--ink-soft);">
+    <b>Because it proved you don't need slow step-by-step reading (RNNs)!</b> Simply letting words look at each other with Attention was faster, smarter, and trained much better on modern computers.
+  </div>
+</details>
+
+<!-- ============================================================ -->
+<!-- INTERACTIVE SCRIPTS -->
+<!-- ============================================================ -->
+<script>
+(function() {
+  // ── 1. TOKENIZER LAB ──
+  var palette = [
+    { bg: "#fff4c2", text: "#1c1a15" },
+    { bg: "#e3f1ff", text: "#1c1a15" },
+    { bg: "#dcf9e8", text: "#1c1a15" },
+    { bg: "#ffe3ef", text: "#1c1a15" },
+    { bg: "#efe4ff", text: "#1c1a15" },
+    { bg: "#ffedd9", text: "#1c1a15" }
+  ];
+
+  function hashToken(str) {
+    var h = 0;
+    for (var i = 0; i < str.length; i++) {
+      h = (Math.imul(31, h) + str.charCodeAt(i)) | 0;
+    }
+    return Math.abs(h % 90000) + 10000;
+  }
+
+  function bpeSplit(text) {
+    if (!text) return [];
+    var words = text.match(/\S+|\s+/g) || [];
+    var tokens = [];
+    words.forEach(function(chunk) {
+      if (/^\s+$/.test(chunk)) {
+        tokens.push({ text: "␣", id: hashToken("space") });
+      } else if (chunk.length > 5 && Math.random() > 0.3) {
+        var mid = Math.floor(chunk.length / 2);
+        tokens.push({ text: chunk.slice(0, mid), id: hashToken(chunk.slice(0, mid)) });
+        tokens.push({ text: "##" + chunk.slice(mid), id: hashToken(chunk.slice(mid)) });
+      } else {
+        tokens.push({ text: chunk, id: hashToken(chunk) });
+      }
+    });
+    return tokens;
+  }
+
+  window.updateTokenizer = function() {
+    var inp = document.getElementById("tok-input");
+    if (!inp) return;
+    var text = inp.value;
+    
+    var charEl = document.getElementById("tok-char-cnt");
+    var wordEl = document.getElementById("tok-word-cnt");
+    var countEl = document.getElementById("tok-count");
+    if (charEl) charEl.textContent = text.length;
+    var words = text.trim() ? text.trim().split(/\s+/).length : 0;
+    if (wordEl) wordEl.textContent = words;
+
+    var tokens = bpeSplit(text);
+    if (countEl) countEl.textContent = tokens.length;
+
+    var streamEl = document.getElementById("tok-stream-display");
+    if (streamEl) {
+      streamEl.innerHTML = "";
+      tokens.forEach(function(tok, i) {
+        var col = palette[i % palette.length];
+        var chip = document.createElement("span");
+        chip.className = "token-chip";
+        chip.style.backgroundColor = col.bg;
+        chip.style.color = col.text;
+        chip.innerHTML = "<span>" + tok.text + "</span><span class='token-id'>#" + tok.id + "</span>";
+        streamEl.appendChild(chip);
+      });
+    }
+
+    renderNextCandidates(text);
+  };
+
+  window.setTokenPrompt = function(str) {
+    var inp = document.getElementById("tok-input");
+    if (inp) {
+      inp.value = str;
+      window.updateTokenizer();
+    }
+  };
+
+  function getDynamicPredictions(text) {
+    var clean = text.trim().toLowerCase();
+    if (clean.endsWith("attention is all you need")) {
+      return [
+        { word: "to", prob: 0.72 },
+        { word: "for", prob: 0.18 },
+        { word: "and", prob: 0.06 },
+        { word: ".", prob: 0.04 }
+      ];
+    }
+    if (clean.endsWith("attention is all you")) {
+      return [
+        { word: "need", prob: 0.95 },
+        { word: "want", prob: 0.03 },
+        { word: "have", prob: 0.02 }
+      ];
+    }
+    if (clean.endsWith("capital of france is")) {
+      return [
+        { word: "Paris", prob: 0.96 },
+        { word: "a", prob: 0.02 },
+        { word: "known", prob: 0.01 },
+        { word: "Lyon", prob: 0.01 }
+      ];
+    }
+    if (clean.endsWith("transformers are awesome")) {
+      return [
+        { word: "models", prob: 0.45 },
+        { word: "because", prob: 0.32 },
+        { word: "at", prob: 0.15 },
+        { word: "for", prob: 0.08 }
+      ];
+    }
+    if (clean.endsWith("quick brown fox")) {
+      return [
+        { word: "jumps", prob: 0.92 },
+        { word: "ran", prob: 0.05 },
+        { word: "leaps", prob: 0.03 }
+      ];
+    }
+    return [
+      { word: "the", prob: 0.35 },
+      { word: "a", prob: 0.25 },
+      { word: "and", prob: 0.20 },
+      { word: "in", prob: 0.12 },
+      { word: "to", prob: 0.08 }
+    ];
+  }
+
+  function renderNextCandidates(text) {
+    var cEl = document.getElementById("tok-next-candidates");
+    if (!cEl) return;
+    var preds = getDynamicPredictions(text);
+    var html = "";
+    preds.forEach(function(item, idx) {
+      var pct = (item.prob * 100).toFixed(0);
+      var isTop = idx === 0;
+      html += "<div class='prob-item'>" +
+        "<div class='prob-header'>" +
+          "<span class='prob-token'><code>\"" + item.word + "\"</code> " + (isTop ? "<span style='font-size:11px; font-weight:800; color:#2e9e5b;'>★ Most Likely</span>" : "") + "</span>" +
+          "<span>" + pct + "%</span>" +
+        "</div>" +
+        "<div class='prob-bar-track'>" +
+          "<div class='prob-bar-fill" + (isTop ? " highlight" : "") + "' style='width: " + pct + "%;'></div>" +
+        "</div>" +
+      "</div>";
+    });
+    cEl.innerHTML = html;
+  }
+
+  window.appendTopToken = function() {
+    var inp = document.getElementById("tok-input");
+    if (!inp) return;
+    var preds = getDynamicPredictions(inp.value);
+    if (preds.length > 0) {
+      var nextWord = preds[0].word;
+      inp.value = inp.value.trim() + " " + nextWord;
+      window.updateTokenizer();
+    }
+  };
+
+  // ── 2. TEMPERATURE LAB ──
+  var baseWords = [
+    { word: "Paris", score: 4.5 },
+    { word: "Lyon", score: 2.2 },
+    { word: "Marseille", score: 1.8 },
+    { word: "banana", score: 0.4 },
+    { word: "galaxy", score: -0.8 }
+  ];
+
+  window.updateTemperatureLab = function() {
+    var slider = document.getElementById("temp-slider");
+    if (!slider) return;
+    var T = parseFloat(slider.value);
+    
+    var disp = document.getElementById("temp-val-display");
+    if (disp) disp.textContent = T.toFixed(2);
+
+    var badge = document.getElementById("temp-badge");
+    if (badge) {
+      if (T < 0.2) {
+        badge.textContent = "❄️ Robotic & Predictable (T ≈ 0)";
+        badge.style.background = "var(--blue)";
+      } else if (T <= 0.8) {
+        badge.textContent = "✨ The Sweet Spot (T = " + T.toFixed(2) + ")";
+        badge.style.background = "var(--yellow)";
+      } else if (T <= 1.3) {
+        badge.textContent = "🎨 Creative (T = " + T.toFixed(2) + ")";
+        badge.style.background = "var(--mint)";
+      } else {
+        badge.textContent = "🔥 Chaos & Gibberish (T = " + T.toFixed(2) + ")";
+        badge.style.background = "var(--pink)";
+      }
+    }
+
+    var exps = baseWords.map(function(item) {
+      return Math.exp(item.score / T);
+    });
+    var sumExp = exps.reduce(function(a, b) { return a + b; }, 0);
+    var probs = exps.map(function(e) { return e / sumExp; });
+
+    var cont = document.getElementById("temp-bars-container");
+    if (!cont) return;
+    var html = "";
+    baseWords.forEach(function(item, i) {
+      var pct = (probs[i] * 100).toFixed(0);
+      var isChaos = T >= 1.4;
+      var isTop = (i === 0 && T < 1.0);
+      html += "<div class='prob-item'>" +
+        "<div class='prob-header'>" +
+          "<span class='prob-token'><code>\"" + item.word + "\"</code></span>" +
+          "<span style='font-weight:700;'>" + pct + "%</span>" +
+        "</div>" +
+        "<div class='prob-bar-track'>" +
+          "<div class='prob-bar-fill" + (isChaos ? " chaos" : isTop ? " highlight" : "") + "' style='width: " + pct + "%;'></div>" +
+        "</div>" +
+      "</div>";
+    });
+    cont.innerHTML = html;
+  };
+
+  window.setTempPreset = function(val) {
+    var slider = document.getElementById("temp-slider");
+    if (slider) {
+      slider.value = val;
+      window.updateTemperatureLab();
+    }
+  };
+
+  window.sampleFromTemperature = function() {
+    var slider = document.getElementById("temp-slider");
+    if (!slider) return;
+    var T = parseFloat(slider.value);
+    var exps = baseWords.map(function(item) { return Math.exp(item.score / T); });
+    var sumExp = exps.reduce(function(a, b) { return a + b; }, 0);
+    var probs = exps.map(function(e) { return e / sumExp; });
+
+    var rand = Math.random();
+    var cumulative = 0;
+    var chosen = baseWords[0].word;
+    for (var i = 0; i < probs.length; i++) {
+      cumulative += probs[i];
+      if (rand <= cumulative) {
+        chosen = baseWords[i].word;
+        break;
+      }
+    }
+
+    var resBox = document.getElementById("sample-result-box");
+    if (resBox) {
+      resBox.style.display = "block";
+      resBox.innerHTML = "🎲 <b>Rolled:</b> Picked <code>\"" + chosen + "\"</code>! Completed sentence: <em>\"The capital of France is <b>" + chosen + "</b>.\"</em>";
+    }
+  };
+
+  // ── 3. CONTEXT WINDOW LAB ──
+  var fullHistory = [
+    { id: 1, role: "User", text: "Hi! My name is Alice." },
+    { id: 2, role: "AI",   text: "Nice to meet you, Alice!" },
+    { id: 3, role: "User", text: "I love pizza." },
+    { id: 4, role: "AI",   text: "Pizza is awesome!" },
+    { id: 5, role: "User", text: "What is my favorite food?" },
+    { id: 6, role: "AI",   text: "You love pizza!" },
+    { id: 7, role: "User", text: "What is my name?" }
+  ];
+  var MAX_SLOTS = 4;
+
+  window.updateContextLab = function() {
+    var slider = document.getElementById("ctx-slider");
+    if (!slider) return;
+    var turn = parseInt(slider.value, 10);
+    
+    var turnDisp = document.getElementById("ctx-turn-val");
+    if (turnDisp) turnDisp.textContent = "Turn " + turn + " of " + fullHistory.length;
+
+    var container = document.getElementById("ctx-slots-container");
+    if (!container) return;
+
+    var messages = fullHistory.slice(0, turn);
+    var evicted = Math.max(0, messages.length - MAX_SLOTS);
+
+    var html = "";
+    messages.forEach(function(msg, idx) {
+      var isEvicted = idx < evicted;
+      html += "<div class='ctx-token-slot" + (isEvicted ? " evicted" : " in-ctx") + "'>" +
+        "<div class='slot-role'>" + (isEvicted ? "🗑️ Forgotten" : "✓ On Desk") + "</div>" +
+        "<div style='font-size:11px; font-weight:800;'>" + msg.role + "</div>" +
+        "<div style='font-size:11px; font-family:var(--font-mono); margin-top:3px;'>\"" + msg.text + "\"</div>" +
+      "</div>";
+    });
+    container.innerHTML = html;
+
+    var statusEl = document.getElementById("ctx-status-msg");
+    if (statusEl) {
+      if (turn <= 4) {
+        statusEl.style.background = "#dcf9e8";
+        statusEl.style.borderColor = "#2e9e5b";
+        statusEl.innerHTML = "✅ <b>Fits on the desk:</b> Turn 1 (<code>\"My name is Alice\"</code>) is still in memory. The AI knows your name!";
+      } else if (turn <= 6) {
+        statusEl.style.background = "#fff4c2";
+        statusEl.style.borderColor = "#1c1a15";
+        statusEl.innerHTML = "⚠️ <b>Pushed off the desk!</b> Turn 1 fell into the trash. If you ask <em>'What is my name?'</em>, the AI literally doesn't know!";
+      } else {
+        statusEl.style.background = "#ffe3ef";
+        statusEl.style.borderColor = "#d1345b";
+        statusEl.innerHTML = "🚨 <b>Severe amnesia:</b> Both Turn 1 and Turn 2 are gone from memory. The AI only sees the recent messages.";
+      }
+    }
+  };
+
+  // ── 4. ATTENTION LAB ──
+  var currentAttnWord = "tired";
+
+  window.setAttnCondition = function(word) {
+    currentAttnWord = word;
+    var btnT = document.getElementById("btn-tired");
+    var btnW = document.getElementById("btn-wide");
+    var badge = document.getElementById("attn-mode-badge");
+
+    if (word === "tired") {
+      if (btnT) btnT.className = "btn yellow";
+      if (btnW) btnW.className = "btn";
+      if (badge) { badge.textContent = "Mode: \"tired\""; badge.style.background = "var(--yellow)"; }
+    } else {
+      if (btnT) btnT.className = "btn";
+      if (btnW) btnW.className = "btn yellow";
+      if (badge) { badge.textContent = "Mode: \"wide\""; badge.style.background = "var(--mint)"; }
+    }
+    renderAttentionSentence();
+  };
+
+  function renderAttentionSentence() {
+    var cont = document.getElementById("attn-sentence-container");
+    if (!cont) return;
+
+    var tokens = ["The", "animal", "didn't", "cross", "the", "street", "because", "it", "was", "too", currentAttnWord];
+    var isTired = currentAttnWord === "tired";
+
+    var html = "";
+    tokens.forEach(function(tok) {
+      var isTarget = tok === "it";
+      var isFocused = (isTired && tok === "animal") || (!isTired && tok === "street");
+      var isLow = !isTarget && !isFocused && tok !== "because" && tok !== currentAttnWord;
+      
+      var cls = "attn-word";
+      if (isTarget) cls += " target";
+      if (isFocused) cls += " focused";
+      if (isLow) cls += " low";
+
+      html += "<span class='" + cls + "'>" + tok + "</span>";
+    });
+    cont.innerHTML = html;
+
+    var barsCont = document.getElementById("attn-weight-bars");
+    if (barsCont) {
+      var weights = isTired ? [
+        { word: "animal", pct: 86, color: "var(--yellow)" },
+        { word: "street", pct: 8,  color: "#e2d9c3" },
+        { word: "cross",  pct: 6,  color: "#e2d9c3" }
+      ] : [
+        { word: "street", pct: 91, color: "var(--mint)" },
+        { word: "animal", pct: 5,  color: "#e2d9c3" },
+        { word: "cross",  pct: 4,  color: "#e2d9c3" }
+      ];
+
+      var bHtml = "";
+      weights.forEach(function(w) {
+        bHtml += "<div class='prob-item'>" +
+          "<div class='prob-header'>" +
+            "<span>Flashlight connects <code>[it]</code> ➔ <b>\"" + w.word + "\"</b></span>" +
+            "<span><b>" + w.pct + "%</b> attention</span>" +
+          "</div>" +
+          "<div class='prob-bar-track'>" +
+            "<div class='prob-bar-fill' style='width:" + w.pct + "%; background-color:" + w.color + ";'></div>" +
+          "</div>" +
+        "</div>";
+      });
+      barsCont.innerHTML = bHtml;
+    }
+
+    var insight = document.getElementById("attn-insight-box");
+    if (insight) {
+      if (isTired) {
+        insight.innerHTML = "💡 <b>Attention Insight:</b> When the word is <code>\"tired\"</code>, the flashlight shines on <b>the animal</b> (86%). Animals get tired, so <code>[it]</code> = animal!";
+      } else {
+        insight.innerHTML = "💡 <b>Attention Insight:</b> The moment you switch the word to <code>\"wide\"</code>, the flashlight flips to <b>the street</b> (91%). Streets are wide, so <code>[it]</code> = street! No human told it the answer — Attention figured it out automatically!";
+      }
+    }
+  }
+
+  setTimeout(function() {
+    window.updateTokenizer();
+    window.updateTemperatureLab();
+    window.updateContextLab();
+    renderAttentionSentence();
+  }, 100);
+})();
+</script>

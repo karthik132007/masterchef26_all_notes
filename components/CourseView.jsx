@@ -82,7 +82,16 @@ export default function CourseView({ course, day, hasPlan }) {
       const el =
         document.querySelector(".note-body") ||
         document.querySelector(".plan-body");
-      if (!el) return;
+      // Execute any script tags inside the note HTML so interactive widgets work
+      el.querySelectorAll("script").forEach((oldScript) => {
+        const newScript = document.createElement("script");
+        Array.from(oldScript.attributes).forEach((attr) =>
+          newScript.setAttribute(attr.name, attr.value)
+        );
+        newScript.textContent = oldScript.textContent;
+        oldScript.parentNode?.replaceChild(newScript, oldScript);
+      });
+
       import("katex/dist/contrib/auto-render").then((mod) => {
         const render = mod.default;
         try {
