@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { existsSync } from "fs";
 import { join } from "path";
 import CourseView from "../../../../components/CourseView";
@@ -39,6 +39,10 @@ export default async function DayPage({ params }) {
   const { courseId, day } = await params;
   const course = getCourse(courseId);
   if (!course) notFound();
+
+  if (courseId === "genai-agentic-ai" && day === "day-1") {
+    redirect("/courses/genai-agentic-ai/foundations");
+  }
 
   const hasPlan = existsSync(planPath(course.id));
   let slug = day;

@@ -6,7 +6,7 @@ Day-wise + concept-wise class notes. **Next.js** site, **plain HTML** notes, no 
 
 | course | mode | url | notes folder |
 |---|---|---|---|
-| GenAI & Agentic AI | days | `/courses/genai-agentic-ai/day-N` | `public/notes/genai-agentic-ai/` |
+| GenAI & Agentic AI | concepts | `/courses/genai-agentic-ai/<slug>` | `public/notes/genai-agentic-ai/` |
 | Spring Boot | days | `/courses/spring-boot/day-N` | `public/notes/spring-boot/` |
 | Networking | concepts | `/courses/networking/<slug>` | `public/notes/networking/` |
 | Operating Systems | concepts | `/courses/os/<slug>` | `public/notes/os/` |

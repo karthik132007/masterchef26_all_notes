@@ -1,0 +1,533 @@
+<style>
+/* ── GenAI Topic 02: Attention Mechanism (Beginner Edition - No Formulas) ── */
+.attn-fig { margin: 16px auto 10px; max-width: 640px; text-align: center; }
+.attn-fig svg { width: 100%; height: auto; display: block; }
+.attn-fig figcaption { font-family: var(--font-mono); font-size: 12px; color: var(--ink-soft); margin-top: 6px; line-height: 1.5; }
+.note-body figure.attn-fig { animation: attn-rise .6s ease both; animation-timeline: view(); animation-range: entry 0% cover 22%; }
+@keyframes attn-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+.attn-dash { stroke-dasharray: 6 6; animation: attn-dash-anim 1.2s linear infinite; }
+@keyframes attn-dash-anim { to { stroke-dashoffset: -12; } }
+@media (prefers-reduced-motion: reduce) { .attn-dash { animation: none; } .note-body figure.attn-fig { animation: none; } }
+
+/* Decluttered Lab Card */
+.lab-card {
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: var(--card-shadow);
+  padding: 16px 18px;
+  margin: 20px 0;
+}
+.lab-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-bottom: 1.5px dashed #d5cdbd;
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+}
+.lab-title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+.lab-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 9px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: var(--yellow);
+}
+
+/* Sentence Display */
+.sentence-box {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  font-size: 17px;
+  font-family: var(--font-display);
+  padding: 12px 14px;
+  background: var(--paper);
+  border: 1.5px solid var(--ink);
+  border-radius: 10px;
+  margin: 10px 0;
+}
+.word-pill {
+  padding: 3px 8px;
+  border: 1.5px solid transparent;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+.word-pill.target {
+  background: var(--ink);
+  color: #fff;
+  border-color: var(--ink);
+  box-shadow: 2px 2px 0 var(--yellow);
+}
+.word-pill.focused {
+  background: var(--yellow);
+  border-color: var(--ink);
+  box-shadow: 1.5px 1.5px 0 var(--ink);
+  transform: scale(1.05);
+}
+.word-pill.dimmed {
+  opacity: 0.45;
+}
+
+/* Attention probability bars */
+.attn-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 10px 0;
+}
+.attn-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.attn-meta {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+.attn-track {
+  height: 18px;
+  background: #f4efe1;
+  border: 1.5px solid var(--ink);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.attn-fill {
+  height: 100%;
+  border-right: 1.5px solid var(--ink);
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Friendly QKV cards */
+.analogy-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  margin: 14px 0;
+}
+.analogy-card {
+  border: 1.5px solid var(--ink);
+  border-radius: 10px;
+  background: #fff;
+  padding: 14px;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+.analogy-tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border: 1.5px solid var(--ink);
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+/* Glasses / Heads Grid */
+.heads-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin: 12px 0;
+}
+.head-card {
+  border: 1.5px solid var(--ink);
+  border-radius: 8px;
+  padding: 10px;
+  background: var(--paper);
+  text-align: center;
+}
+</style>
+
+<p class="kicker">no scary math, no formulas — just the simple secret of how AI connects words.</p>
+
+<h2>the 30-second idea</h2>
+<p><b>Words are chameleons. By themselves, they don't have a single fixed meaning.</b></p>
+<p>Look at the word <b>"bank"</b> in these two sentences:</p>
+<ul>
+  <li><i>"I sat on the grassy <b>bank</b> of the river."</i> $\to$ edge of the water.</li>
+  <li><i>"I deposited money at the <b>bank</b>."</i> $\to$ financial building.</li>
+</ul>
+<p>If you look at the word <code>"bank"</code> alone, you have no idea what it means! You need to look at the words around it (like <i>"river"</i> or <i>"money"</i>).</p>
+<p><b>Attention is the AI's mental flashlight.</b> Whenever the AI reads a word, it shines a flashlight across the rest of the sentence to see which other words it should care about!</p>
+
+<div class="callout remember">
+  <b class="label">🧷 what is attention in plain english?</b><br />
+  <b>Attention = "Which words should I look at to understand this word?"</b><br />
+  When reading <i>"bank"</i>, the flashlight illuminates <i>"river"</i>. Now the AI knows you're talking about water, not ATMs!
+</div>
+
+<!-- ============================================================ -->
+<!-- 1. HOW HUMANS READ VS HOW OLD COMPUTERS READ -->
+<!-- ============================================================ -->
+<h2>how old AI read text vs how modern AI reads text</h2>
+<p>Before 2017, older computer programs were really bad at understanding long sentences. Here is why:</p>
+
+<figure class="attn-fig">
+<svg viewBox="0 0 640 220" role="img" aria-label="Reading through a straw vs seeing the whole sentence">
+  <!-- Left Side: Old AI -->
+  <rect x="10" y="15" width="295" height="190" rx="10" fill="#fffdfa" stroke="#1c1a15" stroke-width="2"></rect>
+  <text x="157" y="38" text-anchor="middle" font-size="12" font-weight="800">THE OLD WAY: Reading Through a Straw</text>
+  
+  <rect x="25" y="60" width="52" height="42" rx="6" fill="#ffe3ef" stroke="#1c1a15" stroke-width="1.8"></rect>
+  <text x="51" y="85" text-anchor="middle" font-size="10.5" font-family="monospace">Word 1</text>
+  <line x1="77" y1="81" x2="95" y2="81" stroke="#1c1a15" stroke-width="2" marker-end="url(#arr-b)"></line>
+
+  <rect x="97" y="60" width="52" height="42" rx="6" fill="#ffe3ef" stroke="#1c1a15" stroke-width="1.8"></rect>
+  <text x="123" y="85" text-anchor="middle" font-size="10.5" font-family="monospace">Word 2</text>
+  <line x1="149" y1="81" x2="167" y2="81" stroke="#1c1a15" stroke-width="2" marker-end="url(#arr-b)"></line>
+
+  <rect x="169" y="60" width="52" height="42" rx="6" fill="#ffe3ef" stroke="#1c1a15" stroke-width="1.8"></rect>
+  <text x="195" y="85" text-anchor="middle" font-size="10.5" font-family="monospace">Word 3</text>
+  <line x1="221" y1="81" x2="239" y2="81" stroke="#1c1a15" stroke-width="2" marker-end="url(#arr-b)"></line>
+
+  <rect x="241" y="60" width="52" height="42" rx="6" fill="#eae5d8" stroke="#1c1a15" stroke-width="1.8" stroke-dasharray="3 3"></rect>
+  <text x="267" y="85" text-anchor="middle" font-size="10" font-family="monospace">Word 50</text>
+
+  <text x="157" y="132" text-anchor="middle" font-size="11" fill="#d1345b" font-weight="700">❌ One word at a time</text>
+  <text x="157" y="152" text-anchor="middle" font-size="10.5" fill="#575046">Painfully slow</text>
+  <text x="157" y="172" text-anchor="middle" font-size="10.5" fill="#575046">Forgot word 1 by the time it hit word 50!</text>
+
+  <!-- Right Side: Attention -->
+  <rect x="335" y="15" width="295" height="190" rx="10" fill="#f6fff9" stroke="#1c1a15" stroke-width="2"></rect>
+  <text x="482" y="38" text-anchor="middle" font-size="12" font-weight="800">THE ATTENTION WAY: Seeing Everything</text>
+
+  <rect x="355" y="60" width="56" height="42" rx="6" fill="#dcf9e8" stroke="#1c1a15" stroke-width="1.8"></rect>
+  <text x="383" y="85" text-anchor="middle" font-size="10.5" font-family="monospace">Word 1</text>
+
+  <rect x="425" y="60" width="56" height="42" rx="6" fill="#dcf9e8" stroke="#1c1a15" stroke-width="1.8"></rect>
+  <text x="453" y="85" text-anchor="middle" font-size="10.5" font-family="monospace">Word 2</text>
+
+  <rect x="495" y="60" width="56" height="42" rx="6" fill="#dcf9e8" stroke="#1c1a15" stroke-width="1.8"></rect>
+  <text x="523" y="85" text-anchor="middle" font-size="10.5" font-family="monospace">Word 3</text>
+
+  <rect x="565" y="60" width="56" height="42" rx="6" fill="#dcf9e8" stroke="#1c1a15" stroke-width="1.8"></rect>
+  <text x="593" y="85" text-anchor="middle" font-size="10.5" font-family="monospace">Word 50</text>
+
+  <!-- Attention Arcs -->
+  <path d="M 383 102 C 410 128, 460 128, 523 102" fill="none" stroke="#2e9e5b" stroke-width="2.2" class="attn-dash"></path>
+  <path d="M 453 102 C 480 124, 540 124, 593 102" fill="none" stroke="#2e9e5b" stroke-width="2.2" class="attn-dash"></path>
+
+  <text x="482" y="148" text-anchor="middle" font-size="11" fill="#197a43" font-weight="700">✓ Looks at all words at the same time</text>
+  <text x="482" y="168" text-anchor="middle" font-size="10.5" fill="#575046">Instant connection between any words</text>
+  <text x="482" y="188" text-anchor="middle" font-size="10.5" fill="#575046">Runs super fast on computer chips!</text>
+
+  <defs>
+    <marker id="arr-b" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1c1a15"></path>
+    </marker>
+  </defs>
+</svg>
+<figcaption>older AI read word-by-word like pointing a finger; Attention sees the whole page and connects matching words</figcaption>
+</figure>
+
+<!-- ============================================================ -->
+<!-- 2. INTERACTIVE TOY LAB: THE PRONOUN FLASHLIGHT -->
+<!-- ============================================================ -->
+<h2>toy lab: watch the flashlight in action!</h2>
+<p>Here is a famous riddle that used to confuse computers:</p>
+<p style="text-align:center; font-family:var(--font-mono); font-size:15px; font-weight:700; background:var(--paper); padding:10px 14px; border:1.5px solid var(--ink); border-radius:8px;">
+  "The animal didn't cross the street because <u>it</u> was too [tired / wide]."
+</p>
+<p>Who is <b>"it"</b>? Is "it" the animal, or is "it" the street?</p>
+<p>Try clicking the buttons below to see who <code>[it]</code> shines its flashlight on:</p>
+
+<div class="lab-card" id="attn-lab">
+  <div class="lab-head">
+    <h3 class="lab-title"><span>🔦</span> Interactive Flashlight</h3>
+    <span class="lab-badge" id="attn-mode-badge">Condition: "tired"</span>
+  </div>
+  <p style="margin-top:0; font-size:13.5px; color:var(--ink-soft);">
+    Swap the ending of the sentence and watch where the flashlight points:
+  </p>
+
+  <div style="display:flex; gap:8px; margin:8px 0 12px; flex-wrap:wrap;">
+    <button class="btn yellow" id="btn-tired" style="padding:5px 12px; font-size:13px;" onclick="setAttnCondition('tired')">
+      🐾 "...too tired"
+    </button>
+    <button class="btn" id="btn-wide" style="padding:5px 12px; font-size:13px;" onclick="setAttnCondition('wide')">
+      🛣️ "...too wide"
+    </button>
+    <button class="btn" id="btn-fast" style="padding:5px 12px; font-size:13px;" onclick="setAttnCondition('fast')">
+      ⚡ "...too fast"
+    </button>
+  </div>
+
+  <div class="sentence-box" id="attn-sentence-container">
+    <!-- Populated by JS -->
+  </div>
+
+  <div style="font-size:11.5px; font-family:var(--font-mono); font-weight:700; text-transform:uppercase; margin:12px 0 6px; color:var(--ink-soft);">
+    Where <code>[it]</code> is shining its flashlight:
+  </div>
+  <div class="attn-bars" id="attn-weight-bars">
+    <!-- Populated by JS -->
+  </div>
+
+  <div id="attn-insight-box" style="margin-top:10px; font-size:13.5px; padding:10px 12px; background:var(--paper); border:1.5px solid var(--ink); border-radius:8px; line-height:1.5;">
+    <!-- Populated by JS -->
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 3. QUERY, KEY, VALUE (THE YOUTUBE ANALOGY) -->
+<!-- ============================================================ -->
+<h2>how it works: the youtube library analogy</h2>
+<p>Inside the AI, Attention is organized just like a <b>search engine (like YouTube or Google)</b>. You don't need any math to understand this!</p>
+<p>Every single word has three simple roles:</p>
+
+<div class="analogy-grid">
+  <div class="analogy-card">
+    <span class="analogy-tag" style="background:#fff4c2;">1. Query (The Search)</span>
+    <p style="margin:0; font-size:13.5px;"><b>What you type in the search bar.</b></p>
+    <p style="margin:6px 0 0; font-size:13px; color:var(--ink-soft);">
+      The word <code>"it"</code> asks: <i>"Hey, what living creature or object am I talking about?"</i>
+    </p>
+  </div>
+
+  <div class="analogy-card">
+    <span class="analogy-tag" style="background:#e3f1ff;">2. Key (The Video Title)</span>
+    <p style="margin:0; font-size:13.5px;"><b>The label or tags on every video.</b></p>
+    <p style="margin:6px 0 0; font-size:13px; color:var(--ink-soft);">
+      Every other word holds up a tag: <code>"animal"</code> says <i>"I can walk and get tired!"</i>, while <code>"street"</code> says <i>"I am made of asphalt and wide!"</i>
+    </p>
+  </div>
+
+  <div class="analogy-card">
+    <span class="analogy-tag" style="background:#dcf9e8;">3. Value (The Video Itself)</span>
+    <p style="margin:0; font-size:13.5px;"><b>The actual content you watch.</b></p>
+    <p style="margin:6px 0 0; font-size:13px; color:var(--ink-soft);">
+      Once your Query matches the best Key, you grab that word's meaning and attach it to <code>"it"</code>!
+    </p>
+  </div>
+</div>
+
+<div class="callout remember">
+  <b class="label">💡 the 3-step search</b><br />
+  <ol style="margin:4px 0 0; padding-left:18px;">
+    <li><b>Word A asks a question</b> (Query).</li>
+    <li><b>All other words show their tags</b> (Keys).</li>
+    <li><b>The best match shares its meaning</b> (Value).</li>
+  </ol>
+  That is the entire secret. No calculus, no scary equations!
+</div>
+
+<!-- ============================================================ -->
+<!-- 4. MULTI-HEAD ATTENTION: WEARING MULTIPLE GLASSES -->
+<!-- ============================================================ -->
+<h2>multi-head attention: wearing multiple pairs of glasses</h2>
+<p>When you read a sentence, you don't just ask one single question at a time. Your brain is doing multiple things at once!</p>
+<p>To do this, the AI wears <b>multiple pairs of glasses (called "Attention Heads")</b>:</p>
+
+<div class="heads-grid">
+  <div class="head-card">
+    <b>👓 Glass 1: Grammar</b>
+    <div style="font-size:12px; color:var(--ink-soft); margin-top:4px;">Matches verbs to subjects ("who is doing the action?")</div>
+  </div>
+  <div class="head-card">
+    <b>👓 Glass 2: Pronouns</b>
+    <div style="font-size:12px; color:var(--ink-soft); margin-top:4px;">Links words like "he", "she", or "it" to the right person or animal.</div>
+  </div>
+  <div class="head-card">
+    <b>👓 Glass 3: Description</b>
+    <div style="font-size:12px; color:var(--ink-soft); margin-top:4px;">Connects adjectives to nouns (like "golden" $\to$ "retriever").</div>
+  </div>
+  <div class="head-card">
+    <b>👓 Glass 4: Negation</b>
+    <div style="font-size:12px; color:var(--ink-soft); margin-top:4px;">Spots flip words like "not", "never", or "didn't".</div>
+  </div>
+</div>
+
+<p>Instead of relying on just one flashlight, the AI shines <b>8, 16, or 32 flashlights simultaneously</b>. That is why modern models understand puns, jokes, sarcasm, and complex grammar so well!</p>
+
+<!-- ============================================================ -->
+<!-- 5. "ATTENTION IS ALL YOU NEED" -->
+<!-- ============================================================ -->
+<h2>"attention is all you need" — the paper that started it all</h2>
+<p>In 2017, eight researchers at Google published a paper titled <b>"Attention Is All You Need"</b>.</p>
+<p>The name sounded almost cheeky at the time: computer scientists had spent 30 years building super complicated neural networks with all kinds of complicated gears.</p>
+<p>Google's researchers said: <i>"Throw all those complicated gears away. Just give the computer this flashlight mechanism, and it will read everything in parallel."</i></p>
+<p>That paper introduced the <b>Transformer</b> architecture — the exact blueprint that powers ChatGPT, Claude, Gemini, and every modern AI today!</p>
+
+<!-- ============================================================ -->
+<!-- CHEATSHEET -->
+<!-- ============================================================ -->
+<h2>the beginner cheatsheet</h2>
+<table>
+  <tr>
+    <th>Term</th>
+    <th>What It Means in Everyday Life</th>
+  </tr>
+  <tr>
+    <td><b>Attention</b></td>
+    <td>The mental flashlight that connects related words together.</td>
+  </tr>
+  <tr>
+    <td><b>Query</b></td>
+    <td>The question a word is asking (e.g. <i>"Who does 'it' refer to?"</i>).</td>
+  </tr>
+  <tr>
+    <td><b>Key</b></td>
+    <td>The nametag on every word advertising what it is.</td>
+  </tr>
+  <tr>
+    <td><b>Value</b></td>
+    <td>The actual meaning or information passed over when there's a match.</td>
+  </tr>
+  <tr>
+    <td><b>Multi-Head Attention</b></td>
+    <td>Having multiple flashlights on at once to track grammar, pronouns, and tone all together.</td>
+  </tr>
+  <tr>
+    <td><b>Transformer</b></td>
+    <td>The modern AI engine built entirely around Attention.</td>
+  </tr>
+</table>
+
+<!-- ============================================================ -->
+<!-- QUICK QUIZ -->
+<!-- ============================================================ -->
+<h2>quick check: test yourself!</h2>
+
+<details class="callout try" style="margin:10px 0; cursor:pointer;">
+  <summary style="font-weight:700;">1. Why can't an AI just look up words in a dictionary one by one?</summary>
+  <div style="margin-top:8px; font-size:14px; color:var(--ink-soft);">
+    Because many words change meaning based on context! Words like "bank", "apple", or "bat" mean totally different things depending on which words surround them.
+  </div>
+</details>
+
+<details class="callout try" style="margin:10px 0; cursor:pointer;">
+  <summary style="font-weight:700;">2. In the sentence <i>"The dog chased the cat because it was scared"</i>, what does Attention do?</summary>
+  <div style="margin-top:8px; font-size:14px; color:var(--ink-soft);">
+    The word <code>"it"</code> shines its flashlight on <code>"cat"</code>. Because cats get scared when chased by dogs, Attention connects <code>"it"</code> to <code>"cat"</code>!
+  </div>
+</details>
+
+<details class="callout try" style="margin:10px 0; cursor:pointer;">
+  <summary style="font-weight:700;">3. In the YouTube search analogy, what are Query, Key, and Value?</summary>
+  <div style="margin-top:8px; font-size:14px; color:var(--ink-soft);">
+    <b>Query</b> is the search phrase you type, <b>Key</b> is the video title/tag on YouTube, and <b>Value</b> is the actual video you get to watch!
+  </div>
+</details>
+
+<!-- Next topic banner -->
+<div style="margin:28px 0 14px; padding:16px 18px; border:2px solid var(--ink); border-radius:12px; background:var(--paper); box-shadow:var(--card-shadow); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+  <div>
+    <div style="font-size:12px; font-family:var(--font-mono); font-weight:700; color:var(--ink-soft);">UP NEXT · TOPIC 03</div>
+    <div style="font-size:17px; font-weight:800; font-family:var(--font-display); margin-top:2px;">Working with LLMs: Prompting &amp; APIs</div>
+  </div>
+  <a class="btn yellow" href="/courses/genai-agentic-ai/working-with-llms">Go to Topic 3 Notes →</a>
+</div>
+
+<!-- ============================================================ -->
+<!-- INTERACTIVE SCRIPT -->
+<!-- ============================================================ -->
+<script>
+(function() {
+  var currentCondition = "tired";
+
+  window.setAttnCondition = function(word) {
+    currentCondition = word;
+    var btnT = document.getElementById("btn-tired");
+    var btnW = document.getElementById("btn-wide");
+    var btnF = document.getElementById("btn-fast");
+    var badge = document.getElementById("attn-mode-badge");
+
+    if (btnT) btnT.className = word === "tired" ? "btn yellow" : "btn";
+    if (btnW) btnW.className = word === "wide" ? "btn yellow" : "btn";
+    if (btnF) btnF.className = word === "fast" ? "btn yellow" : "btn";
+
+    if (badge) {
+      badge.textContent = "Condition: \"" + word + "\"";
+      badge.style.background = word === "tired" ? "var(--yellow)" : word === "wide" ? "var(--mint)" : "var(--pink)";
+    }
+    renderAttention();
+  };
+
+  function renderAttention() {
+    var cont = document.getElementById("attn-sentence-container");
+    if (!cont) return;
+
+    var tokens = ["The", "animal", "didn't", "cross", "the", "street", "because", "it", "was", "too", currentCondition];
+    var isTired = currentCondition === "tired";
+    var isWide = currentCondition === "wide";
+    var isFast = currentCondition === "fast";
+
+    var html = "";
+    tokens.forEach(function(tok) {
+      var isTarget = tok === "it";
+      var isFocused = (isTired && tok === "animal") || (isWide && tok === "street") || (isFast && tok === "animal");
+      var isLow = !isTarget && !isFocused && tok !== "because" && tok !== currentCondition;
+
+      var cls = "word-pill";
+      if (isTarget) cls += " target";
+      if (isFocused) cls += " focused";
+      if (isLow) cls += " dimmed";
+
+      html += "<span class='" + cls + "'>" + tok + "</span>";
+    });
+    cont.innerHTML = html;
+
+    var barsCont = document.getElementById("attn-weight-bars");
+    if (barsCont) {
+      var weights = isTired ? [
+        { word: "animal", pct: 86, color: "var(--yellow)" },
+        { word: "street", pct: 8,  color: "#e2dcce" },
+        { word: "cross",  pct: 6,  color: "#e2dcce" }
+      ] : isWide ? [
+        { word: "street", pct: 91, color: "var(--mint)" },
+        { word: "animal", pct: 5,  color: "#e2dcce" },
+        { word: "cross",  pct: 4,  color: "#e2dcce" }
+      ] : [
+        { word: "animal", pct: 82, color: "var(--pink)" },
+        { word: "street", pct: 11, color: "#e2dcce" },
+        { word: "cross",  pct: 7,  color: "#e2dcce" }
+      ];
+
+      var bHtml = "";
+      weights.forEach(function(w) {
+        bHtml += "<div class='attn-row'>" +
+          "<div class='attn-meta'>" +
+            "<span>Flashlight connects <code>[it]</code> ➔ <b>\"" + w.word + "\"</b></span>" +
+            "<b>" + w.pct + "% spotlight</b>" +
+          "</div>" +
+          "<div class='attn-track'>" +
+            "<div class='attn-fill' style='width:" + w.pct + "%; background-color:" + w.color + ";'></div>" +
+          "</div>" +
+        "</div>";
+      });
+      barsCont.innerHTML = bHtml;
+    }
+
+    var insight = document.getElementById("attn-insight-box");
+    if (insight) {
+      if (isTired) {
+        insight.innerHTML = "💡 <b>Flashlight Insight:</b> When the word is <code>\"tired\"</code>, the flashlight points directly at <b>the animal</b> (86%). Animals get tired, so <code>[it]</code> = animal!";
+      } else if (isWide) {
+        insight.innerHTML = "💡 <b>Flashlight Insight:</b> The moment you switch the word to <code>\"wide\"</code>, the flashlight instantly flips to <b>the street</b> (91%). Streets are wide, so <code>[it]</code> = street! The AI figured it out completely from context!";
+      } else {
+        insight.innerHTML = "💡 <b>Flashlight Insight:</b> For <code>\"fast\"</code>, the flashlight shines back on <b>the animal</b> (82%). Running fast is something the living animal does!";
+      }
+    }
+  }
+
+  setTimeout(function() {
+    renderAttention();
+  }, 80);
+})();
+</script>

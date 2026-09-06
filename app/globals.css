@@ -1,6 +1,13 @@
 /* masterchef26 notes — funky student notebook theme */
-@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;600;700&family=Caveat:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=swap');
 @import 'katex/dist/katex.min.css';
+@import '@fontsource/maple-mono/400.css';
+@import '@fontsource/maple-mono/500.css';
+@import '@fontsource/maple-mono/600.css';
+@import '@fontsource/maple-mono/700.css';
+@import '@fontsource/maple-mono/800.css';
+@import '@fontsource/maple-mono/400-italic.css';
+@import '@fontsource/maple-mono/700-italic.css';
 
 :root {
   --paper: #fff9ec;
@@ -16,10 +23,10 @@
   --card-shadow: 6px 6px 0 var(--ink);
   --card-shadow-sm: 4px 4px 0 var(--ink);
   --radius: 18px;
-  --font-display: 'Archivo Black', system-ui, sans-serif;
-  --font-body: 'Space Grotesk', system-ui, sans-serif;
+  --font-display: 'Maple Mono', monospace;
+  --font-body: 'Maple Mono', monospace;
   --font-hand: 'Caveat', cursive;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-mono: 'Maple Mono', monospace;
 }
 
 * { box-sizing: border-box; }
