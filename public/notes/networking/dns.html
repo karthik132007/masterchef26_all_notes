@@ -3,6 +3,10 @@
 .dn-fig{margin:12px auto 6px;max-width:600px;text-align:center}
 .dn-fig svg{width:100%;height:auto;display:block}
 .dn-fig figcaption{font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);margin-top:2px;line-height:1.55}
+/* figures glide in on scroll (ignored where unsupported — content just shows) */
+.note-body figure.dn-fig{animation:dn-rise .7s ease both;animation-timeline:view();animation-range:entry 0% cover 25%}
+@keyframes dn-rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.note-body figure.dn-fig{animation:none}}
 </style>
 
 <p class="kicker">you type names, machines talk numbers — DNS translates.</p>
@@ -57,11 +61,11 @@
   <rect x="448" y="258" width="142" height="72" rx="10" fill="#dcf9e8" stroke="#1c1a15" stroke-width="2.5"/>
   <text x="519" y="292" text-anchor="middle" font-size="26">🗄️</text>
   <text x="519" y="314" text-anchor="middle" font-size="11" font-weight="800" fill="#1c1a15">Authoritative ✓</text>
-  <line x1="190" y1="52" x2="262" y2="150" stroke="#2e9e5b" stroke-width="3" marker-end="url(#dn-g)"/>
+  <line id="dn-j2" x1="190" y1="52" x2="262" y2="150" stroke="#2e9e5b" stroke-width="3" marker-end="url(#dn-g)"/>
   <circle cx="222" cy="96" r="11" fill="#2e9e5b" stroke="#1c1a15" stroke-width="2"/>
   <text x="222" y="101" text-anchor="middle" font-size="12" font-weight="800" fill="#fff">2</text>
   <line x1="362" y1="158" x2="444" y2="66" stroke="#2e9e5b" stroke-width="2.5" marker-end="url(#dn-g)"/>
-  <line x1="444" y1="82" x2="366" y2="172" stroke="#4d96ff" stroke-width="2.5" marker-end="url(#dn-b)"/>
+  <line id="dn-j3" x1="444" y1="82" x2="366" y2="172" stroke="#4d96ff" stroke-width="2.5" marker-end="url(#dn-b)"/>
   <circle cx="405" cy="127" r="11" fill="#2e9e5b" stroke="#1c1a15" stroke-width="2"/>
   <text x="405" y="132" text-anchor="middle" font-size="12" font-weight="800" fill="#fff">3</text>
   <text x="405" y="112" text-anchor="middle" font-size="10" font-family="monospace" fill="#575046">root → try .com</text>
@@ -71,11 +75,15 @@
   <text x="407" y="207" text-anchor="middle" font-size="12" font-weight="800" fill="#fff">4</text>
   <text x="407" y="232" text-anchor="middle" font-size="10" font-family="monospace" fill="#575046">TLD → try owner</text>
   <line x1="356" y1="264" x2="444" y2="282" stroke="#2e9e5b" stroke-width="2.5" marker-end="url(#dn-g)"/>
-  <line x1="444" y1="298" x2="356" y2="278" stroke="#4d96ff" stroke-width="3" marker-end="url(#dn-b)"/>
+  <line id="dn-j5" x1="444" y1="298" x2="356" y2="278" stroke="#4d96ff" stroke-width="3" marker-end="url(#dn-b)"/>
   <circle cx="400" cy="290" r="11" fill="#2e9e5b" stroke="#1c1a15" stroke-width="2"/>
   <text x="400" y="295" text-anchor="middle" font-size="12" font-weight="800" fill="#fff">5</text>
   <text x="312" y="318" text-anchor="middle" font-size="10.5" font-family="monospace" font-weight="700" fill="#1c1a15">165.173.187.32 ✓</text>
-  <line x1="248" y1="232" x2="140" y2="196" stroke="#4d96ff" stroke-width="3" marker-end="url(#dn-b)"/>
+  <line id="dn-j6" x1="248" y1="232" x2="140" y2="196" stroke="#4d96ff" stroke-width="3" marker-end="url(#dn-b)"/>
+  <circle r="6" fill="#2e9e5b" stroke="#1c1a15" stroke-width="2"><animateMotion dur="12s" repeatCount="indefinite" calcMode="linear" keyPoints="0;1;1" keyTimes="0;0.08;1"><mpath href="#dn-j2"/></animateMotion></circle>
+  <circle r="6" fill="#4d96ff" stroke="#1c1a15" stroke-width="2"><animateMotion dur="12s" repeatCount="indefinite" calcMode="linear" keyPoints="0;0;1;1" keyTimes="0;0.22;0.32;1"><mpath href="#dn-j3"/></animateMotion></circle>
+  <circle r="6" fill="#4d96ff" stroke="#1c1a15" stroke-width="2"><animateMotion dur="12s" repeatCount="indefinite" calcMode="linear" keyPoints="0;0;1;1" keyTimes="0;0.5;0.62;1"><mpath href="#dn-j5"/></animateMotion></circle>
+  <circle r="6" fill="#4d96ff" stroke="#1c1a15" stroke-width="2"><animateMotion dur="12s" repeatCount="indefinite" calcMode="linear" keyPoints="0;0;1;1" keyTimes="0;0.72;0.85;1"><mpath href="#dn-j6"/></animateMotion></circle>
   <circle cx="194" cy="214" r="11" fill="#4d96ff" stroke="#1c1a15" stroke-width="2"/>
   <text x="194" y="219" text-anchor="middle" font-size="12" font-weight="800" fill="#fff">6</text>
   <text x="180" y="244" font-size="10.5" font-family="monospace" font-weight="700" fill="#1c1a15">165.173.187.32</text>

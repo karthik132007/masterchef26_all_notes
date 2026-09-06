@@ -3,6 +3,10 @@
 .tc-fig{margin:12px auto 6px;max-width:600px;text-align:center}
 .tc-fig svg{width:100%;height:auto;display:block}
 .tc-fig figcaption{font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);margin-top:2px;line-height:1.55}
+/* figures glide in on scroll (ignored where unsupported — content just shows) */
+.note-body figure.tc-fig{animation:tc-rise .7s ease both;animation-timeline:view();animation-range:entry 0% cover 25%}
+@keyframes tc-rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.note-body figure.tc-fig{animation:none}}
 </style>
 
 <p class="kicker">a phone call, not a postcard — hello first, then talk.</p>
@@ -26,20 +30,32 @@
   <text x="460" y="58" text-anchor="middle" font-size="12" font-weight="800" fill="#1c1a15">Server</text>
   <line x1="140" y1="66" x2="140" y2="252" stroke="#b9b09a" stroke-width="2"/>
   <line x1="460" y1="66" x2="460" y2="252" stroke="#b9b09a" stroke-width="2"/>
-  <circle cx="140" cy="100" r="13" fill="#ffe14d" stroke="#1c1a15" stroke-width="2"/>
-  <text x="140" y="105" text-anchor="middle" font-size="12" font-weight="800" fill="#1c1a15">1</text>
-  <line x1="155" y1="100" x2="445" y2="100" stroke="#1c1a15" stroke-width="2.5" marker-end="url(#tc-h)"/>
-  <text x="300" y="90" text-anchor="middle" font-size="11.5" font-family="monospace" font-weight="700" fill="#1c1a15">SYN · seq = x</text>
-  <circle cx="460" cy="160" r="13" fill="#ffe14d" stroke="#1c1a15" stroke-width="2"/>
-  <text x="460" y="165" text-anchor="middle" font-size="12" font-weight="800" fill="#1c1a15">2</text>
-  <line x1="445" y1="160" x2="155" y2="160" stroke="#1c1a15" stroke-width="2.5" marker-end="url(#tc-h)"/>
-  <text x="300" y="150" text-anchor="middle" font-size="11.5" font-family="monospace" font-weight="700" fill="#1c1a15">SYN-ACK · seq = y, ack = x+1</text>
-  <circle cx="140" cy="220" r="13" fill="#2e9e5b" stroke="#1c1a15" stroke-width="2"/>
-  <text x="140" y="225" text-anchor="middle" font-size="12" font-weight="800" fill="#fff">3</text>
-  <line x1="155" y1="220" x2="445" y2="220" stroke="#2e9e5b" stroke-width="3" marker-end="url(#tc-h)"/>
-  <text x="300" y="210" text-anchor="middle" font-size="11.5" font-family="monospace" font-weight="700" fill="#1c1a15">ACK · ack = y+1</text>
-  <line x1="140" y1="262" x2="460" y2="262" stroke="#2e9e5b" stroke-width="2" stroke-dasharray="7 6"/>
-  <text x="300" y="292" text-anchor="middle" font-size="12" font-weight="800" fill="#2e9e5b">CONNECTED — talk freely, everything numbered ✓</text>
+  <g opacity="0">
+    <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.06;0.9;1" dur="12s" begin="0s" repeatCount="indefinite"/>
+    <circle cx="140" cy="100" r="13" fill="#ffe14d" stroke="#1c1a15" stroke-width="2"/>
+    <text x="140" y="105" text-anchor="middle" font-size="12" font-weight="800" fill="#1c1a15">1</text>
+    <line x1="155" y1="100" x2="445" y2="100" stroke="#1c1a15" stroke-width="2.5" marker-end="url(#tc-h)"/>
+    <text x="300" y="90" text-anchor="middle" font-size="11.5" font-family="monospace" font-weight="700" fill="#1c1a15">SYN · seq = x</text>
+  </g>
+  <g opacity="0">
+    <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.06;0.9;1" dur="12s" begin="2.8s" repeatCount="indefinite"/>
+    <circle cx="460" cy="160" r="13" fill="#ffe14d" stroke="#1c1a15" stroke-width="2"/>
+    <text x="460" y="165" text-anchor="middle" font-size="12" font-weight="800" fill="#1c1a15">2</text>
+    <line x1="445" y1="160" x2="155" y2="160" stroke="#1c1a15" stroke-width="2.5" marker-end="url(#tc-h)"/>
+    <text x="300" y="150" text-anchor="middle" font-size="11.5" font-family="monospace" font-weight="700" fill="#1c1a15">SYN-ACK · seq = y, ack = x+1</text>
+  </g>
+  <g opacity="0">
+    <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.06;0.9;1" dur="12s" begin="5.6s" repeatCount="indefinite"/>
+    <circle cx="140" cy="220" r="13" fill="#2e9e5b" stroke="#1c1a15" stroke-width="2"/>
+    <text x="140" y="225" text-anchor="middle" font-size="12" font-weight="800" fill="#fff">3</text>
+    <line x1="155" y1="220" x2="445" y2="220" stroke="#2e9e5b" stroke-width="3" marker-end="url(#tc-h)"/>
+    <text x="300" y="210" text-anchor="middle" font-size="11.5" font-family="monospace" font-weight="700" fill="#1c1a15">ACK · ack = y+1</text>
+  </g>
+  <g opacity="0">
+    <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.06;0.9;1" dur="12s" begin="8.2s" repeatCount="indefinite"/>
+    <line x1="140" y1="262" x2="460" y2="262" stroke="#2e9e5b" stroke-width="2" stroke-dasharray="7 6"/>
+    <text x="300" y="292" text-anchor="middle" font-size="12" font-weight="800" fill="#2e9e5b">CONNECTED — talk freely, everything numbered ✓</text>
+  </g>
 </svg>
 <figcaption>three messages, then trust — the green ACK is the door opening</figcaption>
 </figure>
@@ -66,16 +82,22 @@
   </defs>
   <text x="70" y="34" text-anchor="middle" font-size="28">💻</text>
   <text x="530" y="34" text-anchor="middle" font-size="28">🖥️</text>
-  <line x1="120" y1="52" x2="480" y2="52" stroke="#2e9e5b" stroke-width="2.5" marker-end="url(#tc-r)"/>
+  <line id="tc-p1" x1="120" y1="52" x2="480" y2="52" stroke="#2e9e5b" stroke-width="2.5" marker-end="url(#tc-r)"/>
   <text x="122" y="44" font-size="11" font-family="monospace" font-weight="700" fill="#1c1a15">Pkt 1</text>
   <text x="482" y="44" text-anchor="end" font-size="11" font-weight="700" fill="#2e9e5b">✓ ACK</text>
-  <line x1="120" y1="86" x2="480" y2="86" stroke="#d1345b" stroke-width="2.5" stroke-dasharray="7 6" marker-end="url(#tc-rx)"/>
+  <line id="tc-p2" x1="120" y1="86" x2="480" y2="86" stroke="#d1345b" stroke-width="2.5" stroke-dasharray="7 6" marker-end="url(#tc-rx)"/>
   <text x="122" y="78" font-size="11" font-family="monospace" font-weight="700" fill="#1c1a15">Pkt 2</text>
   <text x="482" y="78" text-anchor="end" font-size="11" font-weight="700" fill="#d1345b">✗ lost…</text>
   <text x="300" y="118" text-anchor="middle" font-size="11" fill="#575046">silence… timer runs out ⏱ — nobody confirmed Pkt 2</text>
-  <line x1="120" y1="146" x2="480" y2="146" stroke="#2e9e5b" stroke-width="3" marker-end="url(#tc-r)"/>
+  <line id="tc-p3" x1="120" y1="146" x2="480" y2="146" stroke="#2e9e5b" stroke-width="3" marker-end="url(#tc-r)"/>
   <text x="122" y="138" font-size="11" font-family="monospace" font-weight="700" fill="#1c1a15">Pkt 2 (again)</text>
   <text x="482" y="138" text-anchor="end" font-size="11" font-weight="700" fill="#2e9e5b">✓ ACK — all good</text>
+  <circle r="6" fill="#2e9e5b" stroke="#1c1a15" stroke-width="2"><animateMotion dur="7s" repeatCount="indefinite" calcMode="linear" keyPoints="0;1;1" keyTimes="0;0.22;1"><mpath href="#tc-p1"/></animateMotion></circle>
+  <circle r="6" fill="#d1345b" stroke="#1c1a15" stroke-width="2" opacity="0">
+    <animateMotion dur="7s" repeatCount="indefinite" calcMode="linear" keyPoints="0;0.45;0.45" keyTimes="0.3;0.45;1"><mpath href="#tc-p2"/></animateMotion>
+    <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.3;0.32;0.45;0.47;1" dur="7s" repeatCount="indefinite"/>
+  </circle>
+  <circle r="6" fill="#2e9e5b" stroke="#1c1a15" stroke-width="2"><animateMotion dur="7s" repeatCount="indefinite" calcMode="linear" keyPoints="0;0;1;1" keyTimes="0;0.6;0.85;1"><mpath href="#tc-p3"/></animateMotion></circle>
 </svg>
 <figcaption>silence is information — no ACK before the timer means "send it again"</figcaption>
 </figure>

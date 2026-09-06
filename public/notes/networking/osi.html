@@ -3,6 +3,12 @@
 .os-fig{margin:12px auto 6px;max-width:620px;text-align:center}
 .os-fig svg{width:100%;height:auto;display:block}
 .os-fig figcaption{font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);margin-top:2px;line-height:1.55}
+/* figures glide in on scroll (ignored where unsupported — content just shows) */
+.note-body figure.os-fig{animation:os-rise .7s ease both;animation-timeline:view();animation-range:entry 0% cover 25%}
+@keyframes os-rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.os-flow{stroke-dasharray:7 7;animation:os-dash 1.2s linear infinite}
+@keyframes os-dash{to{stroke-dashoffset:-14}}
+@media (prefers-reduced-motion:reduce){.os-flow{animation:none}.note-body figure.os-fig{animation:none}}
 </style>
 
 <p class="kicker">seven floors, one job each — learn the building, own networking.</p>
@@ -17,8 +23,8 @@
   <text x="485" y="24" text-anchor="middle" font-size="12" font-weight="800" fill="#1c1a15">RECEIVER</text>
   <text x="290" y="24" text-anchor="middle" font-size="10.5" font-weight="700" fill="#575046">↓ wrap</text>
   <text x="332" y="24" text-anchor="middle" font-size="10.5" font-weight="700" fill="#575046">unwrap ↑</text>
-  <line x1="290" y1="34" x2="290" y2="496" stroke="#1c1a15" stroke-width="2.5" marker-end="url(#os-a)"/>
-  <line x1="332" y1="496" x2="332" y2="34" stroke="#1c1a15" stroke-width="2.5" marker-end="url(#os-a)"/>
+  <line x1="290" y1="34" x2="290" y2="496" stroke="#1c1a15" stroke-width="2.5" marker-end="url(#os-a)" class="os-flow"/>
+  <line x1="332" y1="496" x2="332" y2="34" stroke="#1c1a15" stroke-width="2.5" marker-end="url(#os-a)" class="os-flow"/>
   <g>
     <rect x="20" y="40" width="230" height="56" rx="10" fill="#fff4c2" stroke="#1c1a15" stroke-width="2"/>
     <circle cx="48" cy="68" r="13" fill="#fff" stroke="#1c1a15" stroke-width="2"/><text x="48" y="73" text-anchor="middle" font-size="12" font-weight="800" fill="#1c1a15">7</text>
@@ -137,6 +143,8 @@
   <rect x="534" y="122" width="58" height="28" rx="7" fill="#e9e7e0" stroke="#1c1a15" stroke-width="2"/>
   <text x="563" y="141" text-anchor="middle" font-size="10.5" font-weight="800" fill="#1c1a15">FCS</text>
   <text x="8" y="179" font-size="11" font-weight="800" fill="#1c1a15">L1 bits</text>
+  <path id="os-desc" d="M106,28 L106,170" fill="none" stroke="none"/>
+  <circle r="6" fill="#ffe14d" stroke="#1c1a15" stroke-width="2"><animateMotion dur="4s" repeatCount="indefinite"><mpath href="#os-desc"/></animateMotion></circle>
   <text x="118" y="179" font-size="11.5" font-family="monospace" fill="#575046">01001000 01100101 01101100 01101100 01101111 …</text>
 </svg>
 <figcaption>down = wrap a header on · up = strip your own header off and pass the rest up</figcaption>
