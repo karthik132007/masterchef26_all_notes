@@ -1,0 +1,82 @@
+<style>
+.plan-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:14px 0 8px}
+@media(max-width:720px){.plan-cards{grid-template-columns:1fr}}
+.plan-card{border:2.5px solid var(--ink);border-radius:16px;background:#fff;box-shadow:4px 4px 0 var(--ink);padding:14px 16px;display:flex;gap:12px;align-items:flex-start;transition:transform .12s ease}
+.plan-card:hover{transform:translateY(-2px) rotate(-.3deg)}
+.plan-card .ic{width:42px;height:42px;border:2.5px solid var(--ink);border-radius:12px;display:grid;place-items:center;font-size:18px;flex:0 0 42px;box-shadow:2px 2px 0 var(--ink)}
+.plan-card h3{margin:0 0 4px;font-size:16px;line-height:1.2}
+.plan-card p{margin:0;color:var(--ink-soft);font-size:13.5px;line-height:1.5}
+.plan-card .tag{font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-soft);display:block;margin-bottom:2px}
+.plan-mini{border:2px dashed #cfc7b4;border-radius:14px;background:#fffdf6;padding:12px 14px;margin:12px 0;font-size:13.5px;line-height:1.6}
+.plan-mini b{font-size:13px}
+</style>
+
+<p class="kicker">machine learning · zero to one · no prior course needed</p>
+<h1>ML, Concept by Concept</h1>
+<p class="plan-lede">Your handwritten bundle, rebuilt as a calm, visual course. Clean diagrams first, math and Python after. Do it in order — each page stands alone, no extra course needed.</p>
+
+<div class="plan-outcomes">
+  <b>How to use this track</b>
+  <ol>
+    <li>Start with raw scans for vibe</li>
+    <li>Go in order — foundations to discovery</li>
+    <li>Run the code, tweak a number, see what moves</li>
+  </ol>
+</div>
+
+<div class="plan-timeline">
+<section class="plan-day">
+  <span class="plan-daynum">00 · source</span>
+  <h2>Start here</h2>
+  <div class="plan-cards">
+    <div class="plan-card" style="grid-column:1/-1">
+      <div class="ic" style="background:var(--yellow)">00</div>
+      <div><span class="tag">handwritten · 32 pages</span><h3>Raw Scans (ml1.pdf)</h3><p>The ink everything is built from. Keep it open to cross-check any diagram.</p><a class="plan-open" href="/courses/ml/raw-notes">open →</a></div>
+    </div>
+  </div>
+</section>
+
+<section class="plan-day">
+  <span class="plan-daynum">01 – 04 · foundations</span>
+  <h2>The first hill</h2>
+  <div class="plan-cards">
+    <div class="plan-card"><div class="ic" style="background:var(--lavender)">01</div><div><span class="tag">01</span><h3>ML Overview</h3><p>Tribes, labels vs no labels, train vs test, the six symbols that run it all.</p></div></div>
+    <div class="plan-card"><div class="ic" style="background:var(--yellow)">02</div><div><span class="tag">02</span><h3>Linear Regression</h3><p>One line that hugs dots. Two knobs, one straight story.</p></div></div>
+    <div class="plan-card"><div class="ic" style="background:var(--mint)">03</div><div><span class="tag">03</span><h3>Cost Function</h3><p>How wrong are we? One number, one bowl, one bottom.</p></div></div>
+    <div class="plan-card"><div class="ic" style="background:var(--blue)">04</div><div><span class="tag">04</span><h3>Gradient Descent</h3><p>Walk downhill blindfolded. Step size decides everything.</p></div></div>
+  </div>
+</section>
+
+<section class="plan-day">
+  <span class="plan-daynum">05 – 09 · build up</span>
+  <h2>From line to boundary</h2>
+  <div class="plan-cards">
+    <div class="plan-card"><div class="ic" style="background:var(--blue)">05</div><div><span class="tag">05</span><h3>Multiple Regression</h3><p>Many features, one dot product. Why scaling matters.</p></div></div>
+    <div class="plan-card"><div class="ic" style="background:var(--pink)">06</div><div><span class="tag">06</span><h3>Logistic Regression</h3><p>Squash a line into a probability. Same hips, new loss.</p></div></div>
+    <div class="plan-card"><div class="ic" style="background:var(--yellow)">07</div><div><span class="tag">07</span><h3>Regularization</h3><p>Tax big weights. Keep what matters, shrink the noise.</p></div></div>
+    <div class="plan-card"><div class="ic" style="background:var(--mint)">08</div><div><span class="tag">08</span><h3>SVM — Linear</h3><p>Widest street between crowds. Only the curb matters.</p></div></div>
+    <div class="plan-card"><div class="ic" style="background:var(--lavender)">09</div><div><span class="tag">09</span><h3>SVM — Poly Kernel</h3><p>Rings need curves. Lift, then cut with a plane.</p></div></div>
+  </div>
+</section>
+
+<section class="plan-day important">
+  <span class="plan-daynum">10 – 13 · judge & discover</span>
+  <h2>Score, branch, group, flag <span class="imp">exam-heavy</span></h2>
+  <div class="plan-cards">
+    <div class="plan-card"><div class="ic" style="background:var(--yellow)">10</div><div><span class="tag">10</span><h3>Precision, Recall & F1</h3><p>Accuracy lies. Two honest numbers and their strict parent.</p></div></div>
+    <div class="plan-card"><div class="ic" style="background:var(--mint)">11</div><div><span class="tag">11</span><h3>Trees, Forests & Boosting</h3><p>Ask the best question, then vote or fix.</p></div></div>
+    <div class="plan-card"><div class="ic" style="background:var(--blue)">12</div><div><span class="tag">12</span><h3>Clustering & K-Means</h3><p>No labels. Let dots form gangs — assign, move, repeat.</p></div></div>
+    <div class="plan-card"><div class="ic" style="background:var(--pink)">13</div><div><span class="tag">13</span><h3>Anomaly Detection</h3><p>Learn normal, flag lonely. Bell, threshold, lonely wins.</p></div></div>
+  </div>
+</section>
+</div>
+
+<div class="plan-mini">
+  <b>What you get on every page:</b> picture first, clear story second, math third, Python fourth — copy-paste, run, break, learn. Code is numpy-only from <code>Ml_algos_scratch</code>.
+</div>
+
+<div class="plan-rule">
+  <b>One rule: intuition before equations.</b>
+  <p>Every idea starts as a sketch. Math and code follow only after the picture clicks. If a clean diagram feels off, raw scans are one tap away.</p>
+  <p class="plan-quote">“w tilts, b lifts — everything else is walking downhill.”</p>
+</div>

@@ -1,0 +1,37 @@
+<!--
+  HOW TO ADD NOTES FOR A CONCEPT (ml is concept-wise, not day-wise)
+  ================================================================
+  1. Concepts live in `lib/courses.js` under ml.topics.
+     To add one, add `{ slug: "my-concept", title: "My Concept" }` there.
+  2. Copy this file to `<slug>.html` in this same folder (e.g. regression.html).
+     File name MUST match the sidebar concept slug.
+  3. Delete this comment + the placeholder below, write your notes.
+  4. Only the fragment matters — no <html>/<head>/<body> needed.
+     It gets injected into the page, and these styles apply automatically:
+       .kicker            handwritten hook line under a heading
+       .callout.exam      ⭐ yellow exam-tip box
+       .callout.gotcha    ⚠️ pink common-mistake box
+       .callout.remember  🧷 green remember box
+       .callout.try       🔬 blue try-it-yourself box
+     Plain <h2>, <p>, <ul>, <table>, <pre> all styled already.
+     Use <b class="label">…</b> as the first line inside a callout.
+  5. Push to main — Vercel redeploys, sidebar picks it up by itself.
+-->
+
+<p class="kicker">one-line hook for the concept — what clicked today?</p>
+
+<h2>the core idea</h2>
+<p>Explain it like the reader bunked class. One idea per section, short paras.</p>
+<ul>
+  <li><b>Bold the punchline</b> of every bullet, then explain.</li>
+  <li>Second point goes here.</li>
+</ul>
+
+<div class="callout exam"><b class="label">⭐ exam tip</b><br />The one line that gets full marks lives here.</div>
+
+<h2>how it works in practice</h2>
+<p>A tiny example with numbers beats a page of theory:</p>
+<pre># example: the smallest possible demo of this concept
+# inputs → what the model does → outputs</pre>
+
+<div class="callout gotcha"><b class="label">⚠️ gotcha</b><br />Whatever confused people today — overfitting vs underfitting, leaking labels, etc.</div>

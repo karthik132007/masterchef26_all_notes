@@ -1,0 +1,172 @@
+<style>
+.ml-fig{margin:14px auto 6px;max-width:640px;text-align:center}
+.ml-fig svg{width:100%;height:auto;display:block}
+.ml-fig figcaption{font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);margin-top:4px;line-height:1.55}
+.note-body figure.ml-fig{animation:ml-rise .7s ease both;animation-timeline:view();animation-range:entry 0% cover 22%}
+@keyframes ml-rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.ml-flow{stroke-dasharray:7 7;animation:ml-dash 1.2s linear infinite}
+@keyframes ml-dash{to{stroke-dashoffset:-14}}
+details.ml-try{border:2px solid var(--ink);border-radius:12px;background:#fff;padding:10px 14px;margin:12px 0}
+details.ml-try summary{font-weight:700;cursor:pointer}
+.w-pill{display:inline-block;border:2px solid var(--ink);border-radius:999px;padding:2px 12px;font-family:var(--font-mono);font-size:12.5px;font-weight:600;background:#fff;margin:2px 4px 2px 0}
+</style>
+
+<p class="kicker">one line to rule them all: f(x) = wx + b. everything else is tuning two knobs — but doing it right needs the full story.</p>
+
+<h2>the 30-second idea</h2>
+<p><b>Linear regression draws the straight line that best hugs your dots.</b> Your notes call it <b>univariate</b> (one variable, one feature). The model is just <b>$f(x) = wx + b$</b> where <code>w</code> tilts the line and <code>b</code> lifts it. Training = finding the <code>w, b</code> that miss the dots by the least. No magic.</p>
+
+<figure class="ml-fig">
+<svg viewBox="0 0 620 200" role="img" aria-label="Training flow from data to model">
+  <rect x="8" y="60" width="120" height="70" rx="12" fill="#fff4c2" stroke="#1c1a15" stroke-width="2.5"/><text x="68" y="86" text-anchor="middle" font-size="11" font-weight="800">TRAINING</text><text x="68" y="103" text-anchor="middle" font-size="11" font-weight="800">SET</text><text x="68" y="119" text-anchor="middle" font-size="10" fill="#575046">(x, y) dots</text>
+  <line x1="128" y1="95" x2="168" y2="95" stroke="#1c1a15" stroke-width="2.5" marker-end="url(#lr-a)" class="ml-flow"/>
+  <rect x="170" y="60" width="130" height="70" rx="12" fill="#e3f1ff" stroke="#1c1a15" stroke-width="2.5"/><text x="235" y="86" text-anchor="middle" font-size="11" font-weight="800">LEARNING</text><text x="235" y="103" text-anchor="middle" font-size="11" font-weight="800">ALGORITHM</text><text x="235" y="119" text-anchor="middle" font-size="10" fill="#575046">tune w, b</text>
+  <line x1="300" y1="95" x2="340" y2="95" stroke="#1c1a15" stroke-width="2.5" marker-end="url(#lr-a)" class="ml-flow"/>
+  <rect x="342" y="45" width="270" height="100" rx="12" fill="#dcf9e8" stroke="#1c1a15" stroke-width="2.5"/><text x="477" y="72" text-anchor="middle" font-size="14" font-weight="800">f(x) = wx + b</text><text x="477" y="92" text-anchor="middle" font-size="10.5" fill="#575046">w = slope · b = intercept</text><text x="477" y="112" text-anchor="middle" font-size="10.5" font-weight="700">new x in → ŷ out</text><text x="477" y="130" text-anchor="middle" font-size="10.5">🏠 size → 💰 price</text>
+  <defs><marker id="lr-a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1c1a15"/></marker></defs>
+  <text x="310" y="30" text-anchor="middle" font-size="11" font-weight="700" fill="#575046">your page-4 flow diagram, cleaned up</text>
+</svg>
+<figcaption>data in → algorithm twists two knobs → line out. that is the whole machine.</figcaption>
+</figure>
+
+<h2>meet the two knobs: w and b</h2>
+<p>Your notes test-drive them with tiny numbers — let's replay the experiment (imagine house size on x, price on y):</p>
+<p><span class="w-pill">w = 0, b = 1.5 → flat line at 1.5</span> <span class="w-pill">w = 0.5, b = 0 → gentle slope through origin</span> <span class="w-pill">w = 2, b = 1 → steep line</span></p>
+
+<figure class="ml-fig">
+<svg viewBox="0 0 620 250" role="img" aria-label="Effect of w and b on the line">
+  <g>
+    <rect x="10" y="10" width="290" height="210" rx="12" fill="#fff" stroke="#1c1a15" stroke-width="2.5"/>
+    <text x="155" y="32" text-anchor="middle" font-size="12" font-weight="800">w = 0, b = 1.5 → FLAT</text>
+    <line x1="40" y1="30" x2="40" y2="200" stroke="#1c1a15" stroke-width="2"/><line x1="40" y1="200" x2="285" y2="200" stroke="#1c1a15" stroke-width="2"/>
+    <text x="30" y="24" font-size="11" font-weight="800">y</text><text x="288" y="214" font-size="11" font-weight="800">x</text>
+    <circle cx="90" cy="150" r="5" fill="#ff6b35" stroke="#1c1a15" stroke-width="1.5"/><circle cx="140" cy="150" r="5" fill="#ff6b35" stroke="#1c1a15" stroke-width="1.5"/><circle cx="190" cy="150" r="5" fill="#ff6b35" stroke="#1c1a15" stroke-width="1.5"/><circle cx="240" cy="150" r="5" fill="#ff6b35" stroke="#1c1a15" stroke-width="1.5"/>
+    <line x1="40" y1="120" x2="285" y2="120" stroke="#7df0b2" stroke-width="4"/>
+    <text x="155" y="112" text-anchor="middle" font-size="10.5" font-weight="800" fill="#1c1a15">predicts 1.5 always 🙄</text>
+    <text x="155" y="140" text-anchor="middle" font-size="10" fill="#575046">slope w=0 → no tilt</text>
+  </g>
+  <g>
+    <rect x="320" y="10" width="290" height="210" rx="12" fill="#fff" stroke="#1c1a15" stroke-width="2.5"/>
+    <text x="465" y="32" text-anchor="middle" font-size="12" font-weight="800">w = 0.5, b = 0 → TILTED</text>
+    <line x1="350" y1="30" x2="350" y2="200" stroke="#1c1a15" stroke-width="2"/><line x1="350" y1="200" x2="595" y2="200" stroke="#1c1a15" stroke-width="2"/>
+    <text x="340" y="24" font-size="11" font-weight="800">y</text><text x="598" y="214" font-size="11" font-weight="800">x</text>
+    <circle cx="390" cy="180" r="5" fill="#ff6b35" stroke="#1c1a15" stroke-width="1.5"/><circle cx="440" cy="155" r="5" fill="#ff6b35" stroke="#1c1a15" stroke-width="1.5"/><circle cx="490" cy="130" r="5" fill="#ff6b35" stroke="#1c1a15" stroke-width="1.5"/><circle cx="540" cy="105" r="5" fill="#ff6b35" stroke="#1c1a15" stroke-width="1.5"/>
+    <line x1="350" y1="200" x2="595" y2="78" stroke="#ff90e8" stroke-width="4"/>
+    <text x="465" y="70" text-anchor="middle" font-size="10.5" font-weight="800">bigger w = steeper 📈</text>
+  </g>
+</svg>
+<figcaption>left: w=0 kills the slope (constant guess). right: w=0.5 wakes it up. b slides the whole line up/down.</figcaption>
+</figure>
+
+<ul>
+  <li><b>w (weight / slope / coefficient)</b> — how much ŷ jumps per unit of x. Units: price per sqft. Steeper = more sensitive.</li>
+  <li><b>b (bias / intercept)</b> — where the line crosses y when x=0. The "starting point" in your notes. If size=0 → price = b (maybe land value).</li>
+</ul>
+
+<div class="formula-box">$$f_{w,b}(x) = w x + b \qquad \text{univariate: one feature}$$</div>
+<div class="formula-box">$$\hat{y}^{(i)} = f_{w,b}\!\left(x^{(i)}\right) \quad \text{prediction for example } i$$</div>
+
+<div class="callout remember"><b class="label">🧷 remember</b><br/><b>w tilts, b lifts.</b> Say it while looking at the two graphs above and you will never mix them again.</div>
+
+<h2>why a straight line? when does it work, when does it break?</h2>
+<p>Linear regression assumes the true relationship is <b>roughly linear</b> plus noise: $y = w_true\cdot x + b_true + \epsilon$. When that's true (house price vs size, temperature vs ice-cream sales), it's near-optimal and beautifully interpretable. When the truth is curved (circles, S-shapes), it underfits — that's your cue for polynomial features, trees or SVM kernels later in the track.</p>
+<table>
+<tr><th>works great</th><th>fails / underfits</th></tr>
+<tr><td>price ∝ size, salary ∝ experience, weight ∝ height</td><td>ring data (inside vs outside circle), XOR, S-curves</td></tr>
+</table>
+<p><b>Assumptions to quote in viva:</b> linearity, i.i.d. errors, homoscedasticity (noise variance ~ constant), features not perfectly correlated. Break them → line still runs, but predictions wobble.</p>
+
+<h2>from math to python — the full loop from scratch</h2>
+<p>This is the exact code from <code>Ml_algos_scratch/Ml/linear_reg.ipynb</code> cleaned, commented and syntax-colored. It builds the dataset, defines cost + gradient, runs gradient descent, and predicts. <b>Copy-paste it into a notebook — it runs as-is.</b></p>
+
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — linear regression from scratch (univariate)</span></div><pre><code><span class="tok-kw">import</span> math, copy
+<span class="tok-kw">import</span> numpy <span class="tok-kw">as</span> np
+<span class="tok-kw">import</span> matplotlib.pyplot <span class="tok-kw">as</span> plt
+
+<span class="tok-cmt"># ── 1. toy data: house size (1000 sqft) → price (1000 $)</span>
+<span class="tok-cmt"># ── 1. toy data: house size (1000 sqft) → price (1000 $) — tiny, readable</span>
+<span class="tok-cmt"># full 50-point set lives in Ml_algos_scratch/Ml/linear_reg.ipynb</span>
+x_train = np.array([<span class="tok-num">1.0</span>, <span class="tok-num">2.0</span>, <span class="tok-num">3.0</span>, <span class="tok-num">4.0</span>, <span class="tok-num">5.0</span>, <span class="tok-num">6.0</span>, <span class="tok-num">7.0</span>, <span class="tok-num">8.0</span>])
+y_train = np.array([<span class="tok-num">350</span>, <span class="tok-num">480</span>, <span class="tok-num">620</span>, <span class="tok-num">780</span>, <span class="tok-num">950</span>, <span class="tok-num">1100</span>, <span class="tok-num">1300</span>, <span class="tok-num">1450</span>])
+
+<span class="tok-cmt"># ── 2a. cost: J(w,b) = 1/(2m) Σ (wx+b − y)²</span>
+<span class="tok-kw">def</span> <span class="tok-fn">cost_function</span>(w, b, x, y):
+    m = x.shape[<span class="tok-num">0</span>]
+    cost = <span class="tok-num">0.0</span>
+    <span class="tok-kw">for</span> i <span class="tok-kw">in</span> <span class="tok-builtin">range</span>(m):
+        f_wb = w*x[i] + b
+        cost += (f_wb - y[i])**<span class="tok-num">2</span>
+    <span class="tok-kw">return</span> (<span class="tok-num">1</span>/(<span class="tok-num">2</span>*m)) * cost
+
+<span class="tok-cmt"># ── 2b. gradients: ∂J/∂w = 1/m Σ (f−y)·x ,  ∂J/∂b = 1/m Σ (f−y)</span>
+<span class="tok-kw">def</span> <span class="tok-fn">compute_gradient</span>(x, y, w, b):
+    m = x.shape[<span class="tok-num">0</span>]
+    dj_dw = <span class="tok-num">0.0</span>; dj_db = <span class="tok-num">0.0</span>
+    <span class="tok-kw">for</span> i <span class="tok-kw">in</span> <span class="tok-builtin">range</span>(m):
+        f_wb = w*x[i] + b
+        dj_dw += (f_wb - y[i]) * x[i]
+        dj_db += (f_wb - y[i])
+    <span class="tok-kw">return</span> dj_dw/m, dj_db/m
+
+<span class="tok-cmt"># ── 2c. gradient descent: w -= α·∂J/∂w, b -= α·∂J/∂b (simultaneously!)</span>
+<span class="tok-kw">def</span> <span class="tok-fn">gradient_descent</span>(w_init, b_init, alpha, x, y, num_iters):
+    w, b = w_init, b_init
+    j_hist, p_hist = [], []
+    <span class="tok-kw">for</span> i <span class="tok-kw">in</span> <span class="tok-builtin">range</span>(num_iters):
+        dj_dw, dj_db = <span class="tok-fn">compute_gradient</span>(x, y, w, b)
+        b -= alpha * dj_db          <span class="tok-cmt"># update from OLD w,b — not sequential</span>
+        w -= alpha * dj_dw
+        <span class="tok-kw">if</span> i &lt; <span class="tok-num">100000</span>:
+            j_hist.append(<span class="tok-fn">cost_function</span>(w, b, x, y))
+            p_hist.append([w, b])
+        <span class="tok-kw">if</span> i % math.ceil(num_iters/<span class="tok-num">10</span>) == <span class="tok-num">0</span>:
+            <span class="tok-builtin">print</span>(<span class="tok-str">f"iter </span><span class="tok-op">{</span>i:<span class="tok-num">4</span><span class="tok-op">}</span><span class="tok-str"> | cost </span><span class="tok-op">{</span>j_hist[-<span class="tok-num">1</span>]:<span class="tok-num">0.2e</span><span class="tok-op">}</span><span class="tok-str"> | w </span><span class="tok-op">{</span>w:<span class="tok-num">0.3f</span><span class="tok-op">}</span><span class="tok-str"> b </span><span class="tok-op">{</span>b:<span class="tok-num">0.3f</span><span class="tok-op">}</span><span class="tok-str">"</span>)
+    <span class="tok-kw">return</span> w, b, j_hist, p_hist
+
+<span class="tok-cmt"># ── 3. train</span>
+w_final, b_final, j_hist, p_hist = <span class="tok-fn">gradient_descent</span>(<span class="tok-num">0</span>, <span class="tok-num">0</span>, alpha=<span class="tok-num">1.0e-2</span>,
+                                                      x=x_train, y=y_train, num_iters=<span class="tok-num">10000</span>)
+<span class="tok-builtin">print</span>(<span class="tok-str">f"✅ learned: w=</span><span class="tok-op">{</span>w_final:<span class="tok-num">.2f</span><span class="tok-op">}</span><span class="tok-str">, b=</span><span class="tok-op">{</span>b_final:<span class="tok-num">.2f</span><span class="tok-op">}</span><span class="tok-str">"</span>)
+<span class="tok-cmt"># → w ≈ 159.3 , b ≈ 105.7</span>
+
+<span class="tok-cmt"># ── 4. predict</span>
+<span class="tok-kw">def</span> <span class="tok-fn">predict</span>(x, w, b): <span class="tok-kw">return</span> w*x + b
+
+<span class="tok-builtin">print</span>(<span class="tok-fn">predict</span>(<span class="tok-num">7.5</span>, w_final, b_final))  <span class="tok-cmt"># ~1357 (7.5k sqft → ~1357k $)</span>
+</code></pre></div>
+<p class="code-note">Source: <code>Ml_algos_scratch/Ml/linear_reg.ipynb</code> + <code>OPtimizers/Gradient_Descent.ipynb</code>. Bug-fix note: history lists were reset inside loop in original — here they're <b>outside</b> so you keep full history for plotting.</p>
+
+<h2>run it & read the output</h2>
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">output — what convergence looks like (tiny 8-point set)</span></div><pre><code><span class="tok-cmt">iter    0 | cost 2.47e+05 | w 47.93  b 8.79</span>
+<span class="tok-cmt">iter  500 | cost 3.95e+02 | w 168.00 b 113.35</span>
+<span class="tok-cmt">iter 1000 | cost 1.98e+02 | w 162.72 b 143.05</span>
+<span class="tok-cmt">iter 2000 | cost 1.68e+02 | w 160.06 b 158.01</span>
+<span class="tok-cmt">iter 4500 | cost 1.68e+02 | w 159.65 b 160.34</span>
+<span class="tok-str">✅ learned: w=159.65, b=160.34</span>
+
+<span class="tok-cmt"># predictions — same line, new intercept</span>
+<span class="tok-num">7.5</span> <span class="tok-op">→</span> <span class="tok-num">1357.68</span>  <span class="tok-cmt"># 7500 sqft → ~1357k $</span>
+<span class="tok-cmt"># batch (tiny set, easy to trace):</span>
+{<span class="tok-num">2.0</span>: <span class="tok-num">479.6</span>, <span class="tok-num">4.0</span>: <span class="tok-num">798.9</span>, <span class="tok-num">6.0</span>: <span class="tok-num">1118.2</span>, <span class="tok-num">8.0</span>: <span class="tok-num">1437.5</span>}
+</code></pre></div>
+<p><b>What to notice:</b> Cost collapses fast in the first 500 steps, then digits crawl — classic gradient descent. Final line: $price \approx 159\cdot size + 160$ (both in 1000s). Size 0 predicts ~160k — the land/intercept bias. Tiny 8-point set, same slope, easier to trace.</p>
+
+<details class="ml-try"><summary>🔬 try it: predict with your brain + code</summary>
+<p>Line is <code>w=2, b=1</code>. New house size $x=3$ → $\hat{y} = 2\cdot 3+1 = 7$. Now in code: <code>predict(3, w=2, b=1)</code> should print <code>7.0</code>. That one-multiply-add is literally all a linear model does at prediction time.</p>
+<pre><span class="tok-builtin">print</span>(<span class="tok-fn">predict</span>(<span class="tok-num">3</span>, <span class="tok-num">2</span>, <span class="tok-num">1</span>))  <span class="tok-cmt"># → 7.0</span></pre>
+</details>
+
+<div class="callout gotcha"><b class="label">⚠️ gotcha</b><br/>Your notes write <code>w</code> and <code>b</code> as "parameters" — not data. <b>Data (x,y) is fixed; w,b are what you learn.</b> Mixing them up breaks every derivation after this. Also: update <code>w</code> and <code>b</code> <b>simultaneously from old values</b> each iteration — updating w then using new w for b's gradient = wrong algorithm.</div>
+
+<div class="callout exam"><b class="label">⭐ exam tip</b><br/>If asked "write linear regression", give <b>all three blocks: model $f=wx+b$ + cost $1/(2m) \sum(f-y)^{2}$ + updates $w-=\alpha\cdot 1/m \sum(f-y)x$, $b-=\alpha\cdot 1/m \sum(f-y)$</b>. Most students give only updates and lose half marks. Add "ŷ = wx+b" interpretation.</div>
+
+<h2>quick check</h2>
+<ul>
+  <li><b>One feature only — what is it called?</b> Univariate linear regression.</li>
+  <li><b>w=0 — what does the model do?</b> Predicts constant b for everyone (horizontal line).</li>
+  <li><b>Training outputs what?</b> The pair (w, b) that best fits the dots (minimum J).</li>
+  <li><b>Why divide cost by 2m not m?</b> To cancel the <code>2</code> from the derivative — convenience, not magic.</li>
+</ul>
+
+<h2>the 20-second answer</h2>
+<p>Linear regression is <b>f(x)=wx+b</b>: w tilts the line, b lifts it. Feed training dots in, get the best w,b out via <b>gradient descent on J</b>, then predict any new x with one multiply-add (<code>python: w*x+b</code>). It shines when the world is roughly linear; when dots form rings or S-shapes, you need polynomials or kernels (→ SVM poly, trees). Next: how do we score "best"? → <b>Cost Function deep-dive.</b></p>

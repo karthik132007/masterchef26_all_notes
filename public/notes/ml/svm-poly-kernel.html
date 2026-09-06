@@ -1,0 +1,170 @@
+<style>
+.ml-fig{margin:14px auto 6px;max-width:650px;text-align:center}
+.ml-fig svg{width:100%;height:auto;display:block}
+.ml-fig figcaption{font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);margin-top:4px;line-height:1.55}
+.note-body figure.ml-fig{animation:ml-rise .7s ease both;animation-timeline:view();animation-range:entry 0% cover 22%}
+@keyframes ml-rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+details.ml-try{border:2px solid var(--ink);border-radius:12px;background:#fff;padding:10px 14px;margin:12px 0}
+details.ml-try summary{font-weight:700;cursor:pointer}
+@media (prefers-reduced-motion:reduce){.note-body figure.ml-fig{animation:none}}
+.eqbox{border:2px solid var(--ink);border-radius:12px;background:#e3f1ff;padding:12px 14px;margin:12px 0;font-family:var(--font-mono);font-size:13px;line-height:1.6;text-align:center}
+.hl{border:2.5px solid var(--ink);border-radius:12px;padding:12px 15px;background:#fff4c2;font-weight:700;text-align:center;margin:14px 0}
+</style>
+
+<p class="kicker">some dots sit in a ring — no straight street can cut them. lift the paper, the ring becomes a hill, a plane cuts it. that's the kernel trick.</p>
+
+<h2>the 30-second idea</h2>
+<p>Linear SVM fails when classes look like <b>concentric circles, XOR, or moons</b> — no line separates them. Two ways out: (1) <b>explicit polynomial features</b> — engineer $[x_{1}, x_{2}, x_{1}^{2}, x_{2}^{2}, x_{1}\cdot x_{2}]$ and run linear SVM in 5-D; (2) <b>kernel trick</b> — never build 5-D explicitly, compute dot-products in high-D via a kernel function. Your <code>Ml_algos_scratch/Ml/SVM_poly_kernel.ipynb</code> implements (1) fully and visualizes the lift into 3-D; this page teaches both so you can answer either exam question.</p>
+
+<figure class="ml-fig">
+<svg viewBox="0 0 640 240" role="img" aria-label="Circles not separable in 2D but separable in 3D">
+  <g>
+    <rect x="10" y="10" width="300" height="220" rx="12" fill="#ffe3ef" stroke="#1c1a15" stroke-width="2.5"/>
+    <text x="160" y="36" text-anchor="middle" font-size="12" font-weight="800">2-D: no line can cut ✗</text>
+    <line x1="40" y1="40" x2="40" y2="205" stroke="#1c1a15" stroke-width="1.8"/><line x1="40" y1="205" x2="290" y2="205" stroke="#1c1a15" stroke-width="1.8"/>
+    <!-- outer ring red -->
+    <circle cx="165" cy="125" r="70" fill="none" stroke="#d1345b" stroke-width="2.5" stroke-dasharray="6 4"/>
+    <circle cx="165" cy="125" r="86" fill="none" stroke="#d1345b" stroke-width="1.5" opacity=".3"/>
+    <g fill="#d1345b"><circle cx="120" cy="90" r="4"/><circle cx="200" cy="80" r="4"/><circle cx="220" cy="140" r="4"/><circle cx="130" cy="180" r="4"/><circle cx="100" cy="130" r="4"/><circle cx="210" cy="170" r="4"/></g>
+    <!-- inner blue cluster -->
+    <g fill="#2b7de9"><circle cx="165" cy="125" r="4"/><circle cx="155" cy="115" r="4"/><circle cx="175" cy="135" r="4"/><circle cx="160" cy="135" r="4"/><circle cx="170" cy="115" r="4"/></g>
+    <line x1="55" y1="60" x2="280" y2="180" stroke="#1c1a15" stroke-width="2.5" opacity=".35"/>
+    <text x="160" y="214" text-anchor="middle" font-size="10.5" fill="#575046">any line cuts both gangs 💔</text>
+  </g>
+  <g>
+    <rect x="330" y="10" width="300" height="220" rx="12" fill="#dcf9e8" stroke="#1c1a15" stroke-width="2.5"/>
+    <text x="480" y="36" text-anchor="middle" font-size="12" font-weight="800">3-D lift: z=x₁²+x₂² → plane cuts ✓</text>
+    <!-- fake 3D: ellipse base + lifted -->
+    <ellipse cx="480" cy="160" rx="85" ry="40" fill="#fff" stroke="#1c1a15" stroke-width="2" opacity=".9"/>
+    <ellipse cx="480" cy="110" rx="36" ry="18" fill="#a8d8ff" stroke="#2b7de9" stroke-width="2" opacity=".85"/>
+    <!-- vertical lift lines faint -->
+    <line x1="480" y1="110" x2="480" y2="40" stroke="#1c1a15" stroke-width="1.5" stroke-dasharray="4 4"/>
+    <text x="530" y="52" font-size="10" font-weight="700" fill="#575046">inner → high z</text>
+    <text x="420" y="175" font-size="10" font-weight="700" fill="#d1345b">outer → low z</text>
+    <line x1="400" y1="60" x2="560" y2="80" stroke="#ffe14d" stroke-width="14" opacity=".45"/>
+    <line x1="400" y1="60" x2="560" y2="80" stroke="#1c1a15" stroke-width="2.5"/>
+    <text x="480" y="70" text-anchor="middle" font-size="10" font-weight="800">plane w·\phi(x)+b=0 ★ lifts</text>
+  </g>
+</svg>
+<figcaption>left: ring in 2-D — hopeless for a line. right: add third axis z = x₁²+x₂² → ring becomes a bowl, plane slices between. explicit \phi does the lift.</figcaption>
+</figure>
+
+<h2>explicit polynomial expansion — what the notebook actually does</h2>
+<p>Original: <code>[x₁, x₂]</code> (2-D). Transform:</p>
+<div class="formula-box">$$\phi(x)=\left[x_{1},\,x_{2},\,x_{1}^{2},\,x_{2}^{2},\,x_{1}x_{2}\right]^{\top}\in\mathbb{R}^{5}$$</div>
+<div class="formula-caption">degree-2 polynomial lift · degree-3 adds cubes, dimensions explode</div>
+<p>In 5-D, circles become linearly separable. Train a <b>plain linear SVM</b> on \phi(x) — the notebook does exactly that and gets 100% accuracy on <code>make_circles</code>.</p>
+
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — explicit \phi + linear SVM (from notebook)</span></div><pre><code><span class="tok-kw">import</span> numpy <span class="tok-kw">as</span> np
+<span class="tok-kw">import</span> matplotlib.pyplot <span class="tok-kw">as</span> plt
+<span class="tok-kw">from</span> sklearn.datasets <span class="tok-kw">import</span> make_circles
+
+<span class="tok-cmt"># 1. rings: outer vs inner — no line can separate</span>
+X, y = make_circles(n_samples=<span class="tok-num">300</span>, noise=<span class="tok-num">0.05</span>, random_state=<span class="tok-num">42</span>, factor=<span class="tok-num">0.3</span>)
+y = np.where(y==<span class="tok-num">0</span>, -<span class="tok-num">1</span>, <span class="tok-num">1</span>)
+plt.scatter(X[:,<span class="tok-num">0</span>], X[:,<span class="tok-num">1</span>], c=np.where(y==<span class="tok-num">1</span>,<span class="tok-str">'#2b7de9'</span>,<span class="tok-str">'#ff6b35'</span>), s=<span class="tok-num">18</span>); plt.title(<span class="tok-str">"rings — linear fails"</span>); plt.show()
+
+<span class="tok-cmt"># 2. explicit polynomial lift \phi: [x1,x2,x1²,x2²,x1·x2]  (degree 2)</span>
+X_poly = np.column_stack([X[:,<span class="tok-num">0</span>], X[:,<span class="tok-num">1</span>],
+                          X[:,<span class="tok-num">0</span>]**<span class="tok-num">2</span>, X[:,<span class="tok-num">1</span>]**<span class="tok-num">2</span>,
+                          X[:,<span class="tok-num">0</span>]*X[:,<span class="tok-num">1</span>]])
+<span class="tok-builtin">print</span>(X_poly.shape)  <span class="tok-cmt"># (300, 5)</span>
+
+<span class="tok-kw">class</span> <span class="tok-cls">SVM</span>:
+    <span class="tok-kw">def</span> <span class="tok-fn">__init__</span>(<span class="tok-self">self</span>, alpha=<span class="tok-num">0.001</span>, lambda_param=<span class="tok-num">0.01</span>, epochs=<span class="tok-num">1000</span>):
+        <span class="tok-self">self</span>.alpha=alpha; <span class="tok-self">self</span>.lambda_param=lambda_param; <span class="tok-self">self</span>.epochs=epochs
+    <span class="tok-kw">def</span> <span class="tok-fn">fit</span>(<span class="tok-self">self</span>, X, y):
+        n_samples, n_features = X.shape
+        <span class="tok-self">self</span>.w=np.zeros(n_features); <span class="tok-self">self</span>.b=<span class="tok-num">0</span>
+        <span class="tok-kw">for</span> _ <span class="tok-kw">in</span> <span class="tok-builtin">range</span>(<span class="tok-self">self</span>.epochs):
+            <span class="tok-kw">for</span> idx, x_i <span class="tok-kw">in</span> <span class="tok-builtin">enumerate</span>(X):
+                <span class="tok-kw">if</span> y[idx]*(np.dot(x_i,<span class="tok-self">self</span>.w)+<span class="tok-self">self</span>.b) &gt;= <span class="tok-num">1</span>:
+                    dw=<span class="tok-num">2</span>*<span class="tok-self">self</span>.lambda_param*<span class="tok-self">self</span>.w; db=<span class="tok-num">0</span>
+                <span class="tok-kw">else</span>:
+                    dw=<span class="tok-num">2</span>*<span class="tok-self">self</span>.lambda_param*<span class="tok-self">self</span>.w - y[idx]*x_i; db=-y[idx]
+                <span class="tok-self">self</span>.w -= <span class="tok-self">self</span>.alpha*dw; <span class="tok-self">self</span>.b -= <span class="tok-self">self</span>.alpha*db
+    <span class="tok-kw">def</span> <span class="tok-fn">predict</span>(<span class="tok-self">self</span>, X): <span class="tok-kw">return</span> np.sign(np.dot(X,<span class="tok-self">self</span>.w)+<span class="tok-self">self</span>.b)
+
+model = <span class="tok-cls">SVM</span>(); model.fit(X_poly, y)
+<span class="tok-builtin">print</span>(<span class="tok-str">"acc"</span>, np.mean(model.predict(X_poly)==y))  <span class="tok-cmt"># 1.0 ★</span>
+<span class="tok-builtin">print</span>(<span class="tok-str">"learned w"</span>, np.round(model.w,<span class="tok-num">2</span>))   <span class="tok-cmt"># w for x1²,x2² large positive → bowl</span>
+</code></pre></div>
+
+<h2>3-D lift visualization (from notebook — the pretty part)</h2>
+
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — 3-D bowl + SVM plane (visual only)</span></div><pre><code><span class="tok-cmt"># z = x1² + x2²  (collapse x1² and x2² into one height for 3-D plot)</span>
+fig = plt.figure(figsize=(<span class="tok-num">9</span>,<span class="tok-num">6</span>)); ax = fig.add_subplot(<span class="tok-num">111</span>, projection=<span class="tok-str">'3d'</span>)
+Z = X[:,<span class="tok-num">0</span>]**<span class="tok-num">2</span> + X[:,<span class="tok-num">1</span>]**<span class="tok-num">2</span>
+ax.scatter(X[y==<span class="tok-num">1</span>,<span class="tok-num">0</span>], X[y==<span class="tok-num">1</span>,<span class="tok-num">1</span>], Z[y==<span class="tok-num">1</span>], color=<span class="tok-str">'#2b7de9'</span>, label=<span class="tok-str">'outer'</span>)
+ax.scatter(X[y==-<span class="tok-num">1</span>,<span class="tok-num">0</span>], X[y==-<span class="tok-num">1</span>,<span class="tok-num">1</span>], Z[y==-<span class="tok-num">1</span>], color=<span class="tok-str">'#ff6b35'</span>, label=<span class="tok-str">'inner'</span>)
+
+<span class="tok-cmt"># plane: w0·x1 + w1·x2 + w2·x1² + w3·x2² + w4·x1x2 + b = 0 → approx as w_mean·z + ...</span>
+w_mean = (model.w[<span class="tok-num">2</span>]+model.w[<span class="tok-num">3</span>])/<span class="tok-num">2</span>
+xx, yy = np.meshgrid(np.linspace(X[:,<span class="tok-num">0</span>].min(), X[:,<span class="tok-num">0</span>].max(), <span class="tok-num">30</span>),
+                     np.linspace(X[:,<span class="tok-num">1</span>].min(), X[:,<span class="tok-num">1</span>].max(), <span class="tok-num">30</span>))
+zz = (-model.w[<span class="tok-num">0</span>]*xx - model.w[<span class="tok-num">1</span>]*yy - model.w[<span class="tok-num">4</span>]*xx*yy - model.b)/ (w_mean + <span class="tok-num">1e-9</span>)
+ax.plot_surface(xx, yy, zz, alpha=<span class="tok-num">0.25</span>, color=<span class="tok-str">'#ffe14d'</span>)
+ax.set_xlabel(<span class="tok-str">'x1'</span>); ax.set_ylabel(<span class="tok-str">'x2'</span>); ax.set_zlabel(<span class="tok-str">'z = x1²+x2²'</span>)
+ax.set_title(<span class="tok-str">'explicit \phi lifts rings into hill — plane separates'</span>); ax.legend(); plt.show()
+</code></pre></div>
+
+<p class="code-note">The notebook's 30-grid plane is an approximation (averaging w₂,w₃). Exact \phi would be 5-D and can't be plotted, so we collapse to 3-D for intuition — the idea holds.</p>
+
+<h2>kernel trick — when explicit \phi explodes</h2>
+<p>Degree-2 poly on 100 features → <code>~5,000</code> dimensions. Degree-3 → <code>~170k</code>. Explicit \phi becomes impossible. Kernel trick avoids building \phi at all.</p>
+
+<div class="formula-box">$$K(x,z)=\left(x^{\top}z + c\right)^{d}=\phi(x)^{\top}\phi(z)$$</div>
+<div class="formula-caption">dot-product in high-D via kernel in low-D · solve dual with $K$ only</div>
+
+<table>
+<tr><th>kernel</th><th>K(x,z)</th><th>\phi dimension</th><th>when</th></tr>
+<tr><td><b>Linear</b></td><td>$x\cdot z$</td><td>n</td><td>already separable</td></tr>
+<tr><td><b>Poly (d=2)</b></td><td>$(x\cdot z + 1)^{2}$</td><td>~ n²/2</td><td>circles, XOR, curves</td></tr>
+<tr><td><b>Poly (d=3)</b></td><td>$(x\cdot z+1)^{3}$</td><td>~ n³/6</td><td>more wiggly boundaries</td></tr>
+<tr><td><b>RBF/Gaussian</b></td><td><code>exp(−γ||x−z||²)</code></td><td>infinite ★</td><td>smooth blobs around points (next level)</td></tr>
+</table>
+
+<p><b>Interview one-liner:</b> "Explicit \phi builds features then does $w\cdot \phi(x)$; kernel computes $\phi(x)\cdot \phi(z)$ directly via <code>K(x,z)</code> in the <b>dual</b>, so SVM training never leaves low-D." Dual variables are <code>α_i</code> (one per example); only support vectors get <code>α_i&gt;0</code>.</p>
+
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — kernel matrix (poly degree 2) — no \phi built</span></div><pre><code><span class="tok-kw">def</span> <span class="tok-fn">poly_kernel</span>(X, Z, degree=<span class="tok-num">2</span>, c=<span class="tok-num">1.0</span>):
+    <span class="tok-kw">return</span> (X.dot(Z.T) + c) ** degree   <span class="tok-cmt"># K[i,j] = (x_i·z_j + c)^d</span>
+
+K = <span class="tok-fn">poly_kernel</span>(X, X, degree=<span class="tok-num">2</span>, c=<span class="tok-num">1</span>)
+<span class="tok-builtin">print</span>(K.shape)   <span class="tok-cmt"># (300,300) — all pairs kernel</span>
+<span class="tok-cmt"># check: first two points dot vs kernel</span>
+x, z = X[<span class="tok-num">0</span>], X[<span class="tok-num">1</span>]
+phi_x = np.array([x[<span class="tok-num">0</span>], x[<span class="tok-num">1</span>], x[<span class="tok-num">0</span>]**<span class="tok-num">2</span>, x[<span class="tok-num">1</span>]**<span class="tok-num">2</span>, x[<span class="tok-num">0</span>]*x[<span class="tok-num">1</span>]])
+phi_z = np.array([z[<span class="tok-num">0</span>], z[<span class="tok-num">1</span>], z[<span class="tok-num">0</span>]**<span class="tok-num">2</span>, z[<span class="tok-num">1</span>]**<span class="tok-num">2</span>, z[<span class="tok-num">0</span>]*z[<span class="tok-num">1</span>]])
+<span class="tok-cmt"># not equal exactly — kernel implicitly uses scaled \phi (√2 factors) but same geometry</span>
+<span class="tok-builtin">print</span>(<span class="tok-str">"kernel"</span>, (np.dot(x,z)+<span class="tok-num">1</span>)**<span class="tok-num">2</span>, <span class="tok-str">"explicit dot"</span>, np.dot(phi_x, phi_z))
+</code></pre></div>
+
+<div class="hl">explicit \phi = engineer features yourself, then linear SVM. &nbsp;·&nbsp; kernel = skip \phi, compute K(x,z) in dual. &nbsp;·&nbsp; both learn curved boundaries in original space.</div>
+
+<div class="callout exam"><b class="label">⭐ exam tip</b><br/>If question says <b>"data is concentric circles"</b> → answer: <b>"no linear separator exists; use poly kernel $K=(x\cdot z+1)^{2}$ or explicit <code>\phi=[x₁,x₂,x₁²,x₂²,x₁x₂]</code>, train linear SVM in lifted space, boundary projects to circle in original space."</b> Draw left/right diagram above — that's half the marks. Add formula for \phi and one line "kernel trick avoids explicit \phi explosion".</div>
+
+<div class="callout gotcha"><b class="label">⚠️ gotcha</b><br/><b>Don't forget to standardize BEFORE polynomial expansion</b> — otherwise <code>x₁²</code> explodes scale and GD diverges. Also: polynomial degree too high → overfit (wiggly boundary memorizes noise). Use validation to pick $d=2 vs 3$.</div>
+
+<details class="ml-try"><summary>🔬 try it: degree matters — d=1 vs d=2 vs d=3</summary>
+<p>Run same X,y: train linear (d=1) → ~50% acc (fails). d=2 → 100% (perfect ring). d=3 → also ~100% but boundary wigglier. Try adding 10% label noise → d=3 overfits more. That's the bias-variance tradeoff in kernel space.</p>
+<pre><span class="tok-kw">def</span> <span class="tok-fn">make_poly</span>(X,d):
+    <span class="tok-kw">if</span> d==<span class="tok-num">1</span>: <span class="tok-kw">return</span> X
+    <span class="tok-kw">if</span> d==<span class="tok-num">2</span>: <span class="tok-kw">return</span> np.column_stack([X[:,<span class="tok-num">0</span>],X[:,<span class="tok-num">1</span>],X[:,<span class="tok-num">0</span>]**<span class="tok-num">2</span>,X[:,<span class="tok-num">1</span>]**<span class="tok-num">2</span>,X[:,<span class="tok-num">0</span>]*X[:,<span class="tok-num">1</span>]])
+    <span class="tok-cmt"># d=3: add cubes + triple cross terms (simplified subset)</span>
+    <span class="tok-kw">return</span> np.column_stack([X[:,<span class="tok-num">0</span>],X[:,<span class="tok-num">1</span>],X[:,<span class="tok-num">0</span>]**<span class="tok-num">2</span>,X[:,<span class="tok-num">1</span>]**<span class="tok-num">2</span>,X[:,<span class="tok-num">0</span>]*X[:,<span class="tok-num">1</span>],X[:,<span class="tok-num">0</span>]**<span class="tok-num">3</span>,X[:,<span class="tok-num">1</span>]**<span class="tok-num">3</span>])
+
+<span class="tok-kw">for</span> d <span class="tok-kw">in</span> [<span class="tok-num">1</span>,<span class="tok-num">2</span>,<span class="tok-num">3</span>]:
+    Xd=<span class="tok-fn">make_poly</span>(X,d); m=<span class="tok-cls">SVM</span>(alpha=<span class="tok-num">0.001</span>,epochs=<span class="tok-num">800</span>); m.fit(Xd,y)
+    <span class="tok-builtin">print</span>(<span class="tok-str">f"d={d} acc={np.mean(m.predict(Xd)==y):.2f}  |w|={np.linalg.norm(m.w):.1f}"</span>)
+</pre>
+</details>
+
+<h2>quick check</h2>
+<ul>
+  <li><b>Why lift to 5-D?</b> → Circles become linearly separable; linear SVM in 5-D = curved circle in 2-D.</li>
+  <li><b>Kernel trick one line?</b> → Compute high-D dot-product via low-D kernel: $K(x,z)=(x\cdot z+1)^{2} = \phi(x)\cdot \phi(z)$, never build \phi.</li>
+  <li><b>Which kernel has infinite \phi?</b> → RBF <code>exp(−γ||x−z||²)</code>.</li>
+</ul>
+
+<h2>the 20-second answer</h2>
+<p>Non-linear data → lift with <b>\phi(x)=[x₁,x₂,x₁²,x₂²,x₁x₂]</b> (explicit) and train linear SVM, or use <b>poly kernel $K=(x\cdot z+c)^d$</b> to stay in low-D (kernel trick). Your notebook builds \phi explicitly and gets 100% on rings; kernel does the same implicitly for any degree. Next: how to score any classifier honestly when data is skewed → <b>Precision, Recall & F1.</b></p>

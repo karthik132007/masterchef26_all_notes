@@ -1,0 +1,164 @@
+<style>
+.ml-fig{margin:14px auto 6px;max-width:640px;text-align:center}
+.ml-fig svg{width:100%;height:auto;display:block}
+.ml-fig figcaption{font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);margin-top:4px;line-height:1.55}
+.note-body figure.ml-fig{animation:ml-rise .7s ease both;animation-timeline:view();animation-range:entry 0% cover 22%}
+@keyframes ml-rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.ml-flow{stroke-dasharray:7 7;animation:ml-dash 1.2s linear infinite}
+@keyframes ml-dash{to{stroke-dashoffset:-14}}
+details.ml-try{border:2px solid var(--ink);border-radius:12px;background:#fff;padding:10px 14px;margin:12px 0}
+details.ml-try summary{font-weight:700;cursor:pointer}
+@media (prefers-reduced-motion:reduce){.ml-flow{animation:none}.note-body figure.ml-fig{animation:none}}
+</style>
+
+<p class="kicker">one feature was a toy — real houses have size, beds, age, zip. meet vectors: same line, n dimensions.</p>
+
+<h2>the 30-second idea</h2>
+<p>Pages 10–12: stop writing <code>w₁x₁ + w₂x₂ + …</code> forever. Pack weights into a vector <b>w</b>, features into <b>x</b>, and the model collapses to <b>$f = w\cdot x + b$</b> (dot product + bias). Same line idea, now in n-dimensions — a plane (n=2), then a hyperplane you cannot draw but can compute. Gradient descent scales the same.</p>
+
+$$f_{w,b}(x)=w_{1}x_{1}+w_{2}x_{2}+\cdots+w_{n}x_{n}+b = w^{\top}x + b$$
+<div class="formula-caption">$$w=[w_{1}\;\dots\;w_{n}],\quad x=[x_{1}\;\dots\;x_{n}],\quad X\in\mathbb{R}^{m\times n}$$</div>
+
+<figure class="ml-fig">
+<svg viewBox="0 0 620 200" role="img" aria-label="Dot product as parallel multiply-add">
+  <rect x="10" y="10" width="600" height="180" rx="12" fill="#fff" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="310" y="36" text-anchor="middle" font-size="12" font-weight="800">one house → one price: multiply pairs, add, + b</text>
+  <g font-family="monospace" font-size="12" font-weight="700" text-anchor="middle">
+    <rect x="60" y="55" width="52" height="34" rx="8" fill="#fff4c2" stroke="#1c1a15" stroke-width="2"/><text x="86" y="77" fill="#1c1a15">w₁</text>
+    <rect x="122" y="55" width="52" height="34" rx="8" fill="#fff4c2" stroke="#1c1a15" stroke-width="2"/><text x="148" y="77" fill="#1c1a15">w₂</text>
+    <rect x="184" y="55" width="52" height="34" rx="8" fill="#fff4c2" stroke="#1c1a15" stroke-width="2"/><text x="210" y="77" fill="#1c1a15">w₃</text>
+    <text x="256" y="78" fill="#575046">·</text>
+    <rect x="272" y="55" width="52" height="34" rx="8" fill="#e3f1ff" stroke="#1c1a15" stroke-width="2"/><text x="298" y="77" fill="#1c1a15">x₁</text>
+    <rect x="334" y="55" width="52" height="34" rx="8" fill="#e3f1ff" stroke="#1c1a15" stroke-width="2"/><text x="360" y="77" fill="#1c1a15">x₂</text>
+    <rect x="396" y="55" width="52" height="34" rx="8" fill="#e3f1ff" stroke="#1c1a15" stroke-width="2"/><text x="422" y="77" fill="#1c1a15">x₃</text>
+  </g>
+  <line x1="86" y1="89" x2="86" y2="118" stroke="#1c1a15" stroke-width="2" class="ml-flow"/><line x1="148" y1="89" x2="210" y2="118" stroke="#1c1a15" stroke-width="2" class="ml-flow"/><line x1="210" y1="89" x2="310" y2="118" stroke="#1c1a15" stroke-width="2" class="ml-flow"/>
+  <line x1="298" y1="89" x2="250" y2="118" stroke="#1c1a15" stroke-width="2" class="ml-flow"/><line x1="360" y1="89" x2="310" y2="118" stroke="#1c1a15" stroke-width="2" class="ml-flow"/><line x1="422" y1="89" x2="370" y2="118" stroke="#1c1a15" stroke-width="2" class="ml-flow"/>
+  <rect x="180" y="118" width="260" height="36" rx="10" fill="#dcf9e8" stroke="#1c1a15" stroke-width="2.5"/><text x="310" y="141" text-anchor="middle" font-size="12" font-weight="800">w₁x₁ + w₂x₂ + w₃x₃ + b = ŷ 💰</text>
+  <text x="310" y="172" text-anchor="middle" font-size="10.5" fill="#575046">size · beds · age → one price. n features, same trick.</text>
+</svg>
+<figcaption>yellow meets blue, pair by pair, then one sum. that "·" is the whole chapter.</figcaption>
+</figure>
+
+<h2>why vectors matter — beyond neat writing</h2>
+<p>Three reasons your notes hammer vectorization:</p>
+<ul>
+  <li><b>Math compression:</b> <code>n</code> separate update rules → one vector rule $w := w - \alpha\cdot \nabla_w J$.</li>
+  <li><b>Speed:</b> <code>np.dot(w, x)</code> hands the whole operation to optimized C/BLAS, not a Python loop. 1M features → milliseconds vs seconds.</li>
+  <li><b>Geometry:</b> Cost bowl now lives in <code>(n+1)</code>-D — still convex, still one bottom.</li>
+</ul>
+
+<h2>vectorization: slow loop vs one BLAS punch</h2>
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — loop vs vectorized prediction</span></div><pre><code><span class="tok-kw">import</span> numpy <span class="tok-kw">as</span> np
+
+w = np.array([<span class="tok-num">2.0</span>, <span class="tok-num">-1.0</span>, <span class="tok-num">0.5</span>])
+x = np.array([<span class="tok-num">3.0</span>, <span class="tok-num">4.0</span>, <span class="tok-num">10.0</span>])
+b = <span class="tok-num">1.0</span>
+
+<span class="tok-cmt"># 🐢 loop (n steps in Python — what naive code does)</span>
+f_loop = <span class="tok-num">0.0</span>
+<span class="tok-kw">for</span> j <span class="tok-kw">in</span> <span class="tok-builtin">range</span>(<span class="tok-builtin">len</span>(w)):
+    f_loop += w[j] * x[j]
+f_loop += b                     <span class="tok-cmt"># → 8.0</span>
+
+<span class="tok-cmt"># 🐇 vectorized (one BLAS call — what you should write)</span>
+f_vec = np.dot(w, x) + b       <span class="tok-cmt"># → 8.0  — same answer, 100× faster at scale</span>
+<span class="tok-cmt"># also: f_vec = w @ x + b</span>
+
+<span class="tok-builtin">print</span>(f_loop, f_vec)
+</code></pre></div>
+
+<p>For <code>m</code> houses at once, store <code>X</code> as <code>m×n</code> matrix (<code>X[i]</code> = house i):</p>
+
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — batch predictions for m examples</span></div><pre><code>X = np.array([[<span class="tok-num">1</span>, <span class="tok-num">2</span>],
+              [<span class="tok-num">2</span>, <span class="tok-num">3</span>],
+              [<span class="tok-num">3</span>, <span class="tok-num">4</span>]])   <span class="tok-cmt"># m=3, n=2</span>
+w = np.array([<span class="tok-num">0.5</span>, <span class="tok-num">0.5</span>]); b = <span class="tok-num">0</span>
+
+y_hat = X.dot(w) + b           <span class="tok-cmt"># → [1.5, 2.5, 3.5] — m predictions in one line</span>
+<span class="tok-cmt"># loop twin for intuition:</span>
+<span class="tok-cmt"># y_hat[i] = np.dot(w, X[i]) + b</span>
+</code></pre></div>
+
+<div class="callout exam"><b class="label">⭐ exam tip</b><br/>"Why vectorize?" → <b>"fewer explicit loops, delegates to fast linear-algebra libraries (BLAS), scales to millions of features."</b> Write the before/after pair above — instant full marks. Mention shape <code>X: m×n</code>.</div>
+
+<h2>vectorized cost and gradient — the money equations</h2>
+<p>Page 12 compresses all <code>n</code> gradient updates into two matrix punches. Learn this table by heart:</p>
+<table>
+<tr><th>quantity</th><th>formula</th><th>shape</th></tr>
+<tr><td>prediction</td><td>$\hat{y} = X\cdot w + b$</td><td><code>m × 1</code></td></tr>
+<tr><td>cost</td><td>$J = 1/(2m)\cdot \sum(\hat{y}-y)^{2} = 1/(2m)\cdot ||\hat{y}-y||^{2}$</td><td>scalar</td></tr>
+<tr><td>error</td><td><code>e = ŷ − y</code></td><td><code>m × 1</code></td></tr>
+<tr><td>∂J/∂w</td><td>$1/m \cdot  X^{\top}\cdot e$</td><td><code>n × 1</code> (same as w)</td></tr>
+<tr><td>∂J/∂b</td><td>$1/m \cdot  \sum e$</td><td>scalar</td></tr>
+</table>
+
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — vectorized cost + gradient (from scratch)</span></div><pre><code><span class="tok-kw">def</span> <span class="tok-fn">cost_vectorized</span>(X, y, w, b):
+    m = X.shape[<span class="tok-num">0</span>]
+    y_hat = X.dot(w) + b
+    <span class="tok-kw">return</span> (<span class="tok-num">1</span>/(<span class="tok-num">2</span>*m)) * np.<span class="tok-fn">sum</span>((y_hat - y)**<span class="tok-num">2</span>)
+
+<span class="tok-kw">def</span> <span class="tok-fn">compute_gradient_vec</span>(X, y, w, b):
+    m = X.shape[<span class="tok-num">0</span>]
+    y_hat = X.dot(w) + b
+    error = y_hat - y                 <span class="tok-cmt"># m-vector</span>
+    dj_dw = (<span class="tok-num">1</span>/m) * (X.T.dot(error))    <span class="tok-cmt"># n-vector ★ Xᵀ·error</span>
+    dj_db = (<span class="tok-num">1</span>/m) * np.<span class="tok-fn">sum</span>(error)        <span class="tok-cmt"># scalar</span>
+    <span class="tok-kw">return</span> dj_dw, dj_db
+
+<span class="tok-cmt"># gradient descent — now with vectors</span>
+<span class="tok-kw">def</span> <span class="tok-fn">gradient_descent_vec</span>(X, y, w_init, b_init, alpha, num_iters):
+    w, b = w_init.copy(), b_init
+    <span class="tok-kw">for</span> i <span class="tok-kw">in</span> <span class="tok-builtin">range</span>(num_iters):
+        dj_dw, dj_db = <span class="tok-fn">compute_gradient_vec</span>(X, y, w, b)
+        w -= alpha * dj_dw
+        b -= alpha * dj_db
+    <span class="tok-kw">return</span> w, b
+</code></pre></div>
+
+<details class="ml-try"><summary>🔬 try it: your notes' matrix example, replayed and verified</summary>
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — page-12 worked numbers</span></div><pre><code>X = np.array([[<span class="tok-num">1</span>, <span class="tok-num">2</span>],
+              [<span class="tok-num">2</span>, <span class="tok-num">3</span>],
+              [<span class="tok-num">3</span>, <span class="tok-num">4</span>]])
+y = np.array([<span class="tok-num">1</span>, <span class="tok-num">1</span>, <span class="tok-num">2</span>])
+
+w = np.array([<span class="tok-num">0.5</span>, <span class="tok-num">0.5</span>]); b = <span class="tok-num">0</span>
+<span class="tok-builtin">print</span>(<span class="tok-str">"preds"</span>, X.dot(w))                 <span class="tok-cmt"># [1.5 2.5 3.5]</span>
+<span class="tok-builtin">print</span>(<span class="tok-str">"error"</span>, X.dot(w)-y)             <span class="tok-cmt"># [0.5 1.5 1.5]</span>
+<span class="tok-builtin">print</span>(<span class="tok-fn">compute_gradient_vec</span>(X,y,w,b))   <span class="tok-cmt"># (array([2.66, 3.83]), 1.16)</span>
+<span class="tok-cmt"># hand: Xᵀ·e = [0.5*1+1.5*2+1.5*3, 0.5*2+1.5*3+1.5*4] = [8.0,11.5] /3 = [2.66,3.83] ★</span>
+</code></pre></div>
+<p>That is exactly the hand calculation on your page 12 — <b>transpose times error, divide by m</b>. One line replaces <code>n</code> loops.</p>
+</details>
+
+<h2>feature scaling — the hidden trap</h2>
+<p>When one feature is <code>0–1</code> (bedrooms) and another is <code>1000–5000</code> (sqft), the cost bowl becomes a <b>stretched elliptical valley</b> — gradient descent zig-zags and crawls. Fixes:</p>
+<table>
+<tr><th>technique</th><th>formula</th><th>when</th></tr>
+<tr><td><b>Standardize (z-score)</b></td><td>$(x - \mu)/\sigma$ → mean 0, std 1</td><td>default for GD ★</td></tr>
+<tr><td><b>Min-max</b></td><td><code>(x − min)/(max−min)</code> → [0,1]</td><td>when you need bounded</td></tr>
+<tr><td><b>Mean-normalize</b></td><td>$(x - \mu)/(max-min)$</td><td>variant of above</td></tr>
+</table>
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — standardize features (must-do before GD)</span></div><pre><code>X_raw = np.array([[<span class="tok-num">2100</span>, <span class="tok-num">3</span>],
+                [<span class="tok-num">1600</span>, <span class="tok-num">2</span>],
+                [<span class="tok-num">2400</span>, <span class="tok-num">4</span>],
+                [<span class="tok-num">1400</span>, <span class="tok-num">2</span>]])
+mu = X_raw.mean(axis=<span class="tok-num">0</span>)          <span class="tok-cmt"># [1875, 2.75]</span>
+sigma = X_raw.std(axis=<span class="tok-num">0</span>)         <span class="tok-cmt"># std per column</span>
+X_norm = (X_raw - mu) / sigma     <span class="tok-cmt"># now both cols ~ N(0,1) → round bowl → GD flies</span>
+
+<span class="tok-cmt"># remember mu/sigma and apply same transform to test houses!</span>
+</code></pre></div>
+
+<div class="callout gotcha"><b class="label">⚠️ gotcha</b><br/><b>Xᵀ not X.</b> X is <code>m×n</code>; error is <code>m×1</code>. Only <b>X-transpose (<code>n×m</code>) times error</b> gives the <code>n×1</code> gradient you need. Wrong order = shape explosion. Also: <b>scale train and test with same μ,σ</b> from train only — don't recompute on test.</div>
+
+<h2>quick check</h2>
+<ul>
+  <li><b>4 features — how many w's?</b> 4 (w₁…w₄) + one b. Always n weights, one bias.</li>
+  <li><b>Vectorized f for one example?</b> $w\cdot x + b$. For all m? $X\cdot w + b$.</li>
+  <li><b>Gradient shape?</b> Same shape as w — one slope per knob.</li>
+  <li><b>Why standardize?</b> → Makes bowl round, GD converges 10–100× faster.</li>
+</ul>
+
+<h2>the 20-second answer</h2>
+<p>Multiple regression is <b>f = w·x + b</b>: stack features into vectors, dot them, add bias. Vectorization swaps <code>n</code> Python loops for <b>one BLAS dot product</b>, and the gradient becomes <b>Xᵀ·error / m</b>. Same convex bowl, more dimensions, plus <b>feature scaling</b> to keep it round. Next: what if y is a category, not a number? → <b>Logistic Regression.</b></p>

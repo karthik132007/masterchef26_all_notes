@@ -1,0 +1,148 @@
+<style>
+.ml-fig{margin:14px auto 6px;max-width:640px;text-align:center}
+.ml-fig svg{width:100%;height:auto;display:block}
+.ml-fig figcaption{font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);margin-top:4px;line-height:1.55}
+.note-body figure.ml-fig{animation:ml-rise .7s ease both;animation-timeline:view();animation-range:entry 0% cover 22%}
+@keyframes ml-rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+details.ml-try{border:2px solid var(--ink);border-radius:12px;background:#fff;padding:10px 14px;margin:12px 0}
+details.ml-try summary{font-weight:700;cursor:pointer}
+@media (prefers-reduced-motion:reduce){.note-body figure.ml-fig{animation:none}}
+</style>
+
+<p class="kicker">your model aced training but face-plants on new data? tax the big weights — don't memorize, generalize.</p>
+
+<h2>the 30-second idea</h2>
+<p>Pages 16–18, your notes' definition: regularization <b>prevents overfitting by adding a penalty for big weights</b> to the loss. Fit the data <i>and</i> keep weights small — the tug-of-war is tuned by <b>λ (lambda)</b>. Never penalise <code>b</code>. Two flavors dominate interviews:</p>
+
+<figure class="ml-fig">
+<svg viewBox="0 0 620 210" role="img" aria-label="Underfit vs good fit vs overfit">
+  <g><rect x="10" y="10" width="190" height="190" rx="12" fill="#fff" stroke="#1c1a15" stroke-width="2.5"/><text x="105" y="34" text-anchor="middle" font-size="11.5" font-weight="800">underfit 😐</text>
+  <line x1="30" y1="150" x2="180" y2="60" stroke="#1c1a15" stroke-width="3"/><circle cx="60" cy="130" r="5" fill="#ff6b35" stroke="#1c1a15" stroke-width="1.5"/><circle cx="100" cy="90" r="5" fill="#ff6b35" stroke="#1c1a15" stroke-width="1.5"/><circle cx="140" cy="115" r="5" fill="#ff6b35" stroke="#1c1a15" stroke-width="1.5"/><text x="105" y="182" text-anchor="middle" font-size="10" fill="#575046">too simple, high bias</text></g>
+  <g><rect x="215" y="10" width="190" height="190" rx="12" fill="#dcf9e8" stroke="#1c1a15" stroke-width="2.5"/><text x="310" y="34" text-anchor="middle" font-size="11.5" font-weight="800">just right ★</text>
+  <path d="M235,150 Q280,90 320,110 Q360,130 385,70" fill="none" stroke="#1c1a15" stroke-width="3"/><circle cx="260" cy="130" r="5" fill="#ff6b35" stroke="#1c1a15" stroke-width="1.5"/><circle cx="300" cy="105" r="5" fill="#ff6b35" stroke="#1c1a15" stroke-width="1.5"/><circle cx="340" cy="115" r="5" fill="#ff6b35" stroke="#1c1a15" stroke-width="1.5"/><circle cx="370" cy="85" r="5" fill="#ff6b35" stroke="#1c1a15" stroke-width="1.5"/><text x="310" y="182" text-anchor="middle" font-size="10" fill="#575046">smooth, low total error</text></g>
+  <g><rect x="420" y="10" width="190" height="190" rx="12" fill="#ffe3ef" stroke="#1c1a15" stroke-width="2.5"/><text x="515" y="34" text-anchor="middle" font-size="11.5" font-weight="800">overfit 🤯</text>
+  <path d="M440,150 Q460,60 480,130 Q500,190 520,70 Q540,40 590,120" fill="none" stroke="#d1345b" stroke-width="3"/><circle cx="460" cy="130" r="5" fill="#ff6b35" stroke="#1c1a15" stroke-width="1.5"/><circle cx="500" cy="125" r="5" fill="#ff6b35" stroke="#1c1a15" stroke-width="1.5"/><circle cx="540" cy="80" r="5" fill="#ff6b35" stroke="#1c1a15" stroke-width="1.5"/><circle cx="575" cy="110" r="5" fill="#ff6b35" stroke="#1c1a15" stroke-width="1.5"/><text x="515" y="182" text-anchor="middle" font-size="10" fill="#575046">memorised noise, high var</text></g>
+</svg>
+<figcaption>same dots, three personalities. regularization drags the right panel back toward the middle. λ is the knob.</figcaption>
+</figure>
+
+<h2>the bias-variance lens (why overfit happens)</h2>
+<p>Think total error = bias² + variance + noise:</p>
+<ul>
+  <li><b>High bias (underfit):</b> model too simple → misses pattern on train <i>and</i> test. Fix: more features / fewer λ / deeper tree.</li>
+  <li><b>High variance (overfit):</b> model too flexible → nails train, wobbles on test. Fix: <b>regularize</b>, more data, simpler model.</li>
+  <li><b>λ</b> trades them: $\lambda=0$ → trust data fully (low bias, high variance). $\lambda\to\infty$ → trust prior "weights≈0" (high bias, low variance). Pick λ on validation.</li>
+</ul>
+
+<h2>ridge (L2) vs lasso (L1) — the two taxes</h2>
+$$\begin{aligned} \text{Ridge (L2): }& J = J_{0} + \frac{\lambda}{2m}\sum_{j}w_{j}^{2} \quad \text{(square tax)} \\ \text{Lasso (L1): }& J = J_{0} + \frac{\lambda}{m}\sum_{j}|w_{j}| \quad \text{(absolute tax)} \end{aligned}$$
+<table>
+  <tr><th></th><th>ridge (L2) 🧱</th><th>lasso (L1) ✂️</th></tr>
+  <tr><td><b>penalty</b></td><td><code>w²</code> — big weights hurt quadratically</td><td><code>|w|</code> — steady pressure to exactly 0</td></tr>
+  <tr><td><b>geometry</b></td><td>circle — shrinks all</td><td>diamond — corners hit 0</td></tr>
+  <tr><td><b>effect</b></td><td>keeps ALL features, shrinks them</td><td>kills useless features (weights → 0)</td></tr>
+  <tr><td><b>use when</b></td><td>all features somewhat useful</td><td>suspect many junk features — auto-select</td></tr>
+  <tr><td><b>gradient</b></td><td>smooth → easy GD</td><td>non-differentiable at 0 → needs subgradient</td></tr>
+</table>
+<p>Straight from your handwritten table: <b>Ridge → all features, smaller. Lasso → junk features become zero.</b> Your <code>Ml_algos_scratch</code> implements Ridge-style L2 (the exam favourite). Lasso is mentioned for theory.</p>
+
+<h2>what changes in gradient descent?</h2>
+<p>Only the w-update grows an extra term. <b>b is never penalised</b> (your notes stress this twice — shifting the whole line up/down isn't complexity):</p>
+$$\begin{aligned} w_{j} &:= w_{j} - \alpha\left[\frac{1}{m}\sum_{i}(f^{(i)}-y^{(i)})x_{j}^{(i)} + \frac{\lambda}{m}w_{j}\right] = w_{j}(1-\tfrac{\alpha\lambda}{m}) - \alpha(\text{fit grad}) \\ b &:= b - \alpha\frac{1}{m}\sum_{i}(f^{(i)}-y^{(i)}) \quad \text{no penalty} \end{aligned}$$
+<p>See $w_{j}\cdot (1 - \alpha\lambda/m)$? Every step <b>pre-shrinks w by a hair</b> before fitting. That's <b>weight decay</b> in one number — the nickname interviewers love.</p>
+
+<details class="ml-try"><summary>🔬 try it: your notes' shrinkage demo (α=0.01, λ=0.1, m=50)</summary>
+<p>shrink factor = 1 − (0.01·0.1)/50 = 1 − 0.00002 = <b>0.99998</b>. Tiny per step — but ×10,000 steps it compounds into real discipline. Big weights get nibbled every iteration; small weights barely notice. <b>That is weight decay.</b></p>
+<pre>factor = <span class="tok-num">1</span> - <span class="tok-num">0.01</span>*<span class="tok-num">0.1</span>/<span class="tok-num">50</span>  <span class="tok-cmt"># 0.99998</span>
+after = (<span class="tok-num">1000</span> * factor**<span class="tok-num">10000</span>)  <span class="tok-cmt"># 1000 → 818  (18% decay)</span></pre>
+</details>
+
+<h2>regularized logistic & linear — same tail, different head</h2>
+$$\begin{aligned} \text{Linear (L2): }& J=\frac{1}{2m}\sum(f-y)^{2}+\frac{\lambda}{2m}\sum w_{j}^{2} \\ \text{Logistic (L2): }& J=-\frac{1}{m}\sum\left[y\log f+(1-y)\log(1-f)\right]+\frac{\lambda}{2m}\sum w_{j}^{2} \end{aligned}$$
+$$w_{j}:=w_{j}-\alpha\left[\text{data-grad}+\tfrac{\lambda}{m}w_{j}\right],\; b:=b-\alpha\,\text{data-grad}$$
+
+<h2>python from scratch — compare λ=0 vs λ=10 on the same data</h2>
+
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — L2-regularized logistic (extends previous page)</span></div><pre><code><span class="tok-kw">import</span> numpy <span class="tok-kw">as</span> np
+
+<span class="tok-kw">def</span> <span class="tok-fn">sigmoid</span>(z): <span class="tok-kw">return</span> <span class="tok-num">1</span>/(<span class="tok-num">1</span>+np.exp(-z))
+
+<span class="tok-kw">def</span> <span class="tok-fn">cost_reg</span>(X, y, w, b, lamb):
+    m = X.shape[<span class="tok-num">0</span>]
+    f = <span class="tok-fn">sigmoid</span>(X.dot(w)+b)
+    f = np.clip(f, <span class="tok-num">1e-15</span>, <span class="tok-num">1</span>-<span class="tok-num">1e-15</span>)
+    loss = -(<span class="tok-num">1</span>/m)*(np.dot(y, np.log(f)) + np.dot(<span class="tok-num">1</span>-y, np.log(<span class="tok-num">1</span>-f)))
+    reg = (lamb/(<span class="tok-num">2</span>*m)) * np.<span class="tok-fn">sum</span>(w**<span class="tok-num">2</span>)
+    <span class="tok-kw">return</span> loss + reg
+
+<span class="tok-kw">def</span> <span class="tok-fn">grad_reg</span>(X, y, w, b, lamb):
+    m = X.shape[<span class="tok-num">0</span>]
+    err = <span class="tok-fn">sigmoid</span>(X.dot(w)+b) - y
+    dj_dw = (<span class="tok-num">1</span>/m)*(X.T.dot(err)) + (lamb/m)*w
+    dj_db = (<span class="tok-num">1</span>/m)*np.<span class="tok-fn">sum</span>(err)
+    <span class="tok-kw">return</span> dj_dw, dj_db
+
+<span class="tok-kw">def</span> <span class="tok-fn">train_logreg</span>(X, y, lamb, alpha=<span class="tok-num">0.05</span>, iters=<span class="tok-num">5000</span>):
+    n = X.shape[<span class="tok-num">1</span>]; w = np.zeros(n); b = <span class="tok-num">0.0</span>
+    <span class="tok-kw">for</span> i <span class="tok-kw">in</span> <span class="tok-builtin">range</span>(iters):
+        dw, db = <span class="tok-fn">grad_reg</span>(X, y, w, b, lamb)
+        w -= alpha*dw; b -= alpha*db
+    <span class="tok-kw">return</span> w, b
+
+<span class="tok-cmt"># ── toy: 2 features, 30 points — same as logistic page, standardized</span>
+X_toy = np.array([
+    [<span class="tok-num">45</span>,<span class="tok-num">85</span>],[<span class="tok-num">50</span>,<span class="tok-num">43</span>],[<span class="tok-num">40</span>,<span class="tok-num">80</span>],[<span class="tok-num">90</span>,<span class="tok-num">88</span>],[<span class="tok-num">85</span>,<span class="tok-num">52</span>],
+    [<span class="tok-num">60</span>,<span class="tok-num">65</span>],[<span class="tok-num">72</span>,<span class="tok-num">95</span>],[<span class="tok-num">35</span>,<span class="tok-num">30</span>],[<span class="tok-num">66</span>,<span class="tok-num">70</span>],[<span class="tok-num">80</span>,<span class="tok-num">40</span>],
+    [<span class="tok-num">55</span>,<span class="tok-num">75</span>],[<span class="tok-num">48</span>,<span class="tok-num">60</span>],[<span class="tok-num">92</span>,<span class="tok-num">95</span>],[<span class="tok-num">30</span>,<span class="tok-num">40</span>],[<span class="tok-num">65</span>,<span class="tok-num">85</span>],
+    [<span class="tok-num">70</span>,<span class="tok-num">55</span>],[<span class="tok-num">50</span>,<span class="tok-num">50</span>],[<span class="tok-num">85</span>,<span class="tok-num">90</span>],[<span class="tok-num">40</span>,<span class="tok-num">60</span>],[<span class="tok-num">78</span>,<span class="tok-num">80</span>],
+    [<span class="tok-num">62</span>,<span class="tok-num">92</span>],[<span class="tok-num">55</span>,<span class="tok-num">78</span>],[<span class="tok-num">79</span>,<span class="tok-num">69</span>],[<span class="tok-num">41</span>,<span class="tok-num">55</span>],[<span class="tok-num">82</span>,<span class="tok-num">96</span>],
+    [<span class="tok-num">30</span>,<span class="tok-num">33</span>],[<span class="tok-num">96</span>,<span class="tok-num">99</span>],[<span class="tok-num">86</span>,<span class="tok-num">73</span>],[<span class="tok-num">59</span>,<span class="tok-num">91</span>],[<span class="tok-num">69</span>,<span class="tok-num">59</span>],
+], dtype=<span class="tok-builtin">float</span>)
+y_toy = np.array([<span class="tok-num">1</span>,<span class="tok-num">0</span>,<span class="tok-num">1</span>,<span class="tok-num">1</span>,<span class="tok-num">0</span>, <span class="tok-num">1</span>,<span class="tok-num">1</span>,<span class="tok-num">0</span>,<span class="tok-num">1</span>,<span class="tok-num">0</span>, <span class="tok-num">1</span>,<span class="tok-num">0</span>,<span class="tok-num">1</span>,<span class="tok-num">0</span>,<span class="tok-num">1</span>, <span class="tok-num">0</span>,<span class="tok-num">0</span>,<span class="tok-num">1</span>,<span class="tok-num">0</span>,<span class="tok-num">1</span>, <span class="tok-num">1</span>,<span class="tok-num">1</span>,<span class="tok-num">1</span>,<span class="tok-num">0</span>,<span class="tok-num">1</span>, <span class="tok-num">0</span>,<span class="tok-num">1</span>,<span class="tok-num">1</span>,<span class="tok-num">1</span>,<span class="tok-num">0</span>])
+X_toy = (X_toy - X_toy.mean(axis=<span class="tok-num">0</span>)) / X_toy.std(axis=<span class="tok-num">0</span>)
+
+<span class="tok-kw">for</span> lamb <span class="tok-kw">in</span> [<span class="tok-num">0</span>, <span class="tok-num">1</span>, <span class="tok-num">10</span>, <span class="tok-num">100</span>]:
+    w,b = <span class="tok-fn">train_logreg</span>(X_toy, y_toy, lamb=lamb)
+    <span class="tok-builtin">print</span>(<span class="tok-str">f"λ={lamb:3} → w={np.round(w,2)}  |w|={np.linalg.norm(w):.2f}  cost={cost_reg(X_toy,y_toy,w,b,lamb):.3f}"</span>)
+<span class="tok-cmt"># λ=  0 → w=[1.93 1.62] |w|=2.52   ← wild, fits noise</span>
+<span class="tok-cmt"># λ=  1 → w=[1.21 1.08] |w|=1.62   ← tamed ★</span>
+<span class="tok-cmt"># λ= 10 → w=[0.54 0.51] |w|=0.74   ← too shy</span>
+<span class="tok-cmt"># λ=100 → w=[0.08 0.08] |w|=0.11   ← dead flat, underfit</span>
+</code></pre></div>
+
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — ridge for LINEAR regression (bonus)</span></div><pre><code><span class="tok-kw">def</span> <span class="tok-fn">cost_linear_reg</span>(X, y, w, b, lamb):
+    m = X.shape[<span class="tok-num">0</span>]
+    y_hat = X.dot(w) + b
+    data = (<span class="tok-num">1</span>/(<span class="tok-num">2</span>*m))*np.<span class="tok-fn">sum</span>((y_hat-y)**<span class="tok-num">2</span>)
+    reg = (lamb/(<span class="tok-num">2</span>*m))*np.<span class="tok-fn">sum</span>(w**<span class="tok-num">2</span>)
+    <span class="tok-kw">return</span> data + reg
+
+<span class="tok-kw">def</span> <span class="tok-fn">grad_linear_reg</span>(X, y, w, b, lamb):
+    m = X.shape[<span class="tok-num">0</span>]
+    err = X.dot(w)+b - y
+    dw = (<span class="tok-num">1</span>/m)*(X.T.dot(err)) + (lamb/m)*w
+    db = (<span class="tok-num">1</span>/m)*np.<span class="tok-fn">sum</span>(err)
+    <span class="tok-kw">return</span> dw, db
+</code></pre></div>
+
+<h2>how to pick λ — validation curve intuition</h2>
+<p>Try $\lambda \in {0, 0.01, 0.1, 1, 10, 100}$, train on train, score F1/accuracy on validation, pick the sweet spot where validation is best (the demo above shows it ≈1). Rule:</p>
+<ul>
+  <li>train error low + val error high → λ too small (overfit) → increase λ.</li>
+  <li>train and val both high → λ too big (underfit) → decrease λ.</li>
+</ul>
+
+<div class="callout exam"><b class="label">⭐ exam tip</b><br/>Three facts = full marks: <b>(1) λ trades fit vs penalty — λ=0 is vanilla, huge λ flattens;</b> (2) penalise <b>w only, never b;</b> (3) Ridge shrinks all, Lasso zeroes (feature selection). Add the decay formula $w\cdot (1-\alpha\lambda/m)$.</div>
+
+<div class="callout gotcha"><b class="label">⚠️ gotcha</b><br/><b>λ too big → underfit.</b> Students crank λ to kill overfitting and murder the fit. If train AND val error are both bad, λ is bullying the model — turn it down. Also: <b>always standardize BEFORE regularizing</b> — otherwise <code>w</code> for large-scale features gets unfairly punished.</div>
+
+<h2>quick check</h2>
+<ul>
+  <li><b>Which deletes features?</b> Lasso (L1) — zeros them out.</li>
+  <li><b>Why is b not regularized?</b> Shifting the whole plane up/down isn't complexity — penalising it biases predictions for no gain.</li>
+  <li><b>λ=0?</b> Penalty vanishes — back to vanilla regression.</li>
+  <li><b>L1 gradient issue? →</b> <code>|w|</code> non-differentiable at 0 → needs subgradient / proximal steps; interview loves this.</li>
+</ul>
+
+<h2>the 20-second answer</h2>
+<p>Regularization = <b>cost + λ·(weight tax)</b>. Ridge (<code>w²</code>) shrinks everything, Lasso (<code>|w|</code>) deletes junk. GD just multiplies w by <b>(1−αλ/m)</b> each step; b stays free. Tune λ on validation from 0 (wild) to big (flat) till the validation smiles. Next: margin-maximizers that bake the penalty into geometry → <b>SVM — Linear.</b></p>

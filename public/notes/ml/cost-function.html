@@ -1,0 +1,137 @@
+<style>
+.ml-fig{margin:14px auto 6px;max-width:640px;text-align:center}
+.ml-fig svg{width:100%;height:auto;display:block}
+.ml-fig figcaption{font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);margin-top:4px;line-height:1.55}
+.note-body figure.ml-fig{animation:ml-rise .7s ease both;animation-timeline:view();animation-range:entry 0% cover 22%}
+@keyframes ml-rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.ml-flow{stroke-dasharray:7 7;animation:ml-dash 1.2s linear infinite}
+@keyframes ml-dash{to{stroke-dashoffset:-14}}
+details.ml-try{border:2px solid var(--ink);border-radius:12px;background:#fff;padding:10px 14px;margin:12px 0}
+details.ml-try summary{font-weight:700;cursor:pointer}
+@media (prefers-reduced-motion:reduce){.ml-flow{animation:none}.note-body figure.ml-fig{animation:none}}
+</style>
+
+<p class="kicker">your model's report card — one number that screams "how wrong are you?" and a bowl you must find the bottom of.</p>
+
+<h2>the 30-second idea</h2>
+<p>From your page 5: the cost function measures <b>how wrong your predictions are vs actual values.</b> Take each miss <code>(ŷ − y)</code>, <b>square it</b> (so overshoots and undershoots both hurt, big misses hurt a lot), then <b>average</b>. Small J = hugging the dots. Big J = embarrassing. The learning algorithm's entire job is <b>minimise J</b>.</p>
+
+$$J(w,b) = \frac{1}{2m}\sum_{i=1}^{m}\left(f_{w,b}\!\left(x^{(i)}\right) - y^{(i)}\right)^{2}$$
+<div class="formula-caption">halve &nbsp;·&nbsp; average &nbsp;·&nbsp; squared miss per dot</div>
+
+<figure class="ml-fig">
+<svg viewBox="0 0 620 240" role="img" aria-label="Residuals as vertical error bars">
+  <rect x="10" y="10" width="600" height="220" rx="12" fill="#fff" stroke="#1c1a15" stroke-width="2.5"/>
+  <line x1="60" y1="25" x2="60" y2="205" stroke="#1c1a15" stroke-width="2"/><line x1="60" y1="205" x2="595" y2="205" stroke="#1c1a15" stroke-width="2"/>
+  <text x="50" y="20" font-size="11" font-weight="800">y</text><text x="598" y="219" font-size="11" font-weight="800">x</text>
+  <line x1="60" y1="190" x2="595" y2="60" stroke="#1c1a15" stroke-width="3.5"/>
+  <text x="500" y="52" font-size="10.5" font-weight="800">f(x) = wx+b</text>
+  <circle cx="180" cy="140" r="6" fill="#ff6b35" stroke="#1c1a15" stroke-width="2"/><line x1="180" y1="140" x2="180" y2="162" stroke="#d1345b" stroke-width="3.5" stroke-dasharray="5 4"/><text x="190" y="155" font-size="10.5" font-weight="700" fill="#d1345b">miss₁</text>
+  <circle cx="310" cy="100" r="6" fill="#ff6b35" stroke="#1c1a15" stroke-width="2"/><line x1="310" y1="100" x2="310" y2="130" stroke="#d1345b" stroke-width="3.5" stroke-dasharray="5 4"/><text x="320" y="120" font-size="10.5" font-weight="700" fill="#d1345b">miss₂</text>
+  <circle cx="440" cy="120" r="6" fill="#ff6b35" stroke="#1c1a15" stroke-width="2"/><line x1="440" y1="98" x2="440" y2="120" stroke="#d1345b" stroke-width="3.5" stroke-dasharray="5 4"/><text x="450" y="114" font-size="10.5" font-weight="700" fill="#d1345b">miss₃</text>
+  <text x="310" y="228" text-anchor="middle" font-size="10.5" fill="#575046">each dashed bar = (ŷ − y) → square it → average → J. orange dots = truth, line = guess</text>
+</svg>
+<figcaption>see the gaps? J is just "average squared gap". shrink the gaps, shrink J.</figcaption>
+</figure>
+
+<h2>why square? why 2m?</h2>
+<ul>
+  <li><b>Square</b> — kills the sign (miss low vs miss high both count), and <b>punishes big misses way more</b> than small ones. A miss of 4 costs 16× a miss of 1. Absolute value would punish linearly; square shouts louder for outliers.</li>
+  <li><b>Divide by m</b> — average, so 10 dots and 10,000 dots are comparable. Without it J would scale with dataset size.</li>
+  <li><b>Divide by 2</b> — pure convenience: it cancels the <code>2</code> that pops out when you differentiate. Your notes keep it; keep it. If you drop it, learning dynamics shift but minima stays same.</li>
+</ul>
+
+<h2>simplify: freeze b, study J(w)</h2>
+<p>Your notes set $b = 0$ and vary only <code>w</code> — now cost is a 1-D curve you can actually draw. This is how you build intuition before the 2-D bowl:</p>
+
+<figure class="ml-fig">
+<svg viewBox="0 0 620 240" role="img" aria-label="U-shaped cost curve over w">
+  <rect x="10" y="10" width="600" height="220" rx="12" fill="#fff" stroke="#1c1a15" stroke-width="2.5"/>
+  <line x1="50" y1="30" x2="50" y2="200" stroke="#1c1a15" stroke-width="2"/><line x1="50" y1="200" x2="595" y2="200" stroke="#1c1a15" stroke-width="2"/>
+  <text x="38" y="24" font-size="12" font-weight="800">J</text><text x="598" y="214" font-size="12" font-weight="800">w</text>
+  <path d="M70,60 Q200,60 260,140 Q310,205 360,140 Q420,60 550,60" fill="none" stroke="#1c1a15" stroke-width="3.5"/>
+  <circle cx="163" cy="80" r="6" fill="#e3f1ff" stroke="#1c1a15" stroke-width="2"/><text x="163" y="64" text-anchor="middle" font-size="10.5" font-weight="800">w=0 ✗</text>
+  <circle cx="310" cy="198" r="8" fill="#ffe14d" stroke="#1c1a15" stroke-width="2.5"/><text x="310" y="222" text-anchor="middle" font-size="10.5" font-weight="800">best w ★ J min</text>
+  <circle cx="447" cy="80" r="6" fill="#e3f1ff" stroke="#1c1a15" stroke-width="2"/><text x="447" y="64" text-anchor="middle" font-size="10.5" font-weight="800">w=0.5?</text>
+  <text x="310" y="40" text-anchor="middle" font-size="11" font-weight="700" fill="#575046">bowl shape → exactly one bottom → that is the answer</text>
+  <circle r="6" fill="#d1345b" stroke="#1c1a15" stroke-width="2"><animateMotion dur="3.5s" repeatCount="indefinite" values="70,60; 310,198; 550,60; 70,60" keyTimes="0;0.5;0.85;1" calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1;0.4 0 0.6 1"/></circle>
+</svg>
+<figcaption>your notes' U-curve: try w=0 (high cost), w=0.5 (better), then settle at the golden bottom. convex = one global min.</figcaption>
+</figure>
+
+<h2>the 2-D bowl: J(w,b) is a convex valley</h2>
+<p>When both <code>w</code> and <code>b</code> vary, J is a bowl in 3-D (w on x-axis, b on z, J is height). Linear regression's squared-error cost is <b>convex</b> — no fake valleys, no tricks. That means gradient descent cannot get trapped; any downhill walk leads to the same global bottom. Your handwritten "bowl curve" sketch = this property.</p>
+<ul>
+  <li><b>Convex → one bottom.</b> Logistic regression's log-loss is also convex (single S-curve valley).</li>
+  <li><b>Non-convex</b> (e.g., neural nets, squared-error on sigmoid) = many valleys → you need tricks, restarts, luck.</li>
+</ul>
+
+<h2>python — compute J from scratch and feel it</h2>
+<p>Directly from <code>Ml_algos_scratch/Ml/linear_reg.ipynb</code> and <code>OPtimizers/Gradient_Descent.ipynb</code>, unified and colored:</p>
+
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — cost function + hand checks</span></div><pre><code><span class="tok-kw">import</span> numpy <span class="tok-kw">as</span> np
+
+<span class="tok-cmt"># loop version (as in notebook — easiest to read, matches math Σ)</span>
+<span class="tok-kw">def</span> <span class="tok-fn">cost_function_loop</span>(w, b, x, y):
+    m = x.shape[<span class="tok-num">0</span>]
+    cost = <span class="tok-num">0.0</span>
+    <span class="tok-kw">for</span> i <span class="tok-kw">in</span> <span class="tok-builtin">range</span>(m):
+        f_wb = w * x[i] + b          <span class="tok-cmt"># prediction ŷ⁽ⁱ⁾</span>
+        cost += (f_wb - y[i])**<span class="tok-num">2</span>   <span class="tok-cmt"># squared miss</span>
+    <span class="tok-kw">return</span> (<span class="tok-num">1</span>/(<span class="tok-num">2</span>*m)) * cost
+
+<span class="tok-cmt"># vectorized version (as in Optimizers notebook — one line, 100× faster)</span>
+<span class="tok-kw">def</span> <span class="tok-fn">cost_func</span>(w, b, X, Y):
+    m = X.shape[<span class="tok-num">0</span>]
+    y_hat = w * X + b                <span class="tok-cmt"># all predictions at once</span>
+    <span class="tok-kw">return</span> (<span class="tok-num">1</span>/(<span class="tok-num">2</span>*m)) * np.<span class="tok-fn">sum</span>((y_hat - Y)**<span class="tok-num">2</span>)
+
+<span class="tok-cmt"># ── hand-compute to FEEL the bowl ──</span>
+x_toy = np.array([<span class="tok-num">1.0</span>, <span class="tok-num">2.0</span>])
+y_toy = np.array([<span class="tok-num">1.0</span>, <span class="tok-num">2.0</span>])
+
+<span class="tok-cmt"># w=0.5, b=0 → preds 0.5,1.0 → misses -0.5,-1.0 → squares 0.25,1.0 → J≈0.3125</span>
+<span class="tok-builtin">print</span>(<span class="tok-fn">cost_function_loop</span>(<span class="tok-num">0.5</span>, <span class="tok-num">0</span>, x_toy, y_toy))  <span class="tok-cmt"># 0.3125</span>
+<span class="tok-cmt"># w=1.0, b=0 → perfect line → J=0</span>
+<span class="tok-builtin">print</span>(<span class="tok-fn">cost_func</span>(<span class="tok-num">1.0</span>, <span class="tok-num">0</span>, x_toy, y_toy))            <span class="tok-cmt"># 0.0  — bottom!</span>
+<span class="tok-cmt"># w=0.0 → flat guess → high cost</span>
+<span class="tok-builtin">print</span>(<span class="tok-fn">cost_func</span>(<span class="tok-num">0.0</span>, <span class="tok-num">0</span>, x_toy, y_toy))            <span class="tok-cmt"># 1.25</span>
+</code></pre></div>
+
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — sweep w to plot the U-curve (try this!)</span></div><pre><code>ws = np.linspace(-<span class="tok-num">1</span>, <span class="tok-num">3</span>, <span class="tok-num">100</span>)
+Js = [cost_func(w, <span class="tok-num">0</span>, x_toy, y_toy) <span class="tok-kw">for</span> w <span class="tok-kw">in</span> ws]
+
+<span class="tok-kw">import</span> matplotlib.pyplot <span class="tok-kw">as</span> plt
+plt.plot(ws, Js, linewidth=<span class="tok-num">3</span>, color=<span class="tok-str">"#1c1a15"</span>)
+plt.scatter([<span class="tok-num">1.0</span>], [<span class="tok-num">0.0</span>], color=<span class="tok-str">"#ffe14d"</span>, s=<span class="tok-num">150</span>, edgecolors=<span class="tok-str">"#1c1a15"</span>, linewidth=<span class="tok-num">2.5</span>, zorder=<span class="tok-num">3</span>)
+plt.xlabel(<span class="tok-str">"w"</span>); plt.ylabel(<span class="tok-str">"J(w) with b=0"</span>); plt.title(<span class="tok-str">"U-shaped cost — convex bowl"</span>)
+plt.grid(<span class="tok-cmt"># extra tiny</span>); plt.show()
+<span class="tok-cmt"># you will see a perfect bowl with minimum at w=1 ★</span>
+</code></pre></div>
+
+<h2>cost vs loss — one trap to avoid</h2>
+<table>
+<tr><th>term</th><th>means</th><th>formula</th></tr>
+<tr><td><b>Loss</b></td><td>miss of ONE example</td><td><code>(f(x⁽ⁱ⁾)−y⁽ⁱ⁾)²</code> or <code>−log(f)</code></td></tr>
+<tr><td><b>Cost</b></td><td>average loss over ALL m</td><td>$J = \frac{1}{2m}\sum_{i}\text{loss}^{(i)}$</td></tr>
+</table>
+<p>Exam questions swap words to trap you. If they say "loss of example 3" they want one term; "cost" they want the sum.</p>
+
+<div class="callout exam"><b class="label">⭐ exam tip</b><br/>Write the formula <b>with the 1/(2m) and the square</b> — half the class drops one of them. Then add: <b>"goal is min J(w,b), convex bowl, one global minimum."</b> That pair is the bridge to gradient descent and scores full marks.</div>
+
+<details class="ml-try"><summary>🔬 try it: hand-compute J once more (b ≠ 0)</summary>
+<p>Dots: (1,2), (2,3), (3,5). Model w=1, b=1 → preds 2,3,4 → misses 0,0,−1 → squares 0,0,1 → sum 1 → J = 1/(2·3)·1 ≈ <b>0.167</b>. Try w=1.5, b=0 → preds 1.5,3,4.5 → misses −0.5,0,−0.5 → squares 0.25,0,0.25 → J≈0.083 — lower! Feel that drop? That is learning.</p>
+<pre><span class="tok-builtin">print</span>(<span class="tok-fn">cost_func</span>(<span class="tok-num">1</span>, <span class="tok-num">1</span>, np.array([<span class="tok-num">1</span>,<span class="tok-num">2</span>,<span class="tok-num">3</span>]), np.array([<span class="tok-num">2</span>,<span class="tok-num">3</span>,<span class="tok-num">5</span>])))  <span class="tok-cmt"># 0.166...</span></pre>
+</details>
+
+<div class="callout gotcha"><b class="label">⚠️ gotcha</b><br/><b>J = 0 means?</b> Every prediction exactly right — suspicious in real life (check overfitting or data leak). <b>Why not average raw miss (ŷ−y)?</b> Positive and negative misses cancel — a terrible zig-zag line could score 0.</div>
+
+<h2>quick check</h2>
+<ul>
+  <li><b>J = 0 means? →</b> Perfect predictions (rare outside toy data).</li>
+  <li><b>Why square not absolute?</b> → Both kill sign, but square gives smooth derivative and punishes big errors harder — and yields convex bowl.</li>
+  <li><b>Shape of J(w) for linear regression?</b> → Bowl (convex) — one global bottom.</li>
+</ul>
+
+<h2>the 20-second answer</h2>
+<p>Cost <b>J(w,b) = 1/(2m)·Σ(ŷ−y)²</b> turns "how wrong" into one number by squaring each gap and averaging (halved for derivative neatness). Freeze b and it is a U-curve; let both vary and it's a convex bowl — one bottom, that's the best line. Next we learn the rule that walks you to that bottom blindfolded → <b>Gradient Descent.</b></p>

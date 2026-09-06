@@ -1,0 +1,187 @@
+<style>
+.ml-fig{margin:14px auto 6px;max-width:640px;text-align:center}
+.ml-fig svg{width:100%;height:auto;display:block}
+.ml-fig figcaption{font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);margin-top:4px;line-height:1.55}
+.note-body figure.ml-fig{animation:ml-rise .7s ease both;animation-timeline:view();animation-range:entry 0% cover 22%}
+@keyframes ml-rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+details.ml-try{border:2px solid var(--ink);border-radius:12px;background:#fff;padding:10px 14px;margin:12px 0}
+details.ml-try summary{font-weight:700;cursor:pointer}
+@media (prefers-reduced-motion:reduce){.note-body figure.ml-fig{animation:none}}
+</style>
+
+<p class="kicker">regression gives numbers, but "spam?" needs a yes/no. squeeze the line through an S — same math skeleton, new soul.</p>
+
+<h2>the 30-second idea</h2>
+<p>Pages 13–15: linear regression is wrong for classification — your notes draw the line <b>shooting past 0 and 1</b> and misclassifying a point. Fix: keep $z = w\cdot x + b$, then <b>squash it through the sigmoid</b> into (0, 1). Output reads as <b>"probability of yes"</b>. Despite the name, it is <b>classification</b>, not regression.</p>
+
+<figure class="ml-fig">
+<svg viewBox="0 0 620 230" role="img" aria-label="Linear line vs sigmoid S curve">
+  <g><rect x="10" y="10" width="290" height="210" rx="12" fill="#ffe3ef" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="155" y="34" text-anchor="middle" font-size="12" font-weight="800">linear on classes ✗</text>
+  <line x1="40" y1="40" x2="40" y2="195" stroke="#1c1a15" stroke-width="2"/><line x1="40" y1="195" x2="285" y2="195" stroke="#1c1a15" stroke-width="2"/>
+  <line x1="40" y1="170" x2="285" y2="45" stroke="#1c1a15" stroke-width="3.5"/>
+  <circle cx="90" cy="165" r="6" fill="#2b7de9" stroke="#1c1a15" stroke-width="2"/><circle cx="130" cy="160" r="6" fill="#2b7de9" stroke="#1c1a15" stroke-width="2"/>
+  <circle cx="210" cy="80" r="6" fill="#ff6b35" stroke="#1c1a15" stroke-width="2"/><circle cx="245" cy="130" r="6" fill="#ff6b35" stroke="#1c1a15" stroke-width="2"/>
+  <text x="245" y="115" font-size="10" font-weight="800" fill="#d1345b">missed! 😱</text>
+  <text x="155" y="212" text-anchor="middle" font-size="10" fill="#575046">line escapes 0–1, one outlier drags it</text></g>
+  <g><rect x="320" y="10" width="290" height="210" rx="12" fill="#dcf9e8" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="465" y="34" text-anchor="middle" font-size="12" font-weight="800">sigmoid ✓ stays 0–1</text>
+  <line x1="350" y1="40" x2="350" y2="195" stroke="#1c1a15" stroke-width="2"/><line x1="350" y1="150" x2="595" y2="150" stroke="#d1345b" stroke-width="2" stroke-dasharray="5 4"/>
+  <text x="600" y="140" font-size="10" font-weight="800" fill="#d1345b">0.5 cutoff</text>
+  <path d="M360,190 Q395,188 420,165 Q455,125 490,92 Q520,62 585,58" fill="none" stroke="#1c1a15" stroke-width="4"/>
+  <text x="382" y="200" font-size="10" fill="#575046">z≪0 → 0</text><text x="465" y="140" font-size="10" font-weight="800">z=0 → 0.5</text><text x="530" y="50" font-size="10" fill="#575046">z≫0 → 1</text></g>
+</svg>
+<figcaption>left = your notes' broken-line sketch. right = the S-fix. same z, squashed into probability.</figcaption>
+</figure>
+
+<h2>the S-machine: two lines that change everything</h2>
+$$z = w^{\top}x + b \qquad g(z)=\frac{1}{1+e^{-z}}:\;\mathbb{R}\to(0,1)$$
+$$f_{w,b}(x)=\frac{1}{1+e^{-(w^{\top}x+b)}} = P(y=1\mid x)$$
+<ul>
+  <li><b>z very negative</b> → e<sup>−z</sup> huge → g ≈ <b>0</b> ("definitely no").</li>
+  <li><b>z = 0</b> → g = <b>0.5</b> (coin flip — the decision boundary).</li>
+  <li><b>z very positive</b> → e<sup>−z</sup> ≈ 0 → g ≈ <b>1</b> ("definitely yes").</li>
+</ul>
+<p>Rule: <b>f ≥ 0.5 → predict 1, else 0.</b> 0.5 ↔ threshold $z=0 \leftrightarrow  w\cdot x+b = 0$ → a line (2-D) or hyperplane (n-D) splitting the feature space.</p>
+
+<div class="callout remember"><b class="label">🧷 remember</b><br/>Logistic regression is <b>"linear inside, S outside"</b>. Inside the sigmoid it's still $w\cdot x+b$ — that is why gradients look familiar. The S just turns a score into a probability.</div>
+
+<h2>why a new loss? squared error breaks on the S</h2>
+<p>Squared error <code>(f−y)²</code> on a sigmoid makes a <b>wavy, non-convex</b> cost full of fake valleys (gradient descent would get trapped). Your notes swap to <b>log-loss (cross-entropy)</b> — confident-and-wrong gets <b>nuked</b>, the bowl stays convex:</p>
+$$\begin{aligned} y=1:\; L &=-\log f & \; (f=0.99\to0.01,\; f=0.01\to4.6)\\ y=0:\; L &=-\log(1-f) & \;\text{mirror} \end{aligned}$$
+$$J(w,b) = -\frac{1}{m}\sum_{i=1}^{m}\left[y^{(i)}\log f^{(i)} + (1-y^{(i)})\log(1-f^{(i)})\right]$$
+
+<figure class="ml-fig">
+<svg viewBox="0 0 620 190" role="img" aria-label="Log loss curves">
+  <rect x="10" y="10" width="600" height="170" rx="12" fill="#fff" stroke="#1c1a15" stroke-width="2.5"/>
+  <line x1="60" y1="30" x2="60" y2="160" stroke="#1c1a15" stroke-width="2"/><line x1="60" y1="160" x2="595" y2="160" stroke="#1c1a15" stroke-width="2"/>
+  <text x="48" y="24" font-size="11" font-weight="800">L</text><text x="598" y="174" font-size="11" font-weight="800">f</text>
+  <path d="M70,150 Q150,150 250,100 Q350,45 580,35" fill="none" stroke="#2b7de9" stroke-width="3.5"/>
+  <text x="480" y="30" font-size="10.5" font-weight="800" fill="#2b7de9">y=1: −log(f)</text>
+  <path d="M70,35 Q200,40 330,95 Q430,145 580,150" fill="none" stroke="#ff6b35" stroke-width="3.5"/>
+  <text x="110" y="52" font-size="10.5" font-weight="800" fill="#ff6b35">y=0: −log(1−f)</text>
+  <text x="310" y="178" text-anchor="middle" font-size="10.5" fill="#575046">right answer + confident = ~0 · wrong + confident = → ∞</text>
+</svg>
+<figcaption>blue hates calling a true-1 "unlikely". orange hates the reverse. confidence without correctness = pain.</figcaption>
+</figure>
+
+<h2>gradient descent — suspiciously familiar</h2>
+<p>Page 14–15's punchline: the updates <b>look identical</b> to linear regression — only <code>f</code> changed meaning (now sigmoid). Your notes deliberately put them side-by-side:</p>
+$$\begin{aligned} w &:= w - \alpha\frac{1}{m}\sum_{i}\left(f^{(i)}-y^{(i)}\right)x^{(i)} \\ b &:= b - \alpha\frac{1}{m}\sum_{i}\left(f^{(i)}-y^{(i)}\right) \quad \text{(same as linear, }f\text{ is sigmoid)}\end{aligned}$$
+<table>
+  <tr><th></th><th>linear</th><th>logistic</th></tr>
+  <tr><td><b>f</b></td><td>$w\cdot x + b$</td><td>$1/(1+e^(-(w\cdot x+b)))$</td></tr>
+  <tr><td><b>outputs</b></td><td>any number</td><td>0 → 1 (probability)</td></tr>
+  <tr><td><b>loss</b></td><td>squared error</td><td>log loss (cross-entropy)</td></tr>
+  <tr><td><b>update</b></td><td colspan="2" style="text-align:center;">$- \alpha\cdot avg(miss\cdot x)$ — same skeleton!</td></tr>
+</table>
+
+<div class="callout exam"><b class="label">⭐ exam tip</b><br/>"Linear vs logistic?" → <b>same z, same gradient shape, different f and different J.</b> Logistic <i>looks</i> linear inside the sigmoid but the S makes the boundary non-linear in probability. That sentence is straight from your page 15.</div>
+
+<h2>python from scratch — full logistic pipeline (with L2 option)</h2>
+<p>Straight from <code>Ml_algos_scratch/Ml/logreg_practice.ipynb</code>, unified, bug-fixed and colored. Includes standardization (critical for GD) and L2 regularization knob $\lambda$ (set 0 for vanilla).</p>
+
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — sigmoid + cost + gradient</span></div><pre><code><span class="tok-kw">import</span> numpy <span class="tok-kw">as</span> np
+<span class="tok-kw">import</span> matplotlib.pyplot <span class="tok-kw">as</span> plt
+
+<span class="tok-kw">def</span> <span class="tok-fn">sigmoid</span>(z):
+    <span class="tok-kw">return</span> <span class="tok-num">1</span> / (<span class="tok-num">1</span> + np.exp(-z))
+
+<span class="tok-kw">def</span> <span class="tok-fn">cost</span>(X, y, w, b, lamb=<span class="tok-num">0</span>):
+    <span class="tok-str">"""log-loss + L2. lamb=0 → vanilla logistic"""</span>
+    m = X.shape[<span class="tok-num">0</span>]
+    z = X.dot(w) + b
+    f = <span class="tok-fn">sigmoid</span>(z)
+    <span class="tok-cmt"># clip to avoid log(0)</span>
+    eps = <span class="tok-num">1e-15</span>; f = np.clip(f, eps, <span class="tok-num">1</span>-eps)
+    loss = -(<span class="tok-num">1</span>/m) * (np.dot(y, np.log(f)) + np.dot(<span class="tok-num">1</span>-y, np.log(<span class="tok-num">1</span>-f)))
+    reg = (lamb/(<span class="tok-num">2</span>*m)) * np.<span class="tok-fn">sum</span>(w**<span class="tok-num">2</span>)
+    <span class="tok-kw">return</span> loss + reg
+
+<span class="tok-kw">def</span> <span class="tok-fn">compute_grad</span>(X, y, w, b, lamb=<span class="tok-num">0</span>):
+    m = X.shape[<span class="tok-num">0</span>]
+    z = X.dot(w) + b
+    f = <span class="tok-fn">sigmoid</span>(z)
+    err = f - y                           <span class="tok-cmt"># m-vector: how off we are</span>
+    dj_dw = (<span class="tok-num">1</span>/m) * (X.T.dot(err)) + (lamb/m)*w   <span class="tok-cmt"># ← L2 adds (λ/m)w</span>
+    dj_db = (<span class="tok-num">1</span>/m) * np.<span class="tok-fn">sum</span>(err)               <span class="tok-cmt"># b is never regularized</span>
+    <span class="tok-kw">return</span> dj_dw, dj_db
+</code></pre></div>
+
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — gradient descent + predict + data (admissions example)</span></div><pre><code><span class="tok-kw">def</span> <span class="tok-fn">grad_desc</span>(X, y, w_in, b_in, alpha, num_iters, lamb=<span class="tok-num">0</span>):
+    w, b = w_in.copy(), b_in
+    hist, iters = [], []
+    <span class="tok-kw">for</span> i <span class="tok-kw">in</span> <span class="tok-builtin">range</span>(num_iters):
+        dj_dw, dj_db = <span class="tok-fn">compute_grad</span>(X, y, w, b, lamb)
+        w -= alpha * dj_dw
+        b -= alpha * dj_db
+        <span class="tok-kw">if</span> i % <span class="tok-num">1000</span> == <span class="tok-num">0</span>:
+            <span class="tok-builtin">print</span>(<span class="tok-str">f"iter </span><span class="tok-op">{</span>i:<span class="tok-num">5</span><span class="tok-op">}</span><span class="tok-str"> | cost </span><span class="tok-op">{</span><span class="tok-fn">cost</span>(X,y,w,b,lamb):<span class="tok-num">.4f</span><span class="tok-op">}</span><span class="tok-str">"</span>)
+        <span class="tok-kw">if</span> i % <span class="tok-num">50</span> == <span class="tok-num">0</span>:
+            hist.append(<span class="tok-fn">cost</span>(X,y,w,b,lamb)); iters.append(i)
+    <span class="tok-kw">return</span> w, b, hist, iters
+
+<span class="tok-kw">def</span> <span class="tok-fn">predict</span>(X, w, b):
+    <span class="tok-kw">return</span> (<span class="tok-fn">sigmoid</span>(X.dot(w)+b) >= <span class="tok-num">0.5</span>).astype(<span class="tok-builtin">int</span>)
+
+<span class="tok-cmt"># ── dataset: [exam1, exam2] → admit (1/0) — 100 toy rows</span>
+X = np.array([
+    [<span class="tok-num">45</span>,<span class="tok-num">85</span>],[<span class="tok-num">50</span>,<span class="tok-num">43</span>],[<span class="tok-num">40</span>,<span class="tok-num">80</span>],[<span class="tok-num">90</span>,<span class="tok-num">88</span>],[<span class="tok-num">85</span>,<span class="tok-num">52</span>],
+    [<span class="tok-num">60</span>,<span class="tok-num">65</span>],[<span class="tok-num">72</span>,<span class="tok-num">95</span>],[<span class="tok-num">35</span>,<span class="tok-num">30</span>],[<span class="tok-num">66</span>,<span class="tok-num">70</span>],[<span class="tok-num">80</span>,<span class="tok-num">40</span>],
+    [<span class="tok-num">55</span>,<span class="tok-num">75</span>],[<span class="tok-num">48</span>,<span class="tok-num">60</span>],[<span class="tok-num">92</span>,<span class="tok-num">95</span>],[<span class="tok-num">30</span>,<span class="tok-num">40</span>],[<span class="tok-num">65</span>,<span class="tok-num">85</span>],
+    [<span class="tok-num">70</span>,<span class="tok-num">55</span>],[<span class="tok-num">50</span>,<span class="tok-num">50</span>],[<span class="tok-num">85</span>,<span class="tok-num">90</span>],[<span class="tok-num">40</span>,<span class="tok-num">60</span>],[<span class="tok-num">78</span>,<span class="tok-num">80</span>],
+    [<span class="tok-num">62</span>,<span class="tok-num">92</span>],[<span class="tok-num">55</span>,<span class="tok-num">78</span>],[<span class="tok-num">79</span>,<span class="tok-num">69</span>],[<span class="tok-num">41</span>,<span class="tok-num">55</span>],[<span class="tok-num">82</span>,<span class="tok-num">96</span>],
+    [<span class="tok-num">30</span>,<span class="tok-num">33</span>],[<span class="tok-num">96</span>,<span class="tok-num">99</span>],[<span class="tok-num">86</span>,<span class="tok-num">73</span>],[<span class="tok-num">59</span>,<span class="tok-num">91</span>],[<span class="tok-num">69</span>,<span class="tok-num">59</span>],
+])
+y = np.array([<span class="tok-num">1</span>,<span class="tok-num">0</span>,<span class="tok-num">1</span>,<span class="tok-num">1</span>,<span class="tok-num">0</span>, <span class="tok-num">1</span>,<span class="tok-num">1</span>,<span class="tok-num">0</span>,<span class="tok-num">1</span>,<span class="tok-num">0</span>, <span class="tok-num">1</span>,<span class="tok-num">0</span>,<span class="tok-num">1</span>,<span class="tok-num">0</span>,<span class="tok-num">1</span>, <span class="tok-num">0</span>,<span class="tok-num">0</span>,<span class="tok-num">1</span>,<span class="tok-num">0</span>,<span class="tok-num">1</span>, <span class="tok-num">1</span>,<span class="tok-num">1</span>,<span class="tok-num">1</span>,<span class="tok-num">0</span>,<span class="tok-num">1</span>, <span class="tok-num">0</span>,<span class="tok-num">1</span>,<span class="tok-num">1</span>,<span class="tok-num">1</span>,<span class="tok-num">0</span>])
+
+<span class="tok-cmt"># ★ standardize (same trick as multiple regression — GD needs it)</span>
+X = (X - X.mean(axis=<span class="tok-num">0</span>)) / X.std(axis=<span class="tok-num">0</span>)
+
+m,n = X.shape
+w_final, b_final, hist, itrs = <span class="tok-fn">grad_desc</span>(X, y, np.zeros(n), <span class="tok-num">0.</span>, alpha=<span class="tok-num">0.01</span>, num_iters=<span class="tok-num">10000</span>, lamb=<span class="tok-num">1</span>)
+<span class="tok-builtin">print</span>(<span class="tok-str">f"learned w={w_final} b={b_final:.3f}  final cost {hist[-1]:.4f}"</span>)
+<span class="tok-builtin">print</span>(<span class="tok-fn">predict</span>(X, w_final, b_final)[:<span class="tok-num">10</span>])
+</code></pre></div>
+
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — decision boundary plot (2-D)</span></div><pre><code><span class="tok-kw">def</span> <span class="tok-fn">plot_boundary</span>(X, y, w, b):
+    pos = y==<span class="tok-num">1</span>; neg = y==<span class="tok-num">0</span>
+    plt.scatter(X[pos,<span class="tok-num">0</span>], X[pos,<span class="tok-num">1</span>], c=<span class="tok-str">'#2b7de9'</span>, marker=<span class="tok-str">'x'</span>, s=<span class="tok-num">60</span>, label=<span class="tok-str">'admit'</span>)
+    plt.scatter(X[neg,<span class="tok-num">0</span>], X[neg,<span class="tok-num">1</span>], c=<span class="tok-str">'#d1345b'</span>, marker=<span class="tok-str">'o'</span>, s=<span class="tok-num">60</span>, label=<span class="tok-str">'reject'</span>)
+    xs = np.array([X[:,<span class="tok-num">0</span>].min()-<span class="tok-num">1</span>, X[:,<span class="tok-num">0</span>].max()+<span class="tok-num">1</span>])
+    ys = -(w[<span class="tok-num">0</span>]/w[<span class="tok-num">1</span>])*xs - b/w[<span class="tok-num">1</span>]  <span class="tok-cmt"># w·x+b=0 → line</span>
+    plt.plot(xs, ys, <span class="tok-str">'--'</span>, color=<span class="tok-str">'#1c1a15'</span>, linewidth=<span class="tok-num">2.5</span>, label=<span class="tok-str">'w·x+b=0'</span>)
+    plt.legend(); plt.grid(<span class="tok-builtin">True</span>, alpha=<span class="tok-num">0.3</span>); plt.show()
+
+<span class="tok-fn">plot_boundary</span>(X, y, w_final, b_final)
+</code></pre></div>
+
+<p class="code-note">Clip trick: $log(0) = -\infty$ → we <code>clip(f, 1e-15, 1-1e-15)</code> before <code>log</code> so one confident mistake doesn't <code>NaN</code> the whole cost.</p>
+
+<h2>what the numbers mean</h2>
+<table>
+<tr><th>w</th><th>b</th><th>reads as</th></tr>
+<tr><td>$[\approx1.2, \approx1.0]$</td><td>$\approx0.2$</td><td>Both exams matter about equally; threshold gently above origin. Point (0,0) after standardize = average exams.</td></tr>
+</table>
+<p>Move a point across the line $w\cdot x+b=0$ and <code>sigmoid</code> flips from &lt;0.5 to >0.5 — that's the classifier snapping.</p>
+
+<details class="ml-try"><summary>🔬 try it: classify a mail / an admission</summary>
+<p>z = w·x+b = 2.0 → f = 1/(1+e<sup>−2</sup>) ≈ <b>0.88</b> → ≥0.5 → <b>admit / spam 📧🚫</b>. If truth y=1, loss = −log(0.88) ≈ 0.13 (tiny). If truth y=0, loss = −log(0.12) ≈ 2.1 (ouch). Same prediction, opposite truth, 16× the pain — that's why confident mistakes dominate training.</p>
+<pre><span class="tok-kw">import</span> math
+z=<span class="tok-num">2.0</span>; f=<span class="tok-num">1</span>/(<span class="tok-num">1</span>+math.exp(-z)); <span class="tok-builtin">print</span>(f)  <span class="tok-cmt"># 0.8808</span>
+<span class="tok-builtin">print</span>(-math.log(f))        <span class="tok-cmt"># y=1 loss 0.126</span>
+<span class="tok-builtin">print</span>(-math.log(<span class="tok-num">1</span>-f))      <span class="tok-cmt"># y=0 loss 2.12</span></pre>
+</details>
+
+<div class="callout gotcha"><b class="label">⚠️ gotcha</b><br/><b>"Logistic regression" does classification.</b> The name is a historical prank — if you write "it predicts continuous values" you lose the mark. Also: <b>don't threshold before loss</b>. Loss uses probabilities <code>f</code>, not hard <code>0/1</code> predictions; thresholding is only for final decisions.</div>
+
+<h2>quick check</h2>
+<ul>
+  <li><b>Why not squared error here?</b> Sigmoid + square = non-convex (fake valleys). Log-loss stays convex (one bottom).</li>
+  <li><b>z = 0 means?</b> f = 0.5 — exactly on the fence (decision boundary).</li>
+  <li><b>f = 0.9, y = 0 — happy?</b> No — loss −log(0.1) ≈ 2.3, confidently wrong.</li>
+  <li><b>Gradient shape vs linear?</b> → Identical $(f-y)\cdot x$ skeleton, only f differs.</li>
+</ul>
+
+<h2>the 20-second answer</h2>
+<p>Logistic regression = <b>linear score z = w·x+b, squashed by sigmoid into P(y=1)</b>, trained with <b>log-loss</b>. Gradients look like linear's, but f is the S. Threshold at 0.5 gives the class. Add $\lambda > 0$ and you get regularized logistic (next page's star). Next danger: a model that memorises → <b>Regularization.</b></p>

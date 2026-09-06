@@ -1,5 +1,6 @@
 /* masterchef26 notes — funky student notebook theme */
 @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;600;700&family=Caveat:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+@import 'katex/dist/katex.min.css';
 
 :root {
   --paper: #fff9ec;
@@ -11,6 +12,7 @@
   --mint: #7df0b2;
   --blue: #a8d8ff;
   --orange: #ff6b35;
+  --lavender: #c9b8ff;
   --card-shadow: 6px 6px 0 var(--ink);
   --card-shadow-sm: 4px 4px 0 var(--ink);
   --radius: 18px;
@@ -97,6 +99,7 @@ a { color: inherit; }
 .card:nth-child(3) { transform: rotate(-.6deg); }
 .card:nth-child(4) { transform: rotate(.7deg); }
 .card:nth-child(5) { transform: rotate(-.8deg); }
+.card:nth-child(6) { transform: rotate(.6deg); }
 .card-top { display: flex; align-items: flex-start; justify-content: space-between; }
 .card-icon { width: 52px; height: 52px; border: 2.5px solid var(--ink); border-radius: 14px; display: grid; place-items: center; font-family: var(--font-display); font-size: 19px; box-shadow: 3px 3px 0 var(--ink); }
 .card h3 { font-family: var(--font-display); font-size: 24px; margin: 2px 0 0; text-transform: lowercase; }
@@ -222,6 +225,42 @@ footer a { font-weight: 600; }
 .note-body .callout.remember b.label { background: var(--mint); }
 .note-body .callout.try { background: #e3f1ff; }
 .note-body .callout.try b.label { background: var(--blue); }
+
+/* ---------- Python code blocks — from-scratch pretty ---------- */
+.code-wrap{border:2.5px solid var(--ink);border-radius:14px;overflow:hidden;margin:16px 0;box-shadow:4px 4px 0 var(--ink);background:var(--ink)}
+.code-head{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:#2a2927;color:#f5f1e6;font-family:var(--font-mono);font-size:12px;letter-spacing:.4px;border-bottom:1.5px solid #3a3936}
+.code-head .dots{font-size:10px;letter-spacing:3px;opacity:.7}
+.code-head .lang{font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--yellow)}
+.code-wrap pre{margin:0 !important;background:transparent !important;border-radius:0 !important;padding:16px !important;white-space:pre;overflow-x:auto}
+.code-wrap code{font-family:var(--font-mono);font-size:13px;line-height:1.7}
+.tok-kw{color:#ff90e8;font-weight:600}
+.tok-fn{color:#7df0b2}
+.tok-cls{color:#ffe14d;font-weight:700}
+.tok-str{color:#ffe14d}
+.tok-num{color:#a8d8ff}
+.tok-cmt{color:#8b8a95;font-style:italic}
+.tok-op{color:#f5f1e6}
+.tok-builtin{color:#ff6b35}
+.tok-self{color:#c9b8ff}
+.tok-deco{color:#ff90e8}
+.code-note{font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);margin-top:6px;padding-left:2px}
+.code-note b{color:var(--ink)}
+.note-body h3 code{font-size:15px}
+.note-body .math{font-family:var(--font-mono);background:#fff;border:1.5px solid var(--ink);border-radius:8px;padding:2px 8px;font-size:13px}
+.split-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0}
+@media(max-width:640px){.split-grid{grid-template-columns:1fr}}
+.mini-card{border:2px solid var(--ink);border-radius:12px;padding:12px 14px;background:#fff}
+.mini-card h4{margin:0 0 6px;font-size:15px}
+.compare-table td:first-child{font-weight:700;white-space:nowrap}
+
+/* ---------- KaTeX formulas — research-paper look ---------- */
+.note-body .katex-display{margin:14px 0 !important;background:#fff;border:2.5px solid var(--ink);border-radius:14px;padding:14px 16px;box-shadow:4px 4px 0 var(--ink);overflow-x:auto;overflow-y:hidden}
+.note-body .katex-display > .katex{font-size:1.15em}
+.note-body .katex{font-size:1.05em}
+.note-body .formula-box{border:2.5px solid var(--ink);border-radius:14px;background:#fff;padding:14px 16px;margin:14px 0;box-shadow:4px 4px 0 var(--ink);overflow-x:auto;text-align:center}
+.note-body .formula-box .katex-display{border:none;box-shadow:none;padding:0;margin:0;background:transparent}
+.note-body .formula-caption{font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);text-align:center;margin-top:6px;line-height:1.5}
+.math-inline{font-family:var(--font-mono);font-size:13px}
 
 /* ---------- course plan (first sidebar entry, same notes layout) ---------- */
 .plan-body .kicker { font-family: var(--font-mono); font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: var(--ink-soft); margin: 0 0 10px; }

@@ -1,0 +1,140 @@
+<style>
+.ml-fig{margin:14px auto 6px;max-width:640px;text-align:center}
+.ml-fig svg{width:100%;height:auto;display:block}
+.ml-fig figcaption{font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);margin-top:4px;line-height:1.55}
+.note-body figure.ml-fig{animation:ml-rise .7s ease both;animation-timeline:view();animation-range:entry 0% cover 22%}
+@keyframes ml-rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+details.ml-try{border:2px solid var(--ink);border-radius:12px;background:#fff;padding:10px 14px;margin:12px 0}
+details.ml-try summary{font-weight:700;cursor:pointer}
+@media (prefers-reduced-motion:reduce){.note-body figure.ml-fig{animation:none}}
+</style>
+
+<p class="kicker">accuracy lies when disease is rare. meet the two numbers that don't — plus the one that marries them.</p>
+
+<h2>the 30-second idea</h2>
+<p>Pages 20–21 use a <b>disease test</b>: 99 healthy, 1 sick. A lazy model saying "healthy" always scores <b>99% accuracy</b> — and kills the patient. So your notes split every prediction into four boxes, then build <b>precision</b> ("when I shout, am I right?") and <b>recall</b> ("of all sick, how many did I catch?"). Neither alone is honest; <b>F1</b> forces both to be good.</p>
+
+<figure class="ml-fig">
+<svg viewBox="0 0 620 220" role="img" aria-label="Confusion matrix">
+  <text x="310" y="24" text-anchor="middle" font-size="12" font-weight="800">confusion matrix — actual (truth) across the top</text>
+  <text x="18" y="110" font-size="11" font-weight="800" transform="rotate(-90 18,110)">PREDICTED ↓</text>
+  <text x="220" y="52" text-anchor="middle" font-size="11" font-weight="800">ACTUAL + 🦠</text>
+  <text x="440" y="52" text-anchor="middle" font-size="11" font-weight="800">ACTUAL − 😌</text>
+  <text x="80" y="122" text-anchor="middle" font-size="11" font-weight="800">PRED +</text>
+  <text x="80" y="188" text-anchor="middle" font-size="11" font-weight="800">PRED −</text>
+  <g><rect x="130" y="70" width="180" height="70" rx="12" fill="#dcf9e8" stroke="#1c1a15" stroke-width="2.5"/><text x="220" y="98" text-anchor="middle" font-size="14" font-weight="800">TP ✅</text><text x="220" y="118" text-anchor="middle" font-size="10.5">sick, caught</text></g>
+  <g><rect x="350" y="70" width="180" height="70" rx="12" fill="#ffe3ef" stroke="#1c1a15" stroke-width="2.5"/><text x="440" y="98" text-anchor="middle" font-size="14" font-weight="800">FP 🚨</text><text x="440" y="118" text-anchor="middle" font-size="10.5">healthy, scared</text></g>
+  <g><rect x="130" y="150" width="180" height="60" rx="12" fill="#ffe3ef" stroke="#1c1a15" stroke-width="2.5"/><text x="220" y="174" text-anchor="middle" font-size="14" font-weight="800">FN 💀</text><text x="220" y="193" text-anchor="middle" font-size="10.5">sick, missed!</text></g>
+  <g><rect x="350" y="150" width="180" height="60" rx="12" fill="#e9e7e0" stroke="#1c1a15" stroke-width="2.5"/><text x="440" y="174" text-anchor="middle" font-size="14" font-weight="800">TN ✔</text><text x="440" y="193" text-anchor="middle" font-size="10.5">healthy, cleared</text></g>
+</svg>
+<figcaption>your notes' exact 2×2. diagonals good (TP,TN); off-diagonals are two different sins — false alarm vs missed case.</figcaption>
+</figure>
+
+<h2>precision vs recall — row vs column (the only way to remember)</h2>
+$$\text{Precision}=\frac{TP}{TP+FP}\;(\text{row: of my alarms, how many real}),\quad \text{Recall}=\frac{TP}{TP+FN}\;(\text{col: of sick, how many caught})$$
+$$\text{Accuracy}=\frac{TP+TN}{TP+FP+FN+TN}\quad\text{(lies when skewed)}$$
+
+<figure class="ml-fig">
+<svg viewBox="0 0 620 150" role="img" aria-label="Precision vs recall denominators">
+  <rect x="10" y="10" width="600" height="130" rx="12" fill="#fff" stroke="#1c1a15" stroke-width="2.5"/>
+  <rect x="40" y="40" width="250" height="60" rx="10" fill="#fff4c2" stroke="#1c1a15" stroke-width="2.5"/><text x="165" y="63" text-anchor="middle" font-size="11.5" font-weight="800">PRECISION = top row</text><text x="165" y="82" text-anchor="middle" font-size="11" font-family="monospace">TP / (TP + FP)</text>
+  <rect x="330" y="40" width="250" height="60" rx="10" fill="#e3f1ff" stroke="#1c1a15" stroke-width="2.5"/><text x="455" y="63" text-anchor="middle" font-size="11.5" font-weight="800">RECALL = left column</text><text x="455" y="82" text-anchor="middle" font-size="11" font-family="monospace">TP / (TP + FN)</text>
+  <text x="310" y="125" text-anchor="middle" font-size="10.5" fill="#575046">precision fears false alarms 🚨 · recall fears missed patients 💀</text>
+</svg>
+<figcaption>row vs column. that's the entire confusion about the confusion matrix — draw this once and you'll never flip them.</figcaption>
+</figure>
+
+<ul>
+  <li><b>High precision, low recall</b> — silent sniper: rarely shouts, always right. Misses victims. Spam filter that hides real mail = angry users. Disease test that misses sick = dead patients.</li>
+  <li><b>Low precision, high recall</b> — paranoid guard: catches everyone, cries wolf daily. Hospital panics 100 healthy per 1 sick — exhausting and expensive.</li>
+</ul>
+
+<h2>F1: the strict parent (harmonic mean)</h2>
+<p>Your notes ask: <i>3 algos, different P and R — who wins?</i> Simple average lies (0.9+0.1→"0.5 fine!"). <b>F1 is harmonic mean — it punishes lopsidedness:</b></p>
+$$F_{1}=\frac{2PR}{P+R}\qquad \frac{1}{F_{1}}=\tfrac12\!\left(\tfrac1P+\tfrac1R\right)\;\;\text{(harmonic mean)}$$
+<table>
+  <tr><th>algo</th><th>P</th><th>R</th><th>F1</th><th>verdict</th></tr>
+  <tr><td><b>algo 1</b></td><td>0.5</td><td>0.9</td><td><b>~0.64</b></td><td>balanced-ish ★ winner</td></tr>
+  <tr><td><b>algo 2</b></td><td>0.7</td><td>0.1</td><td>~0.18</td><td>recall collapsed ☠️</td></tr>
+  <tr><td><b>algo 3</b></td><td>0.9</td><td>0.2</td><td>~0.33</td><td>precise but blind</td></tr>
+</table>
+<p>Straight from your page 21: <b>algo 1 wins on F1</b> even though algo 3 has shiniest precision. F1 drags show-offs back to earth. If you care more about recall (disease) you can weight it → <code>Fβ</code>, but F1 is default.</p>
+
+<h2>threshold trade-off — moving the 0.5 line</h2>
+<p>Logistic/SVM give scores/probabilities; threshold <code>\tau</code> turns them into labels ($\ge \tau \to 1$). Sliding \tau traces the <b>Precision-Recall curve</b>:</p>
+<div class="split-grid">
+  <div class="mini-card"><h4>\tau high (e.g. 0.8)</h4><p style="margin:0;font-size:14px;line-height:1.5">Only very confident → <b>precision ↑, recall ↓</b>. Few alarms, mostly correct, many missed.</p></div>
+  <div class="mini-card"><h4>\tau low (e.g. 0.2)</h4><p style="margin:0;font-size:14px;line-height:1.5">Even unsure → alarm → <b>recall ↑, precision ↓</b>. Catches everyone, many false alarms.</p></div>
+</div>
+<p>Pick \tau on <b>validation</b> to maximize F1 (or business cost). That is why your notes' 3-algo table is really a 3-threshold story.</p>
+
+<h2>python from scratch — no sklearn.metrics needed</h2>
+
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — confusion + P/R/F1 from scratch</span></div><pre><code><span class="tok-kw">import</span> numpy <span class="tok-kw">as</span> np
+
+<span class="tok-kw">def</span> <span class="tok-fn">confusion_matrix</span>(y_true, y_pred):
+    <span class="tok-cmt"># y_true, y_pred ∈ {0,1}</span>
+    TP = np.<span class="tok-fn">sum</span>((y_true==<span class="tok-num">1</span>) &amp; (y_pred==<span class="tok-num">1</span>))
+    TN = np.<span class="tok-fn">sum</span>((y_true==<span class="tok-num">0</span>) &amp; (y_pred==<span class="tok-num">0</span>))
+    FP = np.<span class="tok-fn">sum</span>((y_true==<span class="tok-num">0</span>) &amp; (y_pred==<span class="tok-num">1</span>))
+    FN = np.<span class="tok-fn">sum</span>((y_true==<span class="tok-num">1</span>) &amp; (y_pred==<span class="tok-num">0</span>))
+    <span class="tok-kw">return</span> np.array([[TP, FP],[FN, TN]])  <span class="tok-cmt"># [[TP,FP],[FN,TN]] as in notes</span>
+
+<span class="tok-kw">def</span> <span class="tok-fn">precision_recall_f1</span>(y_true, y_pred):
+    TP = np.<span class="tok-fn">sum</span>((y_true==<span class="tok-num">1</span>) &amp; (y_pred==<span class="tok-num">1</span>))
+    FP = np.<span class="tok-fn">sum</span>((y_true==<span class="tok-num">0</span>) &amp; (y_pred==<span class="tok-num">1</span>))
+    FN = np.<span class="tok-fn">sum</span>((y_true==<span class="tok-num">1</span>) &amp; (y_pred==<span class="tok-num">0</span>))
+    prec = TP / (TP+FP) <span class="tok-kw">if</span> (TP+FP)&gt;<span class="tok-num">0</span> <span class="tok-kw">else</span> <span class="tok-num">0.0</span>
+    rec  = TP / (TP+FN) <span class="tok-kw">if</span> (TP+FN)&gt;<span class="tok-num">0</span> <span class="tok-kw">else</span> <span class="tok-num">0.0</span>
+    f1   = <span class="tok-num">2</span>*prec*rec/(prec+rec) <span class="tok-kw">if</span> (prec+rec)&gt;<span class="tok-num">0</span> <span class="tok-kw">else</span> <span class="tok-num">0.0</span>
+    <span class="tok-kw">return</span> prec, rec, f1
+
+<span class="tok-cmt"># ── skewed disease example: 99 healthy, 1 sick</span>
+y_true = np.array([<span class="tok-num">1</span>] + [<span class="tok-num">0</span>]*<span class="tok-num">99</span>)   <span class="tok-cmt"># 1 sick, 99 healthy</span>
+y_lazy = np.zeros(<span class="tok-num">100</span>, dtype=<span class="tok-builtin">int</span>)            <span class="tok-cmt"># "always healthy" model</span>
+
+<span class="tok-builtin">print</span>(<span class="tok-str">"lazy accuracy"</span>, np.mean(y_lazy==y_true))          <span class="tok-cmt"># 0.99 — looks genius</span>
+<span class="tok-builtin">print</span>(<span class="tok-fn">precision_recall_f1</span>(y_true, y_lazy))               <span class="tok-cmt"># (0.0, 0.0, 0.0) — actual failure</span>
+
+<span class="tok-cmt"># ── 3-algo showdown from your notes page 21</span>
+<span class="tok-kw">for</span> p,r <span class="tok-kw">in</span> [(<span class="tok-num">0.5</span>,<span class="tok-num">0.9</span>),(<span class="tok-num">0.7</span>,<span class="tok-num">0.1</span>),(<span class="tok-num">0.9</span>,<span class="tok-num">0.2</span>)]:
+    f1 = <span class="tok-num">2</span>*p*r/(p+r)
+    <span class="tok-builtin">print</span>(<span class="tok-str">f"P={p} R={r} → F1={f1:.3f}"</span>)
+<span class="tok-cmt"># P=0.5 R=0.9 → F1=0.643 ★ winner (balanced)</span>
+</code></pre></div>
+
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — sweep threshold → best F1</span></div><pre><code><span class="tok-cmt"># logistic scores → pick \tau that maximizes F1</span>
+y_true = np.array([<span class="tok-num">1</span>,<span class="tok-num">0</span>,<span class="tok-num">1</span>,<span class="tok-num">1</span>,<span class="tok-num">0</span>,<span class="tok-num">0</span>,<span class="tok-num">1</span>,<span class="tok-num">0</span>])
+scores = np.array([<span class="tok-num">0.92</span>,<span class="tok-num">0.45</span>,<span class="tok-num">0.60</span>,<span class="tok-num">0.81</span>,<span class="tok-num">0.30</span>,<span class="tok-num">0.55</span>,<span class="tok-num">0.70</span>,<span class="tok-num">0.10</span>])
+
+best_f1, best_t = <span class="tok-num">0</span>, <span class="tok-num">0.5</span>
+<span class="tok-kw">for</span> t <span class="tok-kw">in</span> np.linspace(<span class="tok-num">0.1</span>,<span class="tok-num">0.9</span>,<span class="tok-num">9</span>):
+    pred = (scores &gt;= t).astype(<span class="tok-builtin">int</span>)
+    _,_,f1 = <span class="tok-fn">precision_recall_f1</span>(y_true, pred)
+    <span class="tok-builtin">print</span>(<span class="tok-str">f"\tau={t:.1f} → F1={f1:.3f}"</span>)
+    <span class="tok-kw">if</span> f1 &gt; best_f1: best_f1, best_t = f1, t
+<span class="tok-builtin">print</span>(<span class="tok-str">f"★ best \tau={best_t:.2f} (F1={best_f1:.3f})"</span>)
+
+<span class="tok-cmt"># also: sklearn's roc_auc_score, average_precision_score do similar — but now you know what's inside</span>
+</code></pre></div>
+
+<div class="callout exam"><b class="label">⭐ exam tip</b><br/>Write <b>both formulas + the table verdict</b>: P=TP/(TP+FP), R=TP/(TP+FN), F1=2PR/(P+R), and <b>"algo 1 wins (F1≈0.64)"</b>. Examiners reuse this exact 3-algo comparison. Add one line: <b>"accuracy fails on skewed data — always quote P/R/F1."</b></div>
+
+<details class="ml-try"><summary>🔬 try it: feel F1's strictness</summary>
+<p>P=1.0, R=0.1 → plain average = 0.55 ("passing!"). F1 = 2·1·0.1/1.1 ≈ <b>0.18</b> ("failing"). F1 sides with the weaker twin — <b>both must be decent to score well.</b> That's why it's harmonic, not arithmetic.</p>
+<pre><span class="tok-builtin">print</span>(<span class="tok-num">2</span>*<span class="tok-num">1.0</span>*<span class="tok-num">0.1</span>/(<span class="tok-num">1.0</span>+<span class="tok-num">0.1</span>))  <span class="tok-cmt"># 0.181</span>
+<span class="tok-builtin">print</span>((<span class="tok-num">1.0</span>+<span class="tok-num">0.1</span>)/<span class="tok-num">2</span>)           <span class="tok-cmt"># 0.55  arithmetic — lies!</span></pre>
+</details>
+
+<div class="callout gotcha"><b class="label">⚠️ gotcha</b><br/><b>Accuracy on skewed data is a scam.</b> 99-to-1 disease data + "always healthy" = 99% accuracy, 0 recall, dead patients. Also: <b>P/R/F1 are defined for the POSITIVE class</b> — swap what you call positive and numbers flip. Always state $positive = disease/spam = 1$.</div>
+
+<h2>quick check</h2>
+<ul>
+  <li><b>FP vs FN — which kills in disease screening?</b> FN (missed sick). Recall is life-saver there → you'd lower \tau.</li>
+  <li><b>Perfect model — P,R,F1?</b> All 1.0. Only TP+TN, no FP/FN.</li>
+  <li><b>Why harmonic not plain mean?</b> Plain mean rewards "great at one, awful at other". Harmonic demands both.</li>
+  <li><b>When to weight recall over precision?</b> Disease, fraud, safety — where missing a positive is catastrophic.</li>
+</ul>
+
+<h2>the 20-second answer</h2>
+<p>Confusion matrix splits into <b>TP/FP/FN/TN</b>. Precision = TP/(TP+FP) (alarm quality), Recall = TP/(TP+FN) (catch rate), <b>F1 = 2PR/(P+R)</b> picks the balanced winner — your notes crown <b>algo 1 (~0.64)</b>. Use threshold sweeps to trade them. Accuracy alone is a trap on skewed data. Next: models that output rules humans can read → <b>Decision Trees.</b></p>

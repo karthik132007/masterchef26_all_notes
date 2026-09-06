@@ -75,6 +75,33 @@ export default function CourseView({ course, day, hasPlan }) {
     };
   }, [course.id, day]);
 
+  // Render LaTeX with KaTeX after the note HTML is injected (Jupyter / paper style)
+  useEffect(() => {
+    if (typeof html !== "string" || !html) return;
+    const t = setTimeout(() => {
+      const el =
+        document.querySelector(".note-body") ||
+        document.querySelector(".plan-body");
+      if (!el) return;
+      import("katex/dist/contrib/auto-render").then((mod) => {
+        const render = mod.default;
+        try {
+          render(el, {
+            delimiters: [
+              { left: "$$", right: "$$", display: true },
+              { left: "\\[", right: "\\]", display: true },
+              { left: "\\(", right: "\\)", display: false },
+              { left: "$", right: "$", display: false },
+            ],
+            throwOnError: false,
+            trust: false,
+          });
+        } catch {}
+      });
+    }, 0);
+    return () => clearTimeout(t);
+  }, [html]);
+
   const days = useMemo(() => getEntrySlugs(course), [course]);
 
   const visible = days.filter((d) =>

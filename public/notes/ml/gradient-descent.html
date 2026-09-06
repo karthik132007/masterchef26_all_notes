@@ -1,0 +1,164 @@
+<style>
+.ml-fig{margin:14px auto 6px;max-width:640px;text-align:center}
+.ml-fig svg{width:100%;height:auto;display:block}
+.ml-fig figcaption{font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);margin-top:4px;line-height:1.55}
+.note-body figure.ml-fig{animation:ml-rise .7s ease both;animation-timeline:view();animation-range:entry 0% cover 22%}
+@keyframes ml-rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.ml-flow{stroke-dasharray:7 7;animation:ml-dash 1.2s linear infinite}
+@keyframes ml-dash{to{stroke-dashoffset:-14}}
+details.ml-try{border:2px solid var(--ink);border-radius:12px;background:#fff;padding:10px 14px;margin:12px 0}
+details.ml-try summary{font-weight:700;cursor:pointer}
+@media (prefers-reduced-motion:reduce){.ml-flow{animation:none}.note-body figure.ml-fig{animation:none}}
+</style>
+
+<p class="kicker">blindfolded on a hill, one rule: step downhill. repeat till flat. that's it — and it powers everything.</p>
+
+<h2>the 30-second idea</h2>
+<p>From your pages 6–9: gradient descent <b>finds the w,b that minimise J</b>. Loop two lines until the hill goes flat:</p>
+$$\begin{aligned} w &:= w - \alpha\,\frac{\partial J}{\partial w} \\ b &:= b - \alpha\,\frac{\partial J}{\partial b} \qquad (\alpha = \text{learning rate}) \end{aligned}$$
+<p>That <code>∂J/∂w</code> is just <b>the slope under your feet</b>. Steep slope → big step. Flat (slope 0) → stop, you are at the bottom.</p>
+
+<figure class="ml-fig">
+<svg viewBox="0 0 620 250" role="img" aria-label="Ball rolling downhill on cost curve">
+  <rect x="10" y="10" width="600" height="230" rx="12" fill="#fff" stroke="#1c1a15" stroke-width="2.5"/>
+  <line x1="50" y1="30" x2="50" y2="205" stroke="#1c1a15" stroke-width="2"/><line x1="50" y1="205" x2="595" y2="205" stroke="#1c1a15" stroke-width="2"/>
+  <text x="38" y="24" font-size="12" font-weight="800">J(w)</text><text x="598" y="219" font-size="12" font-weight="800">w</text>
+  <path id="gd-hill" d="M70,70 Q200,70 270,150 Q310,205 350,150 Q420,70 550,70" fill="none" stroke="#1c1a15" stroke-width="3.5"/>
+  <line x1="170" y1="60" x2="230" y2="110" stroke="#d1345b" stroke-width="3"/><text x="140" y="52" font-size="10.5" font-weight="800" fill="#d1345b">slope + → step ←</text>
+  <line x1="470" y1="60" x2="410" y2="110" stroke="#2b7de9" stroke-width="3"/><text x="440" y="52" font-size="10.5" font-weight="800" fill="#2b7de9">slope − → step →</text>
+  <circle cx="310" cy="198" r="7" fill="#ffe14d" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="310" y="226" text-anchor="middle" font-size="10.5" font-weight="800">slope = 0 → STOP ★</text>
+  <circle r="8" fill="#ff90e8" stroke="#1c1a15" stroke-width="2.5"><animateMotion dur="4s" repeatCount="indefinite"><mpath href="#gd-hill"/></animateMotion></circle>
+</svg>
+<figcaption>the pink ball is you. right side slope is negative → step right… wait, no — watch the arrows: the rule auto-corrects.</figcaption>
+</figure>
+
+<h2>the intuition your notes drew — sign tells direction</h2>
+<ul>
+  <li><b>Slope positive (+)</b> → $w := w - \alpha\cdot (+)$ → w <b>decreases</b> → slide left, toward the bowl.</li>
+  <li><b>Slope negative (−)</b> → $w := w - \alpha\cdot (-)$ → w <b>increases</b> → slide right, toward the bowl.</li>
+  <li><b>At the bottom</b> → <code>∂J/∂w = 0</code> → <code>w := w − 0</code> → <b>frozen</b>. Local minima = nap time. 😴</li>
+</ul>
+
+<h2>learning rate α: baby steps vs cliff jumps</h2>
+<figure class="ml-fig">
+<svg viewBox="0 0 620 180" role="img" aria-label="Learning rate too small vs too big">
+  <g><rect x="10" y="10" width="190" height="160" rx="12" fill="#dcf9e8" stroke="#1c1a15" stroke-width="2.5"/><text x="105" y="34" text-anchor="middle" font-size="11.5" font-weight="800">α tiny 🐢</text><text x="105" y="52" text-anchor="middle" font-size="10" fill="#575046">safe but forever</text><text x="105" y="95" text-anchor="middle" font-size="20" letter-spacing="2">• • • • • → ★</text><text x="105" y="125" text-anchor="middle" font-size="10.5" font-weight="700">1000s of steps</text><text x="105" y="145" text-anchor="middle" font-size="10" fill="#575046">never overshoots</text></g>
+  <g><rect x="215" y="10" width="190" height="160" rx="12" fill="#fff4c2" stroke="#1c1a15" stroke-width="2.5"/><text x="310" y="34" text-anchor="middle" font-size="11.5" font-weight="800">α just right 🐇</text><text x="310" y="52" text-anchor="middle" font-size="10" fill="#575046">fast + lands</text><text x="310" y="95" text-anchor="middle" font-size="20" letter-spacing="2">• • • ★</text><text x="310" y="125" text-anchor="middle" font-size="10.5" font-weight="700">steps shrink ✨</text><text x="310" y="145" text-anchor="middle" font-size="10" fill="#575046">slope→0 so steps→0</text></g>
+  <g><rect x="420" y="10" width="190" height="160" rx="12" fill="#ffe3ef" stroke="#1c1a15" stroke-width="2.5"/><text x="515" y="34" text-anchor="middle" font-size="11.5" font-weight="800">α huge 💥</text><text x="515" y="52" text-anchor="middle" font-size="10" fill="#575046">ping-pong of death</text><text x="515" y="95" text-anchor="middle" font-size="20">• ⇄ • ⇄ 💥</text><text x="515" y="125" text-anchor="middle" font-size="10.5" font-weight="700">overshoots, diverges</text><text x="515" y="145" text-anchor="middle" font-size="10" fill="#575046">J goes UP 📈</text></g>
+</svg>
+<figcaption>your notes' key line: near the bottom the slope itself shrinks, so steps auto-shrink — no need to hand-decay α.</figcaption>
+</figure>
+
+<div class="callout remember"><b class="label">🧷 remember</b><br/>Gradient descent <b>auto-brakes</b>: slope gets smaller near the minimum → steps get smaller → it coasts in without you touching α. That sentence your notes underline is the single most-quoted intuition in viva.</div>
+
+<h2>the actual derivatives (page 9, no fear)</h2>
+<p>Your notes derive these line by line — here is the landing spot. Same pattern twice, the <code>w</code> one just carries an extra <code>x⁽ⁱ⁾</code>:</p>
+$$\frac{\partial J}{\partial w} = \frac{1}{m}\sum_{i=1}^{m}\left(f_{w,b}(x^{(i)})-y^{(i)}\right)x^{(i)} \qquad \frac{\partial J}{\partial b} = \frac{1}{m}\sum_{i=1}^{m}\left(f_{w,b}(x^{(i)})-y^{(i)}\right)$$
+<p>Read it as: <b>average miss, weighted by x for w, plain for b.</b> Plug into the two update lines, loop. Combine all three pieces from page 8:</p>
+$$\begin{aligned} \text{model: }& f_{w,b}(x)=w x + b \\ \text{cost: }& J(w,b)=\frac{1}{2m}\sum_{i=1}^{m}\left(f_{w,b}(x^{(i)})-y^{(i)}\right)^{2} \\ \text{update: }& w := w-\alpha\frac{1}{m}\sum_{i}(f-y)x^{(i)},\;\; b := b-\alpha\frac{1}{m}\sum_{i}(f-y) \end{aligned}$$
+
+<h2>python — the exact notebook, cleaned and de-bugged</h2>
+<p>Unified from <code>OPtimizers/Gradient_Descent.ipynb</code> and <code>Ml/linear_reg.ipynb</code>. Bug fixes: <code>compute_gradient</code> was duplicated; <code>j_hist</code> reset inside loop is fixed; vectorized and loop versions shown side-by-side.</p>
+
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — cost + gradients (loop & vectorized)</span></div><pre><code><span class="tok-kw">import</span> numpy <span class="tok-kw">as</span> np
+
+<span class="tok-kw">def</span> <span class="tok-fn">cost_func</span>(w, b, X, Y):
+    <span class="tok-str">"""J(w,b) = 1/(2m) Σ (w·X+b − Y)² — vectorized"""</span>
+    m = X.shape[<span class="tok-num">0</span>]
+    y_hat = w * X + b
+    <span class="tok-kw">return</span> (<span class="tok-num">1</span>/(<span class="tok-num">2</span>*m)) * np.<span class="tok-fn">sum</span>((y_hat - Y)**<span class="tok-num">2</span>)
+
+<span class="tok-kw">def</span> <span class="tok-fn">compute_gradients</span>(w, b, X, Y):
+    <span class="tok-str">"""∂J/∂w , ∂J/∂b — vectorized (one-liners, no loops)"""</span>
+    m = X.shape[<span class="tok-num">0</span>]
+    f_wb = w * X + b
+    error = f_wb - Y
+    dj_dw = (<span class="tok-num">1</span>/m) * np.<span class="tok-fn">sum</span>(error * X)
+    dj_db = (<span class="tok-num">1</span>/m) * np.<span class="tok-fn">sum</span>(error)
+    <span class="tok-kw">return</span> dj_dw, dj_db
+
+<span class="tok-cmt"># loop twin — mirrors math Σ exactly, slower but viva-friendly</span>
+<span class="tok-kw">def</span> <span class="tok-fn">compute_gradient_loop</span>(x, y, w, b):
+    m = x.shape[<span class="tok-num">0</span>]; dj_dw = <span class="tok-num">0</span>; dj_db = <span class="tok-num">0</span>
+    <span class="tok-kw">for</span> i <span class="tok-kw">in</span> <span class="tok-builtin">range</span>(m):
+        f_wb = w*x[i] + b
+        dj_dw += (f_wb - y[i]) * x[i]
+        dj_db += (f_wb - y[i])
+    <span class="tok-kw">return</span> dj_dw/m, dj_db/m
+</code></pre></div>
+
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — gradient descent loop (the engine)</span></div><pre><code><span class="tok-kw">def</span> <span class="tok-fn">gradient_descent</span>(w_init, b_init, alpha, X, Y, num_iters):
+    <span class="tok-str">"""
+    w_init,b_init : start (often 0)
+    alpha         : learning rate (0.001 to 0.1 typical)
+    num_iters     : steps
+    """</span>
+    w, b = w_init, b_init
+    j_history, w_hist, b_hist = [], [w], [b]
+
+    <span class="tok-kw">for</span> i <span class="tok-kw">in</span> <span class="tok-builtin">range</span>(num_iters):
+        dj_dw, dj_db = <span class="tok-fn">compute_gradients</span>(w, b, X, Y)
+        w -= alpha * dj_dw          <span class="tok-cmt"># simultaneous — use OLD gradients</span>
+        b -= alpha * dj_db
+        w_hist.append(w); b_hist.append(b)
+        <span class="tok-kw">if</span> i % <span class="tok-num">100</span> == <span class="tok-num">0</span>:
+            j_history.append(<span class="tok-fn">cost_func</span>(w, b, X, Y))
+    <span class="tok-kw">return</span> w, b, j_history, w_hist, b_hist
+
+<span class="tok-cmt"># ── normalized toy data (from Optimizers notebook — easier for GD)</span>
+<span class="tok-cmt"># ── tiny normalized toy data — 10 points (full 50 in repo)</span>
+X_train = np.array([-<span class="tok-num">1.5</span>, -<span class="tok-num">1.1</span>, -<span class="tok-num">0.7</span>, -<span class="tok-num">0.3</span>, <span class="tok-num">0.0</span>, <span class="tok-num">0.4</span>, <span class="tok-num">0.8</span>, <span class="tok-num">1.2</span>, <span class="tok-num">1.5</span>, <span class="tok-num">1.8</span>])
+Y_train = np.array([-<span class="tok-num">0.9</span>, -<span class="tok-num">0.6</span>, -<span class="tok-num">0.2</span>, <span class="tok-num">0.1</span>, <span class="tok-num">0.5</span>, <span class="tok-num">0.9</span>, <span class="tok-num">1.4</span>, <span class="tok-num">1.9</span>, <span class="tok-num">2.3</span>, <span class="tok-num">2.8</span>])
+
+w, b, j_hist, w_hist, b_hist = <span class="tok-fn">gradient_descent</span>(w_init=<span class="tok-num">100</span>, b_init=<span class="tok-num">0</span>,
+                                                alpha=<span class="tok-num">0.001</span>, X=X_train, Y=Y_train, num_iters=<span class="tok-num">10000</span>)
+<span class="tok-builtin">print</span>(<span class="tok-str">f"w={</span>w:<span class="tok-num">.3f</span><span class="tok-str">} b={</span>b:<span class="tok-num">.3f</span><span class="tok-str">}  J={</span><span class="tok-fn">cost_func</span>(w,b,X_train,Y_train):<span class="tok-num">.4f</span><span class="tok-str">}"</span>)
+</code></pre></div>
+
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — watch the cost fall + 3D bowl (visual treat)</span></div><pre><code><span class="tok-kw">import</span> matplotlib.pyplot <span class="tok-kw">as</span> plt
+plt.plot(j_hist); plt.xlabel(<span class="tok-str">"every 100 iters"</span>); plt.ylabel(<span class="tok-str">"J(w,b)"</span>)
+plt.title(<span class="tok-str">"cost falling — fast then flat"</span>); plt.show()
+
+<span class="tok-cmt"># 3D bowl + GD path (optional but gorgeous)</span>
+<span class="tok-kw">from</span> matplotlib <span class="tok-kw">import</span> cm
+fig = plt.figure(figsize=(<span class="tok-num">8</span>,<span class="tok-num">6</span>))
+ax = fig.add_subplot(<span class="tok-num">111</span>, projection=<span class="tok-str">'3d'</span>)
+w_range = np.linspace(-<span class="tok-num">10</span>, <span class="tok-num">10</span>, <span class="tok-num">80</span>); b_range = np.linspace(-<span class="tok-num">10</span>, <span class="tok-num">10</span>, <span class="tok-num">80</span>)
+W,B = np.meshgrid(w_range, b_range)
+J = np.array([[cost_func(w,b,X_train,Y_train) <span class="tok-kw">for</span> w <span class="tok-kw">in</span> w_range] <span class="tok-kw">for</span> b <span class="tok-kw">in</span> b_range])
+ax.plot_surface(W,B,J,cmap=cm.coolwarm, alpha=<span class="tok-num">0.7</span>)
+ax.plot(w_hist[::<span class="tok-num">100</span>], b_hist[::<span class="tok-num">100</span>],
+        [cost_func(w,b,X_train,Y_train) <span class="tok-kw">for</span> w,b <span class="tok-kw">in</span> <span class="tok-builtin">zip</span>(w_hist[::<span class="tok-num">100</span>], b_hist[::<span class="tok-num">100</span>])],
+        color=<span class="tok-str">'black'</span>, marker=<span class="tok-str">'o'</span>, linewidth=<span class="tok-num">2</span>)
+ax.set_xlabel(<span class="tok-str">'w'</span>); ax.set_ylabel(<span class="tok-str">'b'</span>); ax.set_zlabel(<span class="tok-str">'J'</span>)
+plt.show()
+</code></pre></div>
+
+<h2>how to pick α — the 10× rule</h2>
+<p>In practice you <b>sweep</b>: try <code>0.001, 0.003, 0.01, 0.03, 0.1, 0.3, 1.0</code> (×3 each). Small α = snail, huge α = explosion. Plot J vs iterations — it should smoothly fall. If J jumps up and oscillates, α is too big → divide by 3. If J crawls, multiply by 3. This table from your notes logic:</p>
+<table>
+<tr><th>α</th><th>J curve</th><th>diagnosis</th></tr>
+<tr><td><code>0.001</code></td><td>slow glide down</td><td>safe but needs more iters</td></tr>
+<tr><td><code>0.01</code></td><td>fast dive then flat</td><td>often sweet spot ★</td></tr>
+<tr><td><code>1.0</code></td><td>oscillates / blows up</td><td>too big → diverge</td></tr>
+</table>
+
+<div class="callout exam"><b class="label">⭐ exam tip</b><br/>If asked to "write gradient descent for linear regression", give <b>all three blocks: model + cost + both updates with expanded sums</b> and mention <b>simultaneous update</b>. Two update lines without the cost = half marks. Bonus: add "convex → one global minimum".</div>
+
+<div class="callout gotcha"><b class="label">⚠️ gotcha</b><br/><b>Update w and b simultaneously</b> from the <i>old</i> values each iteration. Code pattern wrong: $w -= \alpha\cdot dw; dj_db = ... using new w \to bug$. Always compute <code>dj_dw, dj_db</code> first, then update both.</div>
+
+<details class="ml-try"><summary>🔬 try it: one step by hand</summary>
+<p>One dot (x=2, y=4). Start w=0, b=0, α=0.1. f=0, miss=−4. ∂J/∂w = −4·2 = −8 → w := 0 − 0.1·(−8) = <b>0.8</b>. ∂J/∂b = −4 → b := 0 − 0.1·(−4) = <b>0.4</b>. New f(2) = 2.0 — miss shrank from 4 to 2 in <b>one step</b>. Try α=1.0 → w=8 → f=16 → miss 12 → worse! Feel α.</p>
+<pre><span class="tok-builtin">print</span>(<span class="tok-fn">compute_gradients</span>(<span class="tok-num">0</span>,<span class="tok-num">0</span>, np.array([<span class="tok-num">2.</span>]), np.array([<span class="tok-num">4.</span>]))) <span class="tok-cmt"># (-8.0, -4.0)</span></pre>
+</details>
+
+<h2>quick check</h2>
+<ul>
+  <li><b>Slope +5, α=0.1 — where does w go?</b> Down by 0.5 (w decreases toward minimum).</li>
+  <li><b>α too big — symptom?</b> J bounces up / diverges instead of falling.</li>
+  <li><b>When does it stop moving?</b> Slope = 0 → update is w := w. Parked.</li>
+</ul>
+
+<h2>the 20-second answer</h2>
+<p>Gradient descent repeats <b>w −= α·slope, b −= α·slope</b>: positive slope steps left, negative steps right, zero slope naps. Small α crawls, huge α explodes, and near the bottom steps shrink by themselves (auto-brake). The linear-regression slopes are just <b>average miss (× x for w)</b>. Cost always falls if α is sane — and for linear regression that fall lands at the <b>global</b> bottom. Next: many features at once → <b>Multiple Regression.</b></p>

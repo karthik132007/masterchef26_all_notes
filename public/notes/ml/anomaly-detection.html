@@ -1,0 +1,178 @@
+<style>
+.ml-fig{margin:14px auto 6px;max-width:640px;text-align:center}
+.ml-fig svg{width:100%;height:auto;display:block}
+.ml-fig figcaption{font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);margin-top:4px;line-height:1.55}
+.note-body figure.ml-fig{animation:ml-rise .7s ease both;animation-timeline:view();animation-range:entry 0% cover 22%}
+@keyframes ml-rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.ml-flow{stroke-dasharray:7 7;animation:ml-dash 1.2s linear infinite}
+@keyframes ml-dash{to{stroke-dashoffset:-14}}
+.hlbox{border:2.5px solid var(--ink);border-radius:12px;padding:12px 15px;background:#fff4c2;font-weight:700;text-align:center;margin:14px 0}
+details.ml-try{border:2px solid var(--ink);border-radius:12px;background:#fff;padding:10px 14px;margin:12px 0}
+details.ml-try summary{font-weight:700;cursor:pointer}
+@media (prefers-reduced-motion:reduce){.ml-flow{animation:none}.note-body figure.ml-fig{animation:none}}
+</style>
+
+<p class="kicker">most dots party together. one dot stands alone in the corner. that is your fraud — and density is how you spot it without labels.</p>
+
+<h2>the 30-second idea</h2>
+<p>Pages 31–32: anomaly detection finds <b>points that don't fit normal</b> — credit-card fraud, weird server logs, broken factory parts. Your notes' mantra: <b>normal = common + crowded, abnormal = unusual + lonely.</b> Learn "normal" from clean data, then flag anything with <b>suspiciously tiny probability P(x) &lt; ε</b>.</p>
+
+<figure class="ml-fig">
+<svg viewBox="0 0 620 190" role="img" aria-label="Dense normal cluster with one lonely anomaly">
+  <rect x="10" y="10" width="600" height="170" rx="12" fill="#fff" stroke="#1c1a15" stroke-width="2.5"/>
+  <ellipse cx="280" cy="105" rx="150" ry="55" fill="#dcf9e8" opacity=".8" stroke="#1c1a15" stroke-width="2" stroke-dasharray="6 5"/>
+  <text x="280" y="170" text-anchor="middle" font-size="10.5" font-weight="800">normal crowd 😊😊😊</text>
+  <g fill="#1c1a15"><circle cx="200" cy="100" r="5"/><circle cx="230" cy="115" r="5"/><circle cx="260" cy="95" r="5"/><circle cx="290" cy="110" r="5"/><circle cx="320" cy="98" r="5"/><circle cx="350" cy="115" r="5"/><circle cx="250" cy="122" r="5"/><circle cx="310" cy="122" r="5"/><circle cx="280" cy="88" r="5"/></g>
+  <circle cx="530" cy="50" r="9" fill="#d1345b" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="530" y="54" text-anchor="middle" font-size="10" font-weight="800" fill="#fff">!</text>
+  <line x1="400" y1="85" x2="515" y2="58" stroke="#d1345b" stroke-width="2.5" stroke-dasharray="5 4"/>
+  <text x="545" y="80" font-size="10.5" font-weight="800" fill="#d1345b">lonely = suspect 🚨</text>
+  <text x="545" y="96" font-size="10" fill="#575046">fraud · hack · defect</text>
+</svg>
+<figcaption>crowded = safe. far + alone = investigate. density is the whole intuition — statistical, distance and density methods all chase it.</figcaption>
+</figure>
+
+<h2>4 weapons (page 31) — which to reach for when</h2>
+<table>
+  <tr><th>method</th><th>idea in one line</th><th>needs</th></tr>
+  <tr><td><b>📊 statistical</b></td><td>assume distribution (gaussian), flag tiny-P(x) points</td><td>μ,σ clean</td></tr>
+  <tr><td><b>📏 distance-based</b></td><td>far from k-nearest neighbours = weird</td><td>distance threshold</td></tr>
+  <tr><td><b>🌫 density-based</b></td><td>empty neighbourhood (DBSCAN/LOF) = weird</td><td>density radius</td></tr>
+  <tr><td><b>🤖 ML models</b></td><td>Isolation Forest · One-Class SVM · Autoencoders (named in notes)</td><td>model train</td></tr>
+</table>
+<p>This page does the statistical (gaussian) route fully in code — it's the exam favourite and the building block for the others.</p>
+
+<h2>the gaussian bell (pages 31–32) — the formula you must write</h2>
+$$p(x;\mu,\sigma)=\frac{1}{\sqrt{2\pi}\,\sigma}\exp\!\left(-\frac{(x-\mu)^{2}}{2\sigma^{2}}\right) \qquad \mu=\text{mean},\;\sigma=\text{std},\;\epsilon=\text{threshold}$$
+
+<figure class="ml-fig">
+<svg viewBox="0 0 620 210" role="img" aria-label="Gaussian bell curve with anomaly tails">
+  <rect x="10" y="10" width="600" height="190" rx="12" fill="#fff" stroke="#1c1a15" stroke-width="2.5"/>
+  <line x1="50" y1="160" x2="595" y2="160" stroke="#1c1a15" stroke-width="2"/>
+  <path d="M70,158 Q180,158 250,100 Q310,30 370,100 Q440,158 575,158" fill="#dcf9e8" opacity=".9" stroke="#1c1a15" stroke-width="3"/>
+  <line x1="310" y1="45" x2="310" y2="160" stroke="#1c1a15" stroke-width="2" stroke-dasharray="5 4"/>
+  <text x="310" y="178" text-anchor="middle" font-size="10.5" font-weight="800">μ (normal lives here 😌)</text>
+  <circle cx="95" cy="150" r="7" fill="#d1345b" stroke="#1c1a15" stroke-width="2"/><text x="95" y="135" text-anchor="middle" font-size="10" font-weight="800" fill="#d1345b">anomaly</text>
+  <circle cx="545" cy="150" r="7" fill="#d1345b" stroke="#1c1a15" stroke-width="2"/><text x="545" y="135" text-anchor="middle" font-size="10" font-weight="800" fill="#d1345b">anomaly</text>
+  <text x="310" y="24" text-anchor="middle" font-size="11" font-weight="800">bell: centre = likely · tails = suspicious</text>
+</svg>
+<figcaption>your hand-drawn bell, cleaned. middle = boring = good. edges = rare = investigate. σ controls fatness.</figcaption>
+</figure>
+
+<h2>the ε rule — the whole game in 3 lines</h2>
+$$\text{fit }\mu,\sigma \text{ on NORMAL data }\to p(x);\quad \begin{cases} p(x)<\epsilon &\Rightarrow \text{ANOMALY}\\ p(x)\ge\epsilon &\Rightarrow \text{normal}\end{cases}$$
+
+<figure class="ml-fig">
+<svg viewBox="0 0 620 150" role="img" aria-label="Threshold flowchart">
+  <rect x="10" y="50" width="150" height="50" rx="10" fill="#fff4c2" stroke="#1c1a15" stroke-width="2.5"/><text x="85" y="71" text-anchor="middle" font-size="10.5" font-weight="800">compute P(x)</text><text x="85" y="87" text-anchor="middle" font-size="10" fill="#575046">gaussian says…</text>
+  <line x1="160" y1="75" x2="205" y2="75" stroke="#1c1a15" stroke-width="2.5" marker-end="url(#ad-a)" class="ml-flow"/>
+  <g><rect x="207" y="40" width="150" height="70" rx="10" fill="#e3f1ff" stroke="#1c1a15" stroke-width="2.5"/><text x="282" y="63" text-anchor="middle" font-size="11" font-weight="800">P(x) &lt; ε ?</text><text x="282" y="80" text-anchor="middle" font-size="10" fill="#575046">tiny prob?</text><text x="282" y="95" text-anchor="middle" font-size="10" fill="#575046">ε tuned via F1</text></g>
+  <line x1="357" y1="60" x2="430" y2="60" stroke="#d1345b" stroke-width="2.5" marker-end="url(#ad-a)"/><text x="393" y="52" text-anchor="middle" font-size="10" font-weight="800" fill="#d1345b">yes</text>
+  <line x1="357" y1="90" x2="430" y2="90" stroke="#1c1a15" stroke-width="2.5" marker-end="url(#ad-a)"/><text x="393" y="106" text-anchor="middle" font-size="10" font-weight="800">no</text>
+  <rect x="432" y="35" width="85" height="50" rx="10" fill="#ffe3ef" stroke="#d1345b" stroke-width="2.5"/><text x="474" y="57" text-anchor="middle" font-size="10.5" font-weight="800" fill="#d1345b">🚨 anomaly</text><text x="474" y="73" text-anchor="middle" font-size="10" fill="#575046">block / alert</text>
+  <rect x="432" y="90" width="85" height="50" rx="10" fill="#dcf9e8" stroke="#1c1a15" stroke-width="2.5"/><text x="474" y="112" text-anchor="middle" font-size="10.5" font-weight="800">✅ normal</text><text x="474" y="128" text-anchor="middle" font-size="10" fill="#575046">let pass</text>
+  <defs><marker id="ad-a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1c1a15"/></marker></defs>
+</svg>
+<figcaption>model normal → score newcomer → ε decides. ε small = paranoid (more flags), ε tiny = chill (few flags). Tune ε to maximize F1 on validation with known anomalies.</figcaption>
+</figure>
+
+<h2>many features? multiply. correlated? go multivariate.</h2>
+$$\text{Independent: } p(x)=\prod_{j=1}^{n}p(x_{j};\mu_{j},\sigma_{j}^{2}) \qquad \text{Multivariate: } p(x)=\mathcal{N}(x;\mu,\Sigma)$$
+<p>Multivariate uses <b>Σ (covariance matrix), |Σ| (determinant), Σ⁻¹ (inverse)</b> and the <b>Mahalanobis distance</b> $(x-\mu)^{\top} \Sigma^{-1} (x-\mu)$ — distance that knows features move together (height↔weight!). Derivation in exam: if Σ = diagonal → product = multivariate; if off-diagonal nonzero → correlation matters.</p>
+
+<div class="hlbox">multi-feature ≠ multivariate &nbsp;·&nbsp; product = assumes independence &nbsp;·&nbsp; multivariate = models correlation via Σ ★</div>
+<p>Your notes underline this distinction on the last page — it is the most quotable line of the bundle. Independent bells multiplied = cheap and often fine; one joint bell with Σ = correct when features conspire (height/weight, temperature/altitude).</p>
+
+<h2>python from scratch — 1-D + multi-feature + multivariate + ε tuning</h2>
+
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — gaussian anomaly detector from scratch</span></div><pre><code><span class="tok-kw">import</span> numpy <span class="tok-kw">as</span> np
+<span class="tok-kw">import</span> matplotlib.pyplot <span class="tok-kw">as</span> plt
+
+<span class="tok-kw">def</span> <span class="tok-fn">gaussian</span>(x, mu, sigma):
+    <span class="tok-kw">return</span> (<span class="tok-num">1</span>/(np.sqrt(<span class="tok-num">2</span>*np.pi)*sigma)) * np.exp(-(x-mu)**<span class="tok-num">2</span>/(<span class="tok-num">2</span>*sigma**<span class="tok-num">2</span>))
+
+<span class="tok-kw">def</span> <span class="tok-fn">fit_gaussian</span>(X):
+    <span class="tok-str">"""X: (m,n) clean normal data → mu (n,), sigma (n,)"</span>
+    <span class="tok-kw">return</span> X.mean(axis=<span class="tok-num">0</span>), X.std(axis=<span class="tok-num">0</span>, ddof=<span class="tok-num">0</span>)
+
+<span class="tok-kw">def</span> <span class="tok-fn">p_multivariate_independent</span>(X, mu, sigma):
+    <span class="tok-str">"""P(x)=Π_j P(x_j; μ_j,σ_j) — assumes independent features"""</span>
+    p = np.ones(X.shape[<span class="tok-num">0</span>])
+    <span class="tok-kw">for</span> j <span class="tok-kw">in</span> <span class="tok-builtin">range</span>(X.shape[<span class="tok-num">1</span>]):
+        p *= <span class="tok-fn">gaussian</span>(X[:,j], mu[j], sigma[j])
+    <span class="tok-kw">return</span> p
+
+<span class="tok-cmt"># ── demo: 200 normal logins ~ N(2h, 0.5), plus a fraud at 12h</span>
+np.random.seed(<span class="tok-num">0</span>)
+X_train = np.random.normal(loc=<span class="tok-num">2.0</span>, scale=<span class="tok-num">0.5</span>, size=(<span class="tok-num">200</span>,<span class="tok-num">1</span>))
+mu, sig = <span class="tok-fn">fit_gaussian</span>(X_train)
+<span class="tok-builtin">print</span>(<span class="tok-str">f"μ={mu[0]:.2f} σ={sig[0]:.2f}"</span>)
+
+<span class="tok-kw">for</span> x in [<span class="tok-num">2.0</span>, <span class="tok-num">3.0</span>, <span class="tok-num">5.0</span>, <span class="tok-num">12.0</span>]:
+    prob = <span class="tok-fn">gaussian</span>(x, mu[<span class="tok-num">0</span>], sig[<span class="tok-num">0</span>])
+    flag = <span class="tok-str">"🚨 ANOMALY"</span> <span class="tok-kw">if</span> prob &lt; <span class="tok-num">1e-4</span> <span class="tok-kw">else</span> <span class="tok-str">"✅ normal"</span>
+    <span class="tok-builtin">print</span>(<span class="tok-str">f"x={x:4.1f}  P={prob:.2e}  {flag}"</span>)
+<span class="tok-cmt"># x= 2.0  P=7.9e-01  ✅   x= 5.0 P=1.2e-08 🚨   x=12 P≈1e-88 🚨</span>
+</code></pre></div>
+
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — multi-feature (2-D: height, weight) — product vs multivariate</span></div><pre><code><span class="tok-cmt"># fake correlated normal data: height ~170±10cm, weight ~70±10kg, cor≈0.8</span>
+mean = np.array([<span class="tok-num">170</span>, <span class="tok-num">70</span>]); cov = np.array([[<span class="tok-num">100</span>, <span class="tok-num">80</span>],[<span class="tok-num">80</span>, <span class="tok-num">100</span>]])
+X_norm = np.random.multivariate_normal(mean, cov, size=<span class="tok-num">500</span>)
+
+mu, sig = <span class="tok-fn">fit_gaussian</span>(X_norm)                <span class="tok-cmt"># for independent product</span>
+<span class="tok-cmt"># for true multivariate, keep full Σ</span>
+Sigma = np.cov(X_norm, rowvar=<span class="tok-builtin">False</span>)
+
+<span class="tok-kw">def</span> <span class="tok-fn">p_multivariate_full</span>(X, mu, Sigma):
+    <span class="tok-cmt"># P(x)= 1/( (2\pi)^(n/2)|Σ|^.5 ) * exp(-.5 (x-μ)ᵀ Σ⁻¹ (x-μ))</span>
+    n = mu.shape[<span class="tok-num">0</span>]; det = np.linalg.det(Sigma); inv = np.linalg.inv(Sigma)
+    coeff = <span class="tok-num">1</span>/(((<span class="tok-num">2</span>*np.pi)**(n/<span class="tok-num">2</span>))*np.sqrt(det))
+    diff = X - mu
+    exp = np.exp(-<span class="tok-num">0.5</span>*np.<span class="tok-fn">sum</span>(diff.dot(inv)*diff, axis=<span class="tok-num">1</span>))
+    <span class="tok-kw">return</span> coeff*exp
+
+<span class="tok-cmt"># suspect: tall but light (170cm, 45kg) — unusual combination even if each alone plausible</span>
+suspect = np.array([[<span class="tok-num">170</span>, <span class="tok-num">45</span>], [<span class="tok-num">195</span>, <span class="tok-num">90</span>], [<span class="tok-num">170</span>, <span class="tok-num">70</span>]])
+<span class="tok-builtin">print</span>(<span class="tok-str">"independent product:"</span>, <span class="tok-fn">p_multivariate_independent</span>(suspect, mu, sig))
+<span class="tok-builtin">print</span>(<span class="tok-str">"multivariate (Σ):"</span>, <span class="tok-fn">p_multivariate_full</span>(suspect, mean, Sigma))
+<span class="tok-cmt"># independent misses that height/weight should correlate; full Σ flags 170/45 as rarer.</span>
+</code></pre></div>
+
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — tune ε to maximize F1 (validation with known anomalies)</span></div><pre><code><span class="tok-cmt"># validation: 100 normal + 5 known frauds (far points)</span>
+X_val = np.vstack([X_norm[:<span class="tok-num">100</span>], np.array([[<span class="tok-num">200</span>,<span class="tok-num">50</span>],[<span class="tok-num">150</span>,<span class="tok-num">95</span>],[<span class="tok-num">190</span>,<span class="tok-num">40</span>],[<span class="tok-num">210</span>,<span class="tok-num">100</span>],[<span class="tok-num">145</span>,<span class="tok-num">45</span>]])])
+y_val = np.array([<span class="tok-num">0</span>]*<span class="tok-num">100</span> + [<span class="tok-num">1</span>]*<span class="tok-num">5</span>)   <span class="tok-cmt"># 1=anomaly</span>
+
+probs = <span class="tok-fn">p_multivariate_full</span>(X_val, mean, Sigma)   <span class="tok-cmt"># anomaly → tiny prob</span>
+
+<span class="tok-kw">def</span> <span class="tok-fn">f1</span>(y_true, y_pred):
+    tp=np.<span class="tok-fn">sum</span>((y_true==<span class="tok-num">1</span>)&amp;(y_pred==<span class="tok-num">1</span>)); fp=np.<span class="tok-fn">sum</span>((y_true==<span class="tok-num">0</span>)&amp;(y_pred==<span class="tok-num">1</span>)); fn=np.<span class="tok-fn">sum</span>((y_true==<span class="tok-num">1</span>)&amp;(y_pred==<span class="tok-num">0</span>))
+    prec=tp/(tp+fp) <span class="tok-kw">if</span> tp+fp&gt;<span class="tok-num">0</span> <span class="tok-kw">else</span> <span class="tok-num">0</span>; rec=tp/(tp+fn) <span class="tok-kw">if</span> tp+fn&gt;<span class="tok-num">0</span> <span class="tok-kw">else</span> <span class="tok-num">0</span>
+    <span class="tok-kw">return</span> <span class="tok-num">2</span>*prec*rec/(prec+rec) <span class="tok-kw">if</span> prec+rec&gt;<span class="tok-num">0</span> <span class="tok-kw">else</span> <span class="tok-num">0</span>
+
+best_e, best_f=<span class="tok-num">0</span>,<span class="tok-num">0</span>
+<span class="tok-kw">for</span> eps <span class="tok-kw">in</span> np.logspace(-<span class="tok-num">8</span>, -<span class="tok-num">2</span>, <span class="tok-num">50</span>):
+    pred = (probs &lt; eps).astype(<span class="tok-builtin">int</span>)
+    score = <span class="tok-fn">f1</span>(y_val, pred)
+    <span class="tok-kw">if</span> score &gt; best_f: best_f, best_e = score, eps
+<span class="tok-builtin">print</span>(<span class="tok-str">f"best ε={best_e:.2e}  F1={best_f:.3f}"</span>)
+</code></pre></div>
+
+<details class="ml-try"><summary>🔬 try it: spot the ₹9,99,999 test transaction</summary>
+<p>Normal txns: μ=₹4,500, σ=₹1,200. New txn: ₹9,99,999. $P(9,99,999) \approx 10^{-150000}$ under that bell — far below any ε → <b>🚨 block</b>. Same math flags a login at 3am from a new country.</p>
+<pre><span class="tok-fn">gaussian</span>(<span class="tok-num">999999</span>, <span class="tok-num">4500</span>, <span class="tok-num">1200</span>)  <span class="tok-cmt"># → 0.0 (underflow) → treat as 0 → anomaly</span></pre>
+</details>
+
+<div class="callout exam"><b class="label">⭐ exam tip</b><br/>Write <b>gaussian formula + P(x)&lt;ε rule + Π product</b>, then drop: <b>"multi-feature assumes independence; multivariate uses Σ for correlated features"</b> + "choose ε by maximizing F1 on validation". That paragraph is page-32 examiner catnip.</div>
+
+<div class="callout gotcha"><b class="label">⚠️ gotcha</b><br/><b>Fit μ,σ on CLEAN data only.</b> Train on data polluted with fraud and the bell learns fraud is normal → garbage in, bell out. <b>Also:</b> when $\sigma$ tiny for a feature, that feature dominates product — standardize? For anomaly you often keep raw scale, but beware.</div>
+
+<h2>quick check</h2>
+<ul>
+  <li><b>P(x)=0.0001, ε=0.01?</b> Anomaly (below threshold).</li>
+  <li><b>Height and weight correlated — which model?</b> Multivariate gaussian (Σ captures tilt).</li>
+  <li><b>Fit μ,σ on what data?</b> Only normal examples — anomalies excluded from training.</li>
+  <li><b>Three ML anomaly models named in notes?</b> Isolation Forest, One-Class SVM, Autoencoders.</li>
+</ul>
+
+<h2>the 20-second answer</h2>
+<p>Anomaly detection = <b>learn normal's bell(s) (μ,σ or Σ), flag P(x)&lt;ε</b>. Multiply per-feature bells if independent; use <b>multivariate bell with Σ</b> when features correlate (Mahalanobis distance). Tune ε to maximize F1. Multi-feature ≠ multivariate. 🎓 That closes the full ML arc — from drawing one line to spotting the lonely fraud.</p>

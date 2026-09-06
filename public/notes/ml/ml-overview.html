@@ -1,0 +1,172 @@
+<style>
+.ml-fig{margin:14px auto 6px;max-width:640px;text-align:center}
+.ml-fig svg{width:100%;height:auto;display:block}
+.ml-fig figcaption{font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);margin-top:4px;line-height:1.55}
+.note-body figure.ml-fig{animation:ml-rise .7s ease both;animation-timeline:view();animation-range:entry 0% cover 22%}
+@keyframes ml-rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.ml-flow{stroke-dasharray:7 7;animation:ml-dash 1.2s linear infinite}
+@keyframes ml-dash{to{stroke-dashoffset:-14}}
+.ml-card{transition:transform .15s ease, filter .15s ease;cursor:default}
+.ml-card:hover{transform:translateY(-3px);filter:brightness(1.04)}
+@media (prefers-reduced-motion:reduce){.ml-flow{animation:none}.note-body figure.ml-fig{animation:none}}
+details.ml-try{border:2px solid var(--ink);border-radius:12px;background:#fff;padding:10px 14px;margin:12px 0}
+details.ml-try summary{font-weight:700;cursor:pointer}
+.pill{display:inline-block;border:1.5px solid var(--ink);border-radius:999px;padding:2px 10px;font-family:var(--font-mono);font-size:12px;font-weight:600;background:#fff;margin:2px 4px 2px 0}
+</style>
+
+<p class="kicker">from buzzword to blueprint — what ML actually is, when to use it, and the 6 letters that control every page after this.</p>
+
+<h2>the 30-second idea</h2>
+<p><b>Machine Learning = learn the mapping from data instead of hand-coding rules.</b> You show the machine thousands of $(x \to y)$ pairs and it invents the function. Three tribes, straight from your page 2 of ml1.pdf:</p>
+<ul>
+  <li><b>Supervised</b> — you hand over questions + correct answers → learn to mimic. Hero of this track.</li>
+  <li><b>Unsupervised</b> — only questions, no answers → discover hidden structure.</li>
+  <li><b>Reinforcement</b> — no dataset, only a world + reward button → learn by trying.</li>
+</ul>
+
+<figure class="ml-fig">
+<svg viewBox="0 0 620 240" role="img" aria-label="Three branches of ML">
+  <g class="ml-card">
+    <rect x="10" y="60" width="188" height="150" rx="14" fill="#fff4c2" stroke="#1c1a15" stroke-width="2.5"/>
+    <text x="104" y="90" text-anchor="middle" font-size="13" font-weight="800">SUPERVISED</text>
+    <text x="104" y="108" text-anchor="middle" font-size="11" fill="#575046">labelled (x → y)</text>
+    <rect x="28" y="120" width="152" height="26" rx="8" fill="#fff" stroke="#1c1a15" stroke-width="2"/><text x="104" y="137" text-anchor="middle" font-size="10.5" font-weight="700">email → spam?</text>
+    <rect x="28" y="152" width="152" height="26" rx="8" fill="#fff" stroke="#1c1a15" stroke-width="2"/><text x="104" y="169" text-anchor="middle" font-size="10.5" font-weight="700">audio → words</text>
+    <text x="104" y="198" text-anchor="middle" font-size="10.5" font-weight="800">★ this track's hero</text>
+  </g>
+  <g class="ml-card">
+    <rect x="216" y="60" width="188" height="150" rx="14" fill="#e3f1ff" stroke="#1c1a15" stroke-width="2.5"/>
+    <text x="310" y="90" text-anchor="middle" font-size="13" font-weight="800">UNSUPERVISED</text>
+    <text x="310" y="108" text-anchor="middle" font-size="11" fill="#575046">only X, no y</text>
+    <rect x="234" y="120" width="152" height="26" rx="8" fill="#fff" stroke="#1c1a15" stroke-width="2"/><text x="310" y="137" text-anchor="middle" font-size="10.5" font-weight="700">clustering</text>
+    <rect x="234" y="152" width="152" height="26" rx="8" fill="#fff" stroke="#1c1a15" stroke-width="2"/><text x="310" y="169" text-anchor="middle" font-size="10.5" font-weight="700">anomaly · compress</text>
+    <text x="310" y="198" text-anchor="middle" font-size="10.5" font-weight="800">find the structure</text>
+  </g>
+  <g class="ml-card">
+    <rect x="422" y="60" width="188" height="150" rx="14" fill="#dcf9e8" stroke="#1c1a15" stroke-width="2.5"/>
+    <text x="516" y="90" text-anchor="middle" font-size="13" font-weight="800">REINFORCEMENT</text>
+    <text x="516" y="108" text-anchor="middle" font-size="11" fill="#575046">act → reward</text>
+    <text x="516" y="138" text-anchor="middle" font-size="22">🎮 → 🏆 → 🔁</text>
+    <text x="516" y="168" text-anchor="middle" font-size="10.5" fill="#575046">named in notes,</text>
+    <text x="516" y="183" text-anchor="middle" font-size="10.5" fill="#575046">not detailed</text>
+    <text x="516" y="200" text-anchor="middle" font-size="10.5" font-weight="800">games · robots</text>
+  </g>
+  <text x="310" y="30" text-anchor="middle" font-size="14" font-weight="800" fill="#1c1a15">machine learning</text>
+  <line x1="310" y1="36" x2="104" y2="58" stroke="#1c1a15" stroke-width="2.5" class="ml-flow"/>
+  <line x1="310" y1="36" x2="310" y2="58" stroke="#1c1a15" stroke-width="2.5"/>
+  <line x1="310" y1="36" x2="516" y2="58" stroke="#1c1a15" stroke-width="2.5" class="ml-flow"/>
+</svg>
+<figcaption>hover the cards — the whole 32-page bundle lives inside the left two boxes.</figcaption>
+</figure>
+
+<h2>supervised vs unsupervised vs reinforcement — with examples you won't forget</h2>
+<table>
+<tr><th>tribe</th><th>what you give it</th><th>what it learns</th><th>everyday examples</th></tr>
+<tr><td><b>Supervised</b></td><td>pairs <code>(x, y)</code></td><td>function $x \to y$</td><td>email→spam, house→price, X-ray→diagnosis</td></tr>
+<tr><td><b>Unsupervised</b></td><td>only <code>X</code> (no y)</td><td>hidden groups / outliers / compression</td><td>customer segments, fraud dots, 1000-dim → 2-dim</td></tr>
+<tr><td><b>Reinforcement</b></td><td>environment + reward</td><td>policy that maximises reward</td><td>Chess, drone landing, ad bidding</td></tr>
+</table>
+
+<div class="callout remember"><b class="label">🧷 remember</b><br/><b>Supervised is "copy the answer sheet". Unsupervised is "find the cliques in the canteen with no seating plan."</b> Reinforcement is "touch the stove, learn fast." If you can tell those stories, you'll never confuse them in an exam.</div>
+
+<figure class="ml-fig">
+<svg viewBox="0 0 620 190" role="img" aria-label="Supervised splits into regression and classification">
+  <rect x="225" y="8" width="170" height="40" rx="10" fill="#1c1a15"/><text x="310" y="33" text-anchor="middle" font-size="13" font-weight="800" fill="#fff">SUPERVISED</text>
+  <line x1="310" y1="48" x2="130" y2="78" stroke="#1c1a15" stroke-width="2.5"/><line x1="310" y1="48" x2="490" y2="78" stroke="#1c1a15" stroke-width="2.5"/>
+  <g class="ml-card"><rect x="20" y="78" width="220" height="100" rx="12" fill="#dcf9e8" stroke="#1c1a15" stroke-width="2.5"/><text x="130" y="102" text-anchor="middle" font-size="13" font-weight="800">REGRESSION</text><text x="130" y="120" text-anchor="middle" font-size="11">predict a NUMBER</text><text x="130" y="137" text-anchor="middle" font-size="10.5" fill="#575046">∞ possible outputs</text><text x="130" y="156" text-anchor="middle" font-size="11" font-weight="700">₹ price · 📏 size · 🌡 temp</text></g>
+  <g class="ml-card"><rect x="380" y="78" width="220" height="100" rx="12" fill="#ffe3ef" stroke="#1c1a15" stroke-width="2.5"/><text x="490" y="102" text-anchor="middle" font-size="13" font-weight="800">CLASSIFICATION</text><text x="490" y="120" text-anchor="middle" font-size="11">predict a CATEGORY</text><text x="490" y="137" text-anchor="middle" font-size="10.5" fill="#575046">finite outputs</text><text x="490" y="156" text-anchor="middle" font-size="11" font-weight="700">spam / not-spam 🐶/🐱</text></g>
+</svg>
+<figcaption>inside supervised, the only question: is y a number (regression) or a label (classification)?</figcaption>
+</figure>
+
+<div class="callout exam"><b class="label">⭐ exam tip</b><br/><b>Regression = number (infinite outputs). Classification = category (finite outputs).</b> "Predict price" → regression; "spam or not" → classification. One line, full marks, examiners copy-paste this.</div>
+
+<h2>the 6 symbols that run everything</h2>
+<p>Your page 3 notation table — memorise once, read every page fluently. We add column "in code" so Python matches math:</p>
+<table>
+<tr><th>symbol</th><th>means</th><th>think</th><th>in code</th></tr>
+<tr><td><code>x</code></td><td>input / feature(s)</td><td>the question</td><td><code>X[i]</code> or <code>x[i]</code></td></tr>
+<tr><td><code>y</code></td><td>output / target</td><td>the true answer</td><td><code>y[i]</code></td></tr>
+<tr><td><code>(x, y)</code></td><td>one training example</td><td>one flashcard</td><td><code>(X[i], y[i])</code></td></tr>
+<tr><td><code>(x⁽ⁱ⁾, y⁽ⁱ⁾)</code></td><td>i-th example</td><td>card #i</td><td>row i</td></tr>
+<tr><td><code>m</code></td><td># training examples</td><td>deck size</td><td><code>m = X.shape[0]</code></td></tr>
+<tr><td><code>ŷ (y-hat)</code></td><td>model's guess</td><td>"my answer was…"</td><td>$y_hat = w*x + b$</td></tr>
+<tr><td><code>w, b</code></td><td>parameters</td><td>knobs you learn</td><td><code>w, b</code></td></tr>
+</table>
+<p><span class="pill">w = slope</span> <span class="pill">b = intercept</span> <span class="pill">n = #features per x</span> <span class="pill">X = matrix m×n</span></p>
+
+<details class="ml-try"><summary>🔬 try it: which tribe is this?</summary>
+<p><b>Bank flags 1 tx out of 10,000 as fraud with no prior labels — just "lonely" behaviour?</b> → Unsupervised → anomaly detection.<br/><b>Predict house price from size?</b> → Supervised → regression.<br/><b>Show a model unlabeled chest X-rays and it clusters into 3 disease types?</b> → Unsupervised → clustering.</p>
+</details>
+
+<h2>the ML workflow — the picture your notes imply but never draw</h2>
+<p>Every supervised project, from house prices to spam, follows 5 steps. Learn this loop and every later page slots in:</p>
+<figure class="ml-fig">
+<svg viewBox="0 0 640 170" role="img" aria-label="ML workflow 5 steps">
+  <rect x="10" y="40" width="105" height="70" rx="10" fill="#fff4c2" stroke="#1c1a15" stroke-width="2.5"/><text x="62" y="64" text-anchor="middle" font-size="11" font-weight="800">1 DATA</text><text x="62" y="81" text-anchor="middle" font-size="9.5" fill="#575046">collect & clean</text><text x="62" y="96" text-anchor="middle" font-size="9">m rows, n cols</text>
+  <line x1="115" y1="75" x2="145" y2="75" stroke="#1c1a15" stroke-width="2.5" class="ml-flow" marker-end="url(#ov-a)"/>
+  <rect x="147" y="40" width="105" height="70" rx="10" fill="#e3f1ff" stroke="#1c1a15" stroke-width="2.5"/><text x="199" y="64" text-anchor="middle" font-size="11" font-weight="800">2 MODEL</text><text x="199" y="81" text-anchor="middle" font-size="9.5" fill="#575046">f_wb(x)</text><text x="199" y="96" text-anchor="middle" font-size="9">w,b random start</text>
+  <line x1="252" y1="75" x2="282" y2="75" stroke="#1c1a15" stroke-width="2.5" class="ml-flow" marker-end="url(#ov-a)"/>
+  <rect x="284" y="40" width="105" height="70" rx="10" fill="#dcf9e8" stroke="#1c1a15" stroke-width="2.5"/><text x="336" y="64" text-anchor="middle" font-size="11" font-weight="800">3 COST</text><text x="336" y="81" text-anchor="middle" font-size="9.5" fill="#575046">J(w,b)</text><text x="336" y="96" text-anchor="middle" font-size="9">how wrong?</text>
+  <line x1="389" y1="75" x2="419" y2="75" stroke="#1c1a15" stroke-width="2.5" class="ml-flow" marker-end="url(#ov-a)"/>
+  <rect x="421" y="40" width="105" height="70" rx="10" fill="#ffe3ef" stroke="#1c1a15" stroke-width="2.5"/><text x="473" y="64" text-anchor="middle" font-size="11" font-weight="800">4 OPTIMIZE</text><text x="473" y="81" text-anchor="middle" font-size="9.5" fill="#575046">gradient descent</text><text x="473" y="96" text-anchor="middle" font-size="9">w,b → better</text>
+  <line x1="526" y1="75" x2="556" y2="75" stroke="#1c1a15" stroke-width="2.5" class="ml-flow" marker-end="url(#ov-a)"/>
+  <rect x="558" y="40" width="72" height="70" rx="10" fill="#c9b8ff" stroke="#1c1a15" stroke-width="2.5"/><text x="594" y="64" text-anchor="middle" font-size="11" font-weight="800">5 EVAL</text><text x="594" y="81" text-anchor="middle" font-size="9.5" fill="#575046">test set</text><text x="594" y="96" text-anchor="middle" font-size="9">P/R/F1</text>
+  <defs><marker id="ov-a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#1c1a15"/></marker></defs>
+  <text x="320" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#575046">data → model → score → improve → prove it generalises</text>
+  <text x="473" y="132" text-anchor="middle" font-size="9.5" fill="#575046">loop 3–4 till J stops falling</text>
+  <path d="M336,110 Q336,135 290,135 Q199,135 199,110" fill="none" stroke="#1c1a15" stroke-width="1.8" stroke-dasharray="5 4"/>
+</svg>
+<figcaption>the master loop — every page after this zooms one box: cost zooms 3, gradient zooms 4, precision zooms 5.</figcaption>
+</figure>
+
+<h2>train vs test — why good students don't cheat</h2>
+<p>Never evaluate on the data you trained on — that's like giving the exam with the answer sheet attached. Split:</p>
+<table>
+<tr><th>split</th><th>size</th><th>touch when?</th><th>used for</th></tr>
+<tr><td><b>Train</b></td><td>~60-70%</td><td>every GD step</td><td>learn w,b</td></tr>
+<tr><td><b>Validation</b></td><td>~15-20%</td><td>after training</td><td>tune λ, α, K, ε</td></tr>
+<tr><td><b>Test</b></td><td>~15-20%</td><td>once at the end</td><td>honest final score</td></tr>
+</table>
+<p><b>Overfitting</b> = memorises train, fails test (too wiggly). <b>Underfitting</b> = fails both (too simple). <b>Just right</b> = low on both. That triangle is the whole ball game for later pages on regularization, trees, and SVMS.</p>
+
+<figure class="ml-fig">
+<svg viewBox="0 0 620 190" role="img" aria-label="Underfit good overfit curves">
+  <g><rect x="10" y="10" width="190" height="170" rx="12" fill="#fff" stroke="#1c1a15" stroke-width="2.5"/><text x="105" y="34" text-anchor="middle" font-size="11.5" font-weight="800">underfit 😐</text>
+  <line x1="30" y1="140" x2="180" y2="60" stroke="#1c1a15" stroke-width="3"/><circle cx="60" cy="120" r="5" fill="#ff6b35" stroke="#1c1a15" stroke-width="1.5"/><circle cx="100" cy="90" r="5" fill="#ff6b35" stroke="#1c1a15" stroke-width="1.5"/><circle cx="140" cy="105" r="5" fill="#ff6b35" stroke="#1c1a15" stroke-width="1.5"/><text x="105" y="162" text-anchor="middle" font-size="10" fill="#575046">too stiff</text></g>
+  <g><rect x="215" y="10" width="190" height="170" rx="12" fill="#dcf9e8" stroke="#1c1a15" stroke-width="2.5"/><text x="310" y="34" text-anchor="middle" font-size="11.5" font-weight="800">just right ★</text>
+  <path d="M235,140 Q280,90 320,105 Q360,120 385,70" fill="none" stroke="#1c1a15" stroke-width="3"/><circle cx="260" cy="120" r="5" fill="#ff6b35" stroke="#1c1a15" stroke-width="1.5"/><circle cx="300" cy="100" r="5" fill="#ff6b35" stroke="#1c1a15" stroke-width="1.5"/><circle cx="340" cy="110" r="5" fill="#ff6b35" stroke="#1c1a15" stroke-width="1.5"/><circle cx="370" cy="85" r="5" fill="#ff6b35" stroke="#1c1a15" stroke-width="1.5"/><text x="310" y="162" text-anchor="middle" font-size="10" fill="#575046">smooth, generalises</text></g>
+  <g><rect x="420" y="10" width="190" height="170" rx="12" fill="#ffe3ef" stroke="#1c1a15" stroke-width="2.5"/><text x="515" y="34" text-anchor="middle" font-size="11.5" font-weight="800">overfit 🤯</text>
+  <path d="M440,140 Q460,60 480,120 Q500,175 520,70 Q540,40 590,110" fill="none" stroke="#d1345b" stroke-width="3"/><circle cx="460" cy="120" r="5" fill="#ff6b35" stroke="#1c1a15" stroke-width="1.5"/><circle cx="500" cy="120" r="5" fill="#ff6b35" stroke="#1c1a15" stroke-width="1.5"/><circle cx="540" cy="80" r="5" fill="#ff6b35" stroke="#1c1a15" stroke-width="1.5"/><circle cx="575" cy="105" r="5" fill="#ff6b35" stroke="#1c1a15" stroke-width="1.5"/><text x="515" y="162" text-anchor="middle" font-size="10" fill="#575046">memorised noise</text></g>
+</svg>
+<figcaption>preview: regularization, forests and SVMs are all tricks to drag the right panel back toward the middle.</figcaption>
+</figure>
+
+<h2>python in 60 seconds — your lab setup</h2>
+<p>All code in this track is <b>numpy-only, sklearn only for toy data generation & plotting</b>. No hidden <code>.fit()</code> that hides math. Run every snippet in a notebook or <code>python3 file.py</code>.</p>
+
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — environment check (run once)</span></div><pre><code><span class="tok-kw">import</span> numpy <span class="tok-kw">as</span> np
+<span class="tok-kw">import</span> matplotlib.pyplot <span class="tok-kw">as</span> plt
+
+<span class="tok-cmt"># sanity: numpy is the engine for every page after this</span>
+X_demo = np.array([[<span class="tok-num">1.0</span>, <span class="tok-num">2.0</span>],
+               [<span class="tok-num">2.0</span>, <span class="tok-num">3.0</span>],
+               [<span class="tok-num">3.0</span>, <span class="tok-num">4.0</span>]])
+y_demo = np.array([<span class="tok-num">2.0</span>, <span class="tok-num">3.0</span>, <span class="tok-num">4.0</span>])
+<span class="tok-builtin">print</span>(<span class="tok-str">"X shape"</span>, X_demo.shape)  <span class="tok-cmt"># (3,2) → 3 examples, 2 features</span>
+<span class="tok-builtin">print</span>(<span class="tok-str">"m ="</span>, X_demo.shape[<span class="tok-num">0</span>], <span class="tok-str">" n ="</span>, X_demo.shape[<span class="tok-num">1</span>])
+</code></pre></div>
+<p class="code-note"><b>Tip:</b> If <code>import numpy</code> fails, run <code>pip install numpy matplotlib</code>. That's it — you're ready for linear regression.</p>
+
+<div class="callout gotcha"><b class="label">⚠️ gotcha</b><br/><b>ŷ (y-hat) vs y:</b> <code>y</code> is truth, <code>ŷ</code> is your model's guess. The entire cost function is just "how far is ŷ from y". Keep them apart and gradient descent, logistic loss and SVM hinge loss all make sense instantly.</div>
+
+<h2>quick check</h2>
+<ul>
+  <li><b>Email → spam?</b> Supervised — which branch? → Classification (finite answers).</li>
+  <li><b>Group shoppers with no labels?</b> → Unsupervised → clustering.</li>
+  <li><b>What is m?</b> → # training examples (deck size). <b>n?</b> → #features per example.</li>
+  <li><b>Why split off a test set?</b> → To prove you didn't just memorise training.</li>
+</ul>
+
+<h2>the 20-second answer</h2>
+<p>Supervised learns $x \to y$ from labelled pairs and splits into <b>regression (numbers)</b> vs <b>classification (categories)</b>. Unsupervised gets only <code>X</code> and finds <b>clusters, anomalies or compressions</b>. Workflow is <b>data → model → cost → optimize → evaluate</b>, and the alphabet is <code>x, y, m, ŷ, w, b</code> — everything after this page is just those letters dancing. Next → <b>Linear Regression: f(x)=wx+b</b>.</p>

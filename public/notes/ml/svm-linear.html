@@ -1,0 +1,190 @@
+<style>
+.ml-fig{margin:14px auto 6px;max-width:650px;text-align:center}
+.ml-fig svg{width:100%;height:auto;display:block}
+.ml-fig figcaption{font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);margin-top:4px;line-height:1.55}
+.note-body figure.ml-fig{animation:ml-rise .7s ease both;animation-timeline:view();animation-range:entry 0% cover 22%}
+@keyframes ml-rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.ml-flow{stroke-dasharray:7 7;animation:ml-dash 1.2s linear infinite}
+@keyframes ml-dash{to{stroke-dashoffset:-14}}
+details.ml-try{border:2px solid var(--ink);border-radius:12px;background:#fff;padding:10px 14px;margin:12px 0}
+details.ml-try summary{font-weight:700;cursor:pointer}
+@media (prefers-reduced-motion:reduce){.ml-flow{animation:none}.note-body figure.ml-fig{animation:none}}
+.eqbox{border:2px solid var(--ink);border-radius:12px;background:#fff4c2;padding:12px 14px;margin:12px 0;font-family:var(--font-mono);font-size:13px;line-height:1.6;text-align:center}
+</style>
+
+<p class="kicker">logistic draws any line that separates. SVM draws the street — the widest line that separates. same data, braver boundary.</p>
+
+<h2>the 30-second idea</h2>
+<p><b>Support Vector Machine (linear) finds the separating hyperplane with maximum margin.</b> Imagine two classes as two crowds and you must lay a road between them — SVM picks the <b>widest road</b> so the next person (test point) is least likely to be mis-placed. The road edges touch the closest points — those points are the <b>support vectors</b> (they alone define the road; move any other point and nothing changes).</p>
+
+<figure class="ml-fig">
+<svg viewBox="0 0 640 260" role="img" aria-label="SVM street with margin and support vectors">
+  <rect x="10" y="10" width="620" height="240" rx="14" fill="#fff" stroke="#1c1a15" stroke-width="2.5"/>
+  <!-- axes -->
+  <line x1="60" y1="30" x2="60" y2="220" stroke="#1c1a15" stroke-width="2"/><line x1="60" y1="220" x2="610" y2="220" stroke="#1c1a15" stroke-width="2"/>
+  <!-- street -->
+  <line x1="80" y1="210" x2="580" y2="30" stroke="#ffe14d" stroke-width="18" opacity=".45"/>
+  <line x1="80" y1="210" x2="580" y2="30" stroke="#1c1a15" stroke-width="3.5" stroke-dasharray="10 6"/>
+  <text x="480" y="40" font-size="11" font-weight="800" fill="#1c1a15">decision line: w·x+b=0</text>
+  <!-- margins -->
+  <line x1="80" y1="230" x2="580" y2="50" stroke="#1c1a15" stroke-width="2"/>
+  <line x1="80" y1="190" x2="580" y2="10" stroke="#1c1a15" stroke-width="2"/>
+  <text x="500" y="58" font-size="9.5" font-weight="700" fill="#575046">w·x+b = +1</text>
+  <text x="536" y="205" font-size="9.5" font-weight="700" fill="#575046">w·x+b = −1</text>
+  <!-- support vectors highlighted -->
+  <circle cx="250" cy="135" r="11" fill="none" stroke="#d1345b" stroke-width="3"/><circle cx="250" cy="135" r="6" fill="#ff6b35" stroke="#1c1a15" stroke-width="2"/>
+  <circle cx="330" cy="110" r="11" fill="none" stroke="#d1345b" stroke-width="3"/><circle cx="330" cy="110" r="6" fill="#2b7de9" stroke="#1c1a15" stroke-width="2"/>
+  <circle cx="390" cy="82" r="11" fill="none" stroke="#d1345b" stroke-width="3"/><circle cx="390" cy="82" r="6" fill="#2b7de9" stroke="#1c1a15" stroke-width="2"/>
+  <circle cx="210" cy="155" r="6" fill="#ff6b35" stroke="#1c1a15" stroke-width="2"/><circle cx="180" cy="170" r="6" fill="#ff6b35" stroke="#1c1a15" stroke-width="2"/>
+  <circle cx="360" cy="125" r="6" fill="#2b7de9" stroke="#1c1a15" stroke-width="2"/><circle cx="420" cy="70" r="6" fill="#2b7de9" stroke="#1c1a15" stroke-width="2"/>
+  <!-- margin double arrow -->
+  <line x1="310" y1="115" x2="310" y2="155" stroke="#d1345b" stroke-width="2.5" marker-start="url(#sv-a)" marker-end="url(#sv-a)"/>
+  <text x="324" y="138" font-size="10.5" font-weight="800" fill="#d1345b">margin = 2/||w||</text>
+  <text x="180" y="242" text-anchor="middle" font-size="10.5" fill="#575046">class −1 (red) vs class +1 (blue) — widest street wins ★ circled = support vectors</text>
+  <defs><marker id="sv-a" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#d1345b"/></marker></defs>
+</svg>
+<figcaption>the yellow street is the margin. move non-circled dots — line doesn't budge. move circled (support) dots — street shifts. sparsity ★</figcaption>
+</figure>
+
+<h2>formulation — the optimization your notes skip but interviews don't</h2>
+<p>Hard-margin (perfectly separable) SVM:</p>
+<div class="formula-box">$$\min_{w,b}\,\frac12\|w\|^{2}\quad\text{s.t. }\;y^{(i)}(w^{\top}x^{(i)}+b)\ge 1\;\;\forall i$$</div>
+<div class="formula-caption">minimize $\|w\|$ ⇔ maximize margin $2/\|w\|$ · every point ≥1 beyond its side, $y\in\{-1,+1\}$</div>
+<p>Real data is never perfectly separable → <b>soft-margin</b> (what we implement): allow violations with slack ξ but pay for them. Equivalent hinge-loss form (the code's actual objective):</p>
+$$J(w,b)=\lambda\|w\|^{2}+\frac{1}{m}\sum_{i=1}^{m}\max\!\left(0,\,1-y^{(i)}(w^{\top}x^{(i)}+b)\right)$$
+<div class="formula-caption">L2 penalty &nbsp;·&nbsp; hinge loss (0 if $y(w^{\top}x+b)\ge 1$, else linear)</div>
+<p>Relationship: $\lambda$ here behaves like <code>1/C</code> in sklearn. Small $\lambda$ (or large <code>C</code>) → trust data, narrow margin, may overfit. Large $\lambda$ (small <code>C</code>) → wide margin, more violations allowed, simpler.</p>
+
+<h2>hinge loss intuition</h2>
+<table>
+<tr><th>prediction</th><th>$y\cdot (w\cdot x+b)$</th><th>hinge</th><th>means</th></tr>
+<tr><td>correct + confident (beyond +1)</td><td>≥ 1</td><td>0</td><td>no loss — outside the street, happy 😌</td></tr>
+<tr><td>correct but inside margin</td><td>0 to 1</td><td>1 − value</td><td>small penalty — too close ✋</td></tr>
+<tr><td>wrong side</td><td>&lt; 0</td><td>&gt;1, grows</td><td>big penalty — misclassified 💀</td></tr>
+</table>
+
+<figure class="ml-fig">
+<svg viewBox="0 0 620 180" role="img" aria-label="Hinge loss vs logistic loss">
+  <rect x="10" y="10" width="600" height="160" rx="12" fill="#fff" stroke="#1c1a15" stroke-width="2.5"/>
+  <line x1="60" y1="30" x2="60" y2="150" stroke="#1c1a15" stroke-width="2"/><line x1="60" y1="150" x2="590" y2="150" stroke="#1c1a15" stroke-width="2"/>
+  <text x="50" y="24" font-size="11" font-weight="800">loss</text><text x="594" y="164" font-size="11" font-weight="800">y·(w·x+b)</text>
+  <!-- hinge -->
+  <path d="M70,50 L310,50 L580,150" fill="none" stroke="#d1345b" stroke-width="3.5"/>
+  <text x="180" y="38" font-size="11" font-weight="800" fill="#d1345b">hinge (SVM) — flat after 1</text>
+  <!-- logistic for comparison faint -->
+  <path d="M70,130 Q200,90 310,70 Q420,50 580,30" fill="none" stroke="#2b7de9" stroke-width="2.5" stroke-dasharray="6 4" opacity=".6"/>
+  <text x="380" y="32" font-size="10" font-weight="700" fill="#2b7de9">logistic (sigmoid) — never zero</text>
+  <circle cx="310" cy="50" r="5" fill="#ffe14d" stroke="#1c1a15" stroke-width="2"/>
+  <line x1="310" y1="50" x2="310" y2="150" stroke="#1c1a15" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <text x="310" y="170" text-anchor="middle" font-size="10" font-weight="700">1 — street edge</text>
+</svg>
+<figcaption>hinge is 0 beyond the street edge (SVM stops caring), logistic never hits 0 (always a tiny gradient). SVM is sparser.</figcaption>
+</figure>
+
+<h2>gradient? sub-gradient — hinge is kinky</h2>
+<p>Hinge $max(0, 1 - y\cdot (w\cdot x+b))$ is non-differentiable at the kink (=1). We use <b>sub-gradient</b> (pick a valid slope at the kink). For one example:</p>
+$$\begin{cases} y^{(i)}(w^{\top}x^{(i)}+b)\ge 1: & \nabla_{w}=2\lambda w,\; \nabla_{b}=0 \\ \text{else}: & \nabla_{w}=2\lambda w - y^{(i)}x^{(i)},\; \nabla_{b}=-y^{(i)} \end{cases}$$
+<p>This is exactly the <code>if condition</code> in your <code>Ml_algos_scratch</code> SVM.</p>
+
+<div class="callout gotcha"><b class="label">⚠️ gotcha</b><br/><b>Labels must be −1 / +1, not 0/1.</b> Logistic uses 0/1, SVM uses −1/+1 so that $y\cdot (w\cdot x+b)$ carries sign correctness. Forgetting the conversion <code>y = np.where(y==0,-1,1)</code> is the #1 bug. Also: don't regularize <code>b</code> (no <code>db</code> penalty).</div>
+
+<h2>python from scratch — linear SVM (SGD style) + visualization</h2>
+<p>From <code>Ml_algos_scratch/Ml/SVM_linear.ipynb</code>, cleaned (variable names fixed, loop comments, predict isolated). SGD = one example at a time (as in notebook) → works for large data.</p>
+
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — linear SVM from scratch (hinge + L2, SGD)</span></div><pre><code><span class="tok-kw">import</span> numpy <span class="tok-kw">as</span> np
+<span class="tok-kw">from</span> sklearn.datasets <span class="tok-kw">import</span> make_blobs
+<span class="tok-kw">import</span> matplotlib.pyplot <span class="tok-kw">as</span> plt
+
+<span class="tok-cmt"># ── 1. toy blobs (2-D, linearly separable-ish)</span>
+X, y = make_blobs(n_samples=<span class="tok-num">100</span>, random_state=<span class="tok-num">42</span>, centers=<span class="tok-num">2</span>, cluster_std=<span class="tok-num">1.2</span>)
+y = np.where(y==<span class="tok-num">0</span>, -<span class="tok-num">1</span>, <span class="tok-num">1</span>)   <span class="tok-cmt"># ★ 0/1 → -1/+1</span>
+
+n_samples, n_features = X.shape
+epochs = <span class="tok-num">1000</span>
+alpha = <span class="tok-num">0.01</span>          <span class="tok-cmt"># learning rate</span>
+lambda_param = <span class="tok-num">0.01</span>   <span class="tok-cmt"># L2 strength (↔ 1/C). try 0.001,0.01,0.1</span>
+
+w = np.zeros(n_features)
+b = <span class="tok-num">0.0</span>
+
+<span class="tok-cmt"># ── 2. SGD training — one example at a time</span>
+<span class="tok-kw">for</span> epoch <span class="tok-kw">in</span> <span class="tok-builtin">range</span>(epochs):
+    <span class="tok-kw">for</span> idx, x_i <span class="tok-kw">in</span> <span class="tok-builtin">enumerate</span>(X):
+        condition = y[idx] * (np.dot(x_i, w) + b) &gt;= <span class="tok-num">1</span>
+        <span class="tok-kw">if</span> condition:
+            dw = <span class="tok-num">2</span> * lambda_param * w       <span class="tok-cmt"># outside margin → just decay</span>
+            db = <span class="tok-num">0</span>
+        <span class="tok-kw">else</span>:
+            dw = <span class="tok-num">2</span> * lambda_param * w - np.dot(x_i, y[idx])  <span class="tok-cmt"># inside/wrong → decay + push</span>
+            db = -y[idx]
+        w -= alpha * dw
+        b -= alpha * db
+
+<span class="tok-kw">def</span> <span class="tok-fn">predict</span>(X):
+    <span class="tok-kw">return</span> np.sign(np.dot(X, w) + b)   <span class="tok-cmt"># -1 or +1</span>
+
+pred = <span class="tok-fn">predict</span>(X)
+acc = np.mean(pred == y)
+<span class="tok-builtin">print</span>(<span class="tok-str">f"accuracy {acc:.3f}  w={np.round(w,3)}  b={b:.3f}"</span>)
+</code></pre></div>
+
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — class version (drop-in reusable) + plot street</span></div><pre><code><span class="tok-kw">class</span> <span class="tok-cls">SVM</span>:
+    <span class="tok-kw">def</span> <span class="tok-fn">__init__</span>(<span class="tok-self">self</span>, alpha=<span class="tok-num">0.01</span>, lambda_param=<span class="tok-num">0.01</span>, epochs=<span class="tok-num">1000</span>):
+        <span class="tok-self">self</span>.alpha = alpha; <span class="tok-self">self</span>.lambda_param = lambda_param; <span class="tok-self">self</span>.epochs = epochs
+    <span class="tok-kw">def</span> <span class="tok-fn">fit</span>(<span class="tok-self">self</span>, X, y):
+        n_samples, n_features = X.shape
+        <span class="tok-self">self</span>.w = np.zeros(n_features); <span class="tok-self">self</span>.b = <span class="tok-num">0</span>
+        <span class="tok-kw">for</span> _ <span class="tok-kw">in</span> <span class="tok-builtin">range</span>(<span class="tok-self">self</span>.epochs):
+            <span class="tok-kw">for</span> idx, x_i <span class="tok-kw">in</span> <span class="tok-builtin">enumerate</span>(X):
+                <span class="tok-kw">if</span> y[idx]*(np.dot(x_i,<span class="tok-self">self</span>.w)+<span class="tok-self">self</span>.b) &gt;= <span class="tok-num">1</span>:
+                    dw = <span class="tok-num">2</span>*<span class="tok-self">self</span>.lambda_param*<span class="tok-self">self</span>.w; db=<span class="tok-num">0</span>
+                <span class="tok-kw">else</span>:
+                    dw = <span class="tok-num">2</span>*<span class="tok-self">self</span>.lambda_param*<span class="tok-self">self</span>.w - y[idx]*x_i; db=-y[idx]
+                <span class="tok-self">self</span>.w -= <span class="tok-self">self</span>.alpha*dw; <span class="tok-self">self</span>.b -= <span class="tok-self">self</span>.alpha*db
+    <span class="tok-kw">def</span> <span class="tok-fn">predict</span>(<span class="tok-self">self</span>, X): <span class="tok-kw">return</span> np.sign(X.dot(<span class="tok-self">self</span>.w)+<span class="tok-self">self</span>.b)
+
+<span class="tok-cmt"># ── visualize street: w·x+b = 0, ±1</span>
+<span class="tok-kw">def</span> <span class="tok-fn">plot_street</span>(X, y, model):
+    <span class="tok-kw">def</span> <span class="tok-fn">hline</span>(x, w, b, off): <span class="tok-kw">return</span> (-w[<span class="tok-num">0</span>]*x - b + off)/w[<span class="tok-num">1</span>]
+    fig, ax = plt.subplots()
+    ax.scatter(X[:,<span class="tok-num">0</span>], X[:,<span class="tok-num">1</span>], c=np.where(y==<span class="tok-num">1</span>,<span class="tok-str">'#2b7de9'</span>,<span class="tok-str">'#ff6b35'</span>), s=<span class="tok-num">60</span>, edgecolors=<span class="tok-str">'#1c1a15'</span>)
+    x0a, x0b = X[:,<span class="tok-num">0</span>].min(), X[:,<span class="tok-num">0</span>].max()
+    ax.plot([x0a,x0b],[<span class="tok-fn">hline</span>(x0a,model.w,model.b,<span class="tok-num">0</span>),<span class="tok-fn">hline</span>(x0b,model.w,model.b,<span class="tok-num">0</span>)],<span class="tok-str">'--'</span>,color=<span class="tok-str">'#1c1a15'</span>,label=<span class="tok-str">'w·x+b=0'</span>)
+    ax.plot([x0a,x0b],[<span class="tok-fn">hline</span>(x0a,model.w,model.b,-<span class="tok-num">1</span>),<span class="tok-fn">hline</span>(x0b,model.w,model.b,-<span class="tok-num">1</span>)],<span class="tok-str">'k-'</span>,linewidth=<span class="tok-num">1</span>)
+    ax.plot([x0a,x0b],[<span class="tok-fn">hline</span>(x0a,model.w,model.b,<span class="tok-num">1</span>),<span class="tok-fn">hline</span>(x0b,model.w,model.b,<span class="tok-num">1</span>)],<span class="tok-str">'k-'</span>,linewidth=<span class="tok-num">1</span>)
+    ax.legend(); plt.show()
+
+m = <span class="tok-cls">SVM</span>(); m.fit(X,y); <span class="tok-fn">plot_street</span>(X,y,m)
+</code></pre></div>
+
+<h2>logistic vs SVM — when to pick which</h2>
+<table>
+<tr><th></th><th>logistic regression</th><th>linear SVM</th></tr>
+<tr><td><b>loss</b></td><td>log-loss → never 0, smooth</td><td>hinge → 0 outside margin, kink</td></tr>
+<tr><td><b>output</b></td><td>probability ∈ (0,1)</td><td>score + sign (−1/+1)</td></tr>
+<tr><td><b>margin</b></td><td>no explicit margin</td><td>maximizes margin (geometry)</td></tr>
+<tr><td><b>support vectors</b></td><td>all points matter</td><td>only few matter (sparse)</td></tr>
+<tr><td><b>need P(y=1)?</b></td><td>yes → pick logistic ★</td><td>no, just label → SVM often sturdier</td></tr>
+<tr><td><b>outliers</b></td><td>sensitive (log tail)</td><td>more robust beyond margin</td></tr>
+</table>
+
+<div class="callout exam"><b class="label">⭐ exam tip</b><br/>Write: <b>"SVM finds max-margin hyperplane $w\cdot x+b=0$ by minimizing $\tfrac12||w||^{2} s.t. y(w\cdot x+b)\ge 1$ (hinge + L2). Support vectors lie on <code>±1</code> planes, define the street, others irrelevant."</b> Draw the street diagram — examiners give margin sketch marks even before math.</div>
+
+<details class="ml-try"><summary>🔬 try it: tweak λ and watch the street breathe</summary>
+<p>Set <code>lambda_param=0.1</code> (high penalty) → w shrinks → margin <code>2/||w||</code> widens → street fattens, tolerates some misclassifications. Set $\lambda=0.001$ → w grows → skinny street, hugs points tightly (may overfit). Rerun the notebook cell with three λ values and compare plots.</p>
+<pre><span class="tok-kw">for</span> lam <span class="tok-kw">in</span> [<span class="tok-num">0.001</span>, <span class="tok-num">0.01</span>, <span class="tok-num">0.1</span>]:
+    s=<span class="tok-cls">SVM</span>(alpha=<span class="tok-num">0.01</span>,lambda_param=lam,epochs=<span class="tok-num">800</span>); s.fit(X,y)
+    <span class="tok-builtin">print</span>(lam, <span class="tok-str">"||w||"</span>, np.linalg.norm(s.w), <span class="tok-str">"margin"</span>, <span class="tok-num">2</span>/np.linalg.norm(s.w))
+</pre>
+</details>
+
+<h2>quick check</h2>
+<ul>
+  <li><b>What are support vectors?</b> Points exactly on the street edges ($y(w\cdot x+b)=1$) — they alone determine the boundary.</li>
+  <li><b>Why −1/+1 not 0/1?</b> So $y\cdot score$ encodes correctness + confidence in one product.</li>
+  <li><b>Hinge = 0 when?</b> When point is correct and at least 1 unit beyond the line (outside street).</li>
+  <li><b>SVM loss vs logistic?</b> Hinge is 0 beyond margin (sparse), logistic never zero (all points matter).</li>
+</ul>
+
+<h2>the 20-second answer</h2>
+<p>Linear SVM = <b>max-margin street</b> found by minimizing hinge + L2: $\lambda||w||^{2} + \sum max(0,1-y(w\cdot x+b))$. SGD updates: if outside margin just decay, else decay + push. Only <b>support vectors</b> on <code>±1</code> edges matter. Next: data that can't be separated by any straight street — we bend space itself → <b>SVM Poly Kernel.</b></p>
