@@ -1,0 +1,167 @@
+<style>
+/* osi: borderless textbook figures only — everything else is theme-native */
+.os-fig{margin:12px auto 6px;max-width:620px;text-align:center}
+.os-fig svg{width:100%;height:auto;display:block}
+.os-fig figcaption{font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);margin-top:2px;line-height:1.55}
+</style>
+
+<p class="kicker">seven floors, one job each — learn the building, own networking.</p>
+
+<h2>the 30-second idea</h2>
+<p><b>The OSI model splits networking into 7 layers, each with exactly one job.</b> A message travels <b>down</b> the sender's stack (each layer wraps it a little more), crosses the wire as bits, then travels <b>up</b> the receiver's stack (each layer unwraps its own part). Stare at the map below until the direction feels obvious — that is 80% of the chapter.</p>
+
+<figure class="os-fig">
+<svg viewBox="0 0 620 512" role="img" aria-label="OSI seven layer stack: sender wraps down the left, receiver unwraps up the right">
+  <defs><marker id="os-a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1c1a15"></path></marker></defs>
+  <text x="135" y="24" text-anchor="middle" font-size="12" font-weight="800" fill="#1c1a15">SENDER</text>
+  <text x="485" y="24" text-anchor="middle" font-size="12" font-weight="800" fill="#1c1a15">RECEIVER</text>
+  <text x="290" y="24" text-anchor="middle" font-size="10.5" font-weight="700" fill="#575046">↓ wrap</text>
+  <text x="332" y="24" text-anchor="middle" font-size="10.5" font-weight="700" fill="#575046">unwrap ↑</text>
+  <line x1="290" y1="34" x2="290" y2="496" stroke="#1c1a15" stroke-width="2.5" marker-end="url(#os-a)"/>
+  <line x1="332" y1="496" x2="332" y2="34" stroke="#1c1a15" stroke-width="2.5" marker-end="url(#os-a)"/>
+  <g>
+    <rect x="20" y="40" width="230" height="56" rx="10" fill="#fff4c2" stroke="#1c1a15" stroke-width="2"/>
+    <circle cx="48" cy="68" r="13" fill="#fff" stroke="#1c1a15" stroke-width="2"/><text x="48" y="73" text-anchor="middle" font-size="12" font-weight="800" fill="#1c1a15">7</text>
+    <text x="68" y="63" font-size="12.5" font-weight="800" fill="#1c1a15">Application</text>
+    <text x="68" y="81" font-size="10" fill="#575046">apps you touch — HTTP · DNS</text>
+    <rect x="370" y="40" width="230" height="56" rx="10" fill="#fff4c2" stroke="#1c1a15" stroke-width="2"/>
+    <circle cx="398" cy="68" r="13" fill="#fff" stroke="#1c1a15" stroke-width="2"/><text x="398" y="73" text-anchor="middle" font-size="12" font-weight="800" fill="#1c1a15">7</text>
+    <text x="418" y="63" font-size="12.5" font-weight="800" fill="#1c1a15">Application</text>
+    <text x="418" y="81" font-size="10" fill="#575046">hands data to your app</text>
+  </g>
+  <g>
+    <rect x="20" y="104" width="230" height="56" rx="10" fill="#ffe3ef" stroke="#1c1a15" stroke-width="2"/>
+    <circle cx="48" cy="132" r="13" fill="#fff" stroke="#1c1a15" stroke-width="2"/><text x="48" y="137" text-anchor="middle" font-size="12" font-weight="800" fill="#1c1a15">6</text>
+    <text x="68" y="127" font-size="12.5" font-weight="800" fill="#1c1a15">Presentation</text>
+    <text x="68" y="145" font-size="10" fill="#575046">format + crypto — JPEG · TLS</text>
+    <rect x="370" y="104" width="230" height="56" rx="10" fill="#ffe3ef" stroke="#1c1a15" stroke-width="2"/>
+    <circle cx="398" cy="132" r="13" fill="#fff" stroke="#1c1a15" stroke-width="2"/><text x="398" y="137" text-anchor="middle" font-size="12" font-weight="800" fill="#1c1a15">6</text>
+    <text x="418" y="127" font-size="12.5" font-weight="800" fill="#1c1a15">Presentation</text>
+    <text x="418" y="145" font-size="10" fill="#575046">decrypts + decodes</text>
+  </g>
+  <g>
+    <rect x="20" y="168" width="230" height="56" rx="10" fill="#efe4ff" stroke="#1c1a15" stroke-width="2"/>
+    <circle cx="48" cy="196" r="13" fill="#fff" stroke="#1c1a15" stroke-width="2"/><text x="48" y="201" text-anchor="middle" font-size="12" font-weight="800" fill="#1c1a15">5</text>
+    <text x="68" y="191" font-size="12.5" font-weight="800" fill="#1c1a15">Session</text>
+    <text x="68" y="209" font-size="10" fill="#575046">runs conversations — sockets</text>
+    <rect x="370" y="168" width="230" height="56" rx="10" fill="#efe4ff" stroke="#1c1a15" stroke-width="2"/>
+    <circle cx="398" cy="196" r="13" fill="#fff" stroke="#1c1a15" stroke-width="2"/><text x="398" y="201" text-anchor="middle" font-size="12" font-weight="800" fill="#1c1a15">5</text>
+    <text x="418" y="191" font-size="12.5" font-weight="800" fill="#1c1a15">Session</text>
+    <text x="418" y="209" font-size="10" fill="#575046">rejoins the conversation</text>
+  </g>
+  <g>
+    <rect x="20" y="232" width="230" height="56" rx="10" fill="#dcf9e8" stroke="#1c1a15" stroke-width="2.5"/>
+    <circle cx="48" cy="260" r="13" fill="#fff" stroke="#1c1a15" stroke-width="2"/><text x="48" y="265" text-anchor="middle" font-size="12" font-weight="800" fill="#1c1a15">4</text>
+    <text x="68" y="255" font-size="12.5" font-weight="800" fill="#1c1a15">Transport</text>
+    <text x="68" y="273" font-size="10" fill="#575046">safe delivery — TCP · UDP</text>
+    <rect x="370" y="232" width="230" height="56" rx="10" fill="#dcf9e8" stroke="#1c1a15" stroke-width="2.5"/>
+    <circle cx="398" cy="260" r="13" fill="#fff" stroke="#1c1a15" stroke-width="2"/><text x="398" y="265" text-anchor="middle" font-size="12" font-weight="800" fill="#1c1a15">4</text>
+    <text x="418" y="255" font-size="12.5" font-weight="800" fill="#1c1a15">Transport</text>
+    <text x="418" y="273" font-size="10" fill="#575046">reorders + recovers</text>
+  </g>
+  <g>
+    <rect x="20" y="296" width="230" height="56" rx="10" fill="#e3f1ff" stroke="#1c1a15" stroke-width="2.5"/>
+    <circle cx="48" cy="324" r="13" fill="#fff" stroke="#1c1a15" stroke-width="2"/><text x="48" y="329" text-anchor="middle" font-size="12" font-weight="800" fill="#1c1a15">3</text>
+    <text x="68" y="319" font-size="12.5" font-weight="800" fill="#1c1a15">Network</text>
+    <text x="68" y="337" font-size="10" fill="#575046">address + route — IP · routers</text>
+    <rect x="370" y="296" width="230" height="56" rx="10" fill="#e3f1ff" stroke="#1c1a15" stroke-width="2.5"/>
+    <circle cx="398" cy="324" r="13" fill="#fff" stroke="#1c1a15" stroke-width="2"/><text x="398" y="329" text-anchor="middle" font-size="12" font-weight="800" fill="#1c1a15">3</text>
+    <text x="418" y="319" font-size="12.5" font-weight="800" fill="#1c1a15">Network</text>
+    <text x="418" y="337" font-size="10" fill="#575046">checks the address is mine</text>
+  </g>
+  <g>
+    <rect x="20" y="360" width="230" height="56" rx="10" fill="#ffedd9" stroke="#1c1a15" stroke-width="2"/>
+    <circle cx="48" cy="388" r="13" fill="#fff" stroke="#1c1a15" stroke-width="2"/><text x="48" y="393" text-anchor="middle" font-size="12" font-weight="800" fill="#1c1a15">2</text>
+    <text x="68" y="383" font-size="12.5" font-weight="800" fill="#1c1a15">Data Link</text>
+    <text x="68" y="401" font-size="10" fill="#575046">hop-to-hop frames — MAC</text>
+    <rect x="370" y="360" width="230" height="56" rx="10" fill="#ffedd9" stroke="#1c1a15" stroke-width="2"/>
+    <circle cx="398" cy="388" r="13" fill="#fff" stroke="#1c1a15" stroke-width="2"/><text x="398" y="393" text-anchor="middle" font-size="12" font-weight="800" fill="#1c1a15">2</text>
+    <text x="418" y="383" font-size="12.5" font-weight="800" fill="#1c1a15">Data Link</text>
+    <text x="418" y="401" font-size="10" fill="#575046">accepts the frame</text>
+  </g>
+  <g>
+    <rect x="20" y="424" width="230" height="56" rx="10" fill="#e9e7e0" stroke="#1c1a15" stroke-width="2"/>
+    <circle cx="48" cy="452" r="13" fill="#fff" stroke="#1c1a15" stroke-width="2"/><text x="48" y="457" text-anchor="middle" font-size="12" font-weight="800" fill="#1c1a15">1</text>
+    <text x="68" y="447" font-size="12.5" font-weight="800" fill="#1c1a15">Physical</text>
+    <text x="68" y="465" font-size="10" fill="#575046">raw bits on wire — cables</text>
+    <rect x="370" y="424" width="230" height="56" rx="10" fill="#e9e7e0" stroke="#1c1a15" stroke-width="2"/>
+    <circle cx="398" cy="452" r="13" fill="#fff" stroke="#1c1a15" stroke-width="2"/><text x="398" y="457" text-anchor="middle" font-size="12" font-weight="800" fill="#1c1a15">1</text>
+    <text x="418" y="447" font-size="12.5" font-weight="800" fill="#1c1a15">Physical</text>
+    <text x="418" y="465" font-size="10" fill="#575046">reads bits off the wire</text>
+  </g>
+</svg>
+<figcaption>down the left = wrapping on more headers · up the right = stripping them back off</figcaption>
+</figure>
+
+<div class="callout remember"><b class="label">🧷 remember</b><br /><b>Please Do Not Throw Sausage Pizza Away</b> — 7 Application down to 1 Physical. Say it once and the order sticks forever.</div>
+
+<h2>the 7 layers in 7 lines</h2>
+<ul>
+  <li><b>7 · Application</b> — what apps touch. <code>HTTP</code>, <code>DNS</code>, <code>FTP</code>.</li>
+  <li><b>6 · Presentation</b> — format, compress, encrypt. JPEG, <code>TLS</code>.</li>
+  <li><b>5 · Session</b> — opens, runs and closes conversations. Sockets.</li>
+  <li><b>4 · Transport</b> — safe end-to-end delivery + ports. <code>TCP</code>, <code>UDP</code>. Unit: <b>segment</b>.</li>
+  <li><b>3 · Network</b> — logical addressing + picking the route. <code>IP</code>, routers. Unit: <b>packet</b>.</li>
+  <li><b>2 · Data Link</b> — frames for a single hop, MAC addresses. Ethernet, switches. Unit: <b>frame</b>.</li>
+  <li><b>1 · Physical</b> — raw bits onto the wire. Cables, hubs. Unit: <b>bits</b>.</li>
+</ul>
+
+<h2>encapsulation — the wrapping ceremony</h2>
+<p>Sending "Hello" down the stack. Watch it gain a wrapper at every floor:</p>
+<figure class="os-fig">
+<svg viewBox="0 0 600 200" role="img" aria-label="Encapsulation: each layer adds its header around the data">
+  <text x="8" y="33" font-size="11" font-weight="800" fill="#1c1a15">L7 msg</text>
+  <rect x="118" y="14" width="474" height="28" rx="7" fill="#fff4c2" stroke="#1c1a15" stroke-width="2"/>
+  <text x="355" y="33" text-anchor="middle" font-size="11" font-weight="700" fill="#1c1a15">DATA · “Hello”</text>
+  <text x="8" y="69" font-size="11" font-weight="800" fill="#1c1a15">L4 seg</text>
+  <rect x="118" y="50" width="96" height="28" rx="7" fill="#dcf9e8" stroke="#1c1a15" stroke-width="2"/>
+  <text x="166" y="69" text-anchor="middle" font-size="10.5" font-weight="800" fill="#1c1a15">TCP</text>
+  <rect x="214" y="50" width="378" height="28" rx="7" fill="#fff4c2" stroke="#1c1a15" stroke-width="2"/>
+  <text x="403" y="69" text-anchor="middle" font-size="11" font-weight="700" fill="#1c1a15">DATA · “Hello”</text>
+  <text x="8" y="105" font-size="11" font-weight="800" fill="#1c1a15">L3 pkt</text>
+  <rect x="118" y="86" width="84" height="28" rx="7" fill="#e3f1ff" stroke="#1c1a15" stroke-width="2"/>
+  <text x="160" y="105" text-anchor="middle" font-size="10.5" font-weight="800" fill="#1c1a15">IP</text>
+  <rect x="202" y="86" width="84" height="28" rx="7" fill="#dcf9e8" stroke="#1c1a15" stroke-width="2"/>
+  <text x="244" y="105" text-anchor="middle" font-size="10.5" font-weight="800" fill="#1c1a15">TCP</text>
+  <rect x="286" y="86" width="306" height="28" rx="7" fill="#fff4c2" stroke="#1c1a15" stroke-width="2"/>
+  <text x="439" y="105" text-anchor="middle" font-size="11" font-weight="700" fill="#1c1a15">DATA · “Hello”</text>
+  <text x="8" y="141" font-size="11" font-weight="800" fill="#1c1a15">L2 frame</text>
+  <rect x="118" y="122" width="72" height="28" rx="7" fill="#ffe3ef" stroke="#1c1a15" stroke-width="2"/>
+  <text x="154" y="141" text-anchor="middle" font-size="10.5" font-weight="800" fill="#1c1a15">ETH</text>
+  <rect x="190" y="122" width="66" height="28" rx="7" fill="#e3f1ff" stroke="#1c1a15" stroke-width="2"/>
+  <text x="223" y="141" text-anchor="middle" font-size="10.5" font-weight="800" fill="#1c1a15">IP</text>
+  <rect x="256" y="122" width="66" height="28" rx="7" fill="#dcf9e8" stroke="#1c1a15" stroke-width="2"/>
+  <text x="289" y="141" text-anchor="middle" font-size="10.5" font-weight="800" fill="#1c1a15">TCP</text>
+  <rect x="322" y="122" width="212" height="28" rx="7" fill="#fff4c2" stroke="#1c1a15" stroke-width="2"/>
+  <text x="428" y="141" text-anchor="middle" font-size="11" font-weight="700" fill="#1c1a15">DATA · “Hello”</text>
+  <rect x="534" y="122" width="58" height="28" rx="7" fill="#e9e7e0" stroke="#1c1a15" stroke-width="2"/>
+  <text x="563" y="141" text-anchor="middle" font-size="10.5" font-weight="800" fill="#1c1a15">FCS</text>
+  <text x="8" y="179" font-size="11" font-weight="800" fill="#1c1a15">L1 bits</text>
+  <text x="118" y="179" font-size="11.5" font-family="monospace" fill="#575046">01001000 01100101 01101100 01101100 01101111 …</text>
+</svg>
+<figcaption>down = wrap a header on · up = strip your own header off and pass the rest up</figcaption>
+</figure>
+
+<h2>OSI vs the TCP/IP model</h2>
+<p>Exams love this mapping. The real world mostly uses 4 layers — the top three OSI layers collapse into one:</p>
+<table>
+  <tr><th>TCP/IP (4)</th><th>Covers OSI</th></tr>
+  <tr><td><b>Application</b></td><td>7 + 6 + 5 (all the talking-to-apps work)</td></tr>
+  <tr><td><b>Transport</b></td><td>4 (<code>TCP</code> / <code>UDP</code>)</td></tr>
+  <tr><td><b>Internet</b></td><td>3 (<code>IP</code>)</td></tr>
+  <tr><td><b>Link</b></td><td>2 + 1 (Ethernet, cables)</td></tr>
+</table>
+
+<div class="callout exam"><b class="label">⭐ exam tip</b><br />Three facts cover most questions: <b>order 7→1</b> (mnemonic above), <b>switch = L2 (MAC), router = L3 (IP)</b>, and <b>units: segment → packet → frame → bits</b> going down.</div>
+
+<div class="callout gotcha"><b class="label">⚠️ gotcha</b><br /><b>TCP is L4, IP is L3</b> — people fuse them because the suite is called "TCP/IP". And HTTPS encryption (<code>TLS</code>) sits around <b>L6</b>, above TCP — that is why it can secure anything TCP carries.</div>
+
+<h2>quick check</h2>
+<ul>
+  <li><b>A switch or a router — which layer each?</b> Switch = L2, forwards by MAC. Router = L3, forwards by IP.</li>
+  <li><b>Where does your "Hello" gain its IP header?</b> L3, going down the sender's stack. The receiver's L3 strips it back off.</li>
+  <li><b>Which layer cares about ports like :443?</b> L4 Transport — ports are how TCP/UDP tell apps apart.</li>
+</ul>
+
+<h2>the 20-second answer</h2>
+<p>OSI splits networking into 7 layers with one job each: apps, format, sessions, delivery, routing, frames, bits. Senders wrap headers going down; receivers strip them coming up. Switches live at L2, routers at L3, TCP at L4 — and the real-world TCP/IP model just folds the top three layers into one.</p>

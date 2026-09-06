@@ -1,0 +1,122 @@
+<style>
+/* tcp: borderless textbook figures only — everything else is theme-native */
+.tc-fig{margin:12px auto 6px;max-width:600px;text-align:center}
+.tc-fig svg{width:100%;height:auto;display:block}
+.tc-fig figcaption{font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);margin-top:2px;line-height:1.55}
+</style>
+
+<p class="kicker">a phone call, not a postcard — hello first, then talk.</p>
+
+<h2>the 30-second idea</h2>
+<p><b>TCP delivers your data reliably, in order, over an unreliable network.</b> Before a single byte of your message moves, both sides shake hands and agree on the rules. After that, every byte is numbered, confirmed, and re-sent if lost.</p>
+<ul>
+  <li><b>The dumb-proof version:</b> UDP is a postcard — you drop it in the box and hope. <b>TCP is a phone call</b> — "hello? can you hear me? yes? okay, listen…" and if a sentence breaks up, you repeat it.</li>
+  <li><b>TCP lives at OSI layer 4</b>, on top of IP's best-effort delivery. IP finds the road; TCP makes sure everything arrives intact.</li>
+</ul>
+
+<div class="callout remember"><b class="label">🧷 remember</b><br /><b>No handshake, no talking.</b> SYN → SYN-ACK → ACK opens every TCP conversation on the internet — including the one loading this page.</div>
+
+<h2>the 3-way handshake — the most drawn diagram in networking</h2>
+<figure class="tc-fig">
+<svg viewBox="0 0 600 312" role="img" aria-label="TCP three-way handshake: SYN, SYN-ACK, ACK, then connected">
+  <defs><marker id="tc-h" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1c1a15"></path></marker></defs>
+  <text x="140" y="36" text-anchor="middle" font-size="30">💻</text>
+  <text x="140" y="58" text-anchor="middle" font-size="12" font-weight="800" fill="#1c1a15">Client</text>
+  <text x="460" y="36" text-anchor="middle" font-size="30">🖥️</text>
+  <text x="460" y="58" text-anchor="middle" font-size="12" font-weight="800" fill="#1c1a15">Server</text>
+  <line x1="140" y1="66" x2="140" y2="252" stroke="#b9b09a" stroke-width="2"/>
+  <line x1="460" y1="66" x2="460" y2="252" stroke="#b9b09a" stroke-width="2"/>
+  <circle cx="140" cy="100" r="13" fill="#ffe14d" stroke="#1c1a15" stroke-width="2"/>
+  <text x="140" y="105" text-anchor="middle" font-size="12" font-weight="800" fill="#1c1a15">1</text>
+  <line x1="155" y1="100" x2="445" y2="100" stroke="#1c1a15" stroke-width="2.5" marker-end="url(#tc-h)"/>
+  <text x="300" y="90" text-anchor="middle" font-size="11.5" font-family="monospace" font-weight="700" fill="#1c1a15">SYN · seq = x</text>
+  <circle cx="460" cy="160" r="13" fill="#ffe14d" stroke="#1c1a15" stroke-width="2"/>
+  <text x="460" y="165" text-anchor="middle" font-size="12" font-weight="800" fill="#1c1a15">2</text>
+  <line x1="445" y1="160" x2="155" y2="160" stroke="#1c1a15" stroke-width="2.5" marker-end="url(#tc-h)"/>
+  <text x="300" y="150" text-anchor="middle" font-size="11.5" font-family="monospace" font-weight="700" fill="#1c1a15">SYN-ACK · seq = y, ack = x+1</text>
+  <circle cx="140" cy="220" r="13" fill="#2e9e5b" stroke="#1c1a15" stroke-width="2"/>
+  <text x="140" y="225" text-anchor="middle" font-size="12" font-weight="800" fill="#fff">3</text>
+  <line x1="155" y1="220" x2="445" y2="220" stroke="#2e9e5b" stroke-width="3" marker-end="url(#tc-h)"/>
+  <text x="300" y="210" text-anchor="middle" font-size="11.5" font-family="monospace" font-weight="700" fill="#1c1a15">ACK · ack = y+1</text>
+  <line x1="140" y1="262" x2="460" y2="262" stroke="#2e9e5b" stroke-width="2" stroke-dasharray="7 6"/>
+  <text x="300" y="292" text-anchor="middle" font-size="12" font-weight="800" fill="#2e9e5b">CONNECTED — talk freely, everything numbered ✓</text>
+</svg>
+<figcaption>three messages, then trust — the green ACK is the door opening</figcaption>
+</figure>
+
+<h3>why three steps — one line each</h3>
+<ul>
+  <li><b>1 · SYN (seq=x)</b> — "can you hear me? I'll count from x."</li>
+  <li><b>2 · SYN-ACK (seq=y, ack=x+1)</b> — "loud and clear! I'll count from y, and I got your x."</li>
+  <li><b>3 · ACK (ack=y+1)</b> — "got your y too. We're connected — talk."</li>
+</ul>
+<p>Two messages couldn't do it: <b>both sides must prove they can send AND receive, and both must agree on a starting number.</b> That is why it is three, not two.</p>
+
+<h2>how TCP keeps its promises</h2>
+<p>The handshake only opens the door. These four habits keep every byte safe after it:</p>
+<ul>
+  <li><b>Sequence numbers</b> — every byte is numbered, so the receiver reassembles them in order even if they arrive shuffled.</li>
+  <li><b>ACKs + retransmission</b> — no confirmation before the timer runs out? Send it again. Watch it happen:</li>
+</ul>
+<figure class="tc-fig">
+<svg viewBox="0 0 600 182" role="img" aria-label="Lost packet 2 is resent after a timeout">
+  <defs>
+    <marker id="tc-r" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2e9e5b"></path></marker>
+    <marker id="tc-rx" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d1345b"></path></marker>
+  </defs>
+  <text x="70" y="34" text-anchor="middle" font-size="28">💻</text>
+  <text x="530" y="34" text-anchor="middle" font-size="28">🖥️</text>
+  <line x1="120" y1="52" x2="480" y2="52" stroke="#2e9e5b" stroke-width="2.5" marker-end="url(#tc-r)"/>
+  <text x="122" y="44" font-size="11" font-family="monospace" font-weight="700" fill="#1c1a15">Pkt 1</text>
+  <text x="482" y="44" text-anchor="end" font-size="11" font-weight="700" fill="#2e9e5b">✓ ACK</text>
+  <line x1="120" y1="86" x2="480" y2="86" stroke="#d1345b" stroke-width="2.5" stroke-dasharray="7 6" marker-end="url(#tc-rx)"/>
+  <text x="122" y="78" font-size="11" font-family="monospace" font-weight="700" fill="#1c1a15">Pkt 2</text>
+  <text x="482" y="78" text-anchor="end" font-size="11" font-weight="700" fill="#d1345b">✗ lost…</text>
+  <text x="300" y="118" text-anchor="middle" font-size="11" fill="#575046">silence… timer runs out ⏱ — nobody confirmed Pkt 2</text>
+  <line x1="120" y1="146" x2="480" y2="146" stroke="#2e9e5b" stroke-width="3" marker-end="url(#tc-r)"/>
+  <text x="122" y="138" font-size="11" font-family="monospace" font-weight="700" fill="#1c1a15">Pkt 2 (again)</text>
+  <text x="482" y="138" text-anchor="end" font-size="11" font-weight="700" fill="#2e9e5b">✓ ACK — all good</text>
+</svg>
+<figcaption>silence is information — no ACK before the timer means "send it again"</figcaption>
+</figure>
+<ul>
+  <li><b>Checksums</b> — every segment carries a fingerprint. Arrived damaged? Treated as lost: re-sent.</li>
+  <li><b>Flow control (sliding window)</b> — the receiver says "my bucket holds this much", and the sender never pours faster. No drowning slow devices.</li>
+  <li><b>Congestion control</b> — same idea, but for the network itself: start slow, speed up while the road is clear, back off at the first jam.</li>
+</ul>
+
+<h2>hanging up — the 4-step goodbye</h2>
+<p>Connections close politely, from both sides: <code>FIN → ACK → FIN → ACK</code>. Each side says "I'm done sending", and the other confirms. A handshake to open, a mirrored handshake to close.</p>
+
+<h2>what's inside the header — 4 things that matter</h2>
+<ul>
+  <li><b>Ports</b> — which app on each side (e.g. 443 for HTTPS). The address gets you to the building; the port gets you to the flat.</li>
+  <li><b>Sequence + ACK numbers</b> — the counting system behind ordering and confirmations.</li>
+  <li><b>Flags</b> — single-bit signals: <code>SYN</code> (start), <code>ACK</code> (confirm), <code>FIN</code> (finish).</li>
+  <li><b>Window size</b> — the "my bucket is this big" number that drives flow control.</li>
+</ul>
+
+<h2>TCP vs UDP — the only table</h2>
+<table>
+  <tr><th></th><th>TCP (phone call)</th><th>UDP (postcard)</th></tr>
+  <tr><td><b>Connection</b></td><td>Yes — 3-way handshake first</td><td>No — just sends</td></tr>
+  <tr><td><b>Reliable?</b></td><td>Yes — ACKs + resends</td><td>No — fire and forget</td></tr>
+  <tr><td><b>Ordered?</b></td><td>Yes — sequence numbers</td><td>No — arrival order is luck</td></tr>
+  <tr><td><b>Speed</b></td><td>Slower, safer</td><td>Faster, riskier</td></tr>
+  <tr><td><b>Header</b></td><td>20+ bytes</td><td>8 bytes</td></tr>
+  <tr><td><b>Use for</b></td><td>Web, email, file transfer</td><td>Streaming, gaming, calls, DNS</td></tr>
+</table>
+
+<div class="callout exam"><b class="label">⭐ exam tip</b><br />Draw the handshake with numbers: <b>SYN (seq=x) → SYN-ACK (seq=y, ack=x+1) → ACK (ack=y+1)</b>. Then one line: <b>reliable + ordered + connection-oriented; uses ACKs, retransmission and flow control.</b> Full marks.</div>
+
+<div class="callout gotcha"><b class="label">⚠️ gotcha</b><br /><b>HTTP never meets UDP directly in classic stacks</b> — your HTTP/1.1 and HTTP/2 requests ride TCP (that's the handshake you pay before every connection). <b>DNS uses UDP</b> precisely because one tiny question-answer pair isn't worth handshaking over. And <b>UDP has no handshake at all</b> — nothing to draw.</div>
+
+<h2>quick check</h2>
+<ul>
+  <li><b>Why can't the handshake be 2 steps?</b> Because both sides must confirm both directions and agree on starting sequence numbers. Step 3 is the client's proof back.</li>
+  <li><b>Packet 5 of 10 vanishes. What does the user notice?</b> Nothing — no ACK arrives, the timer fires, packet 5 is re-sent, and the stream stays perfectly ordered.</li>
+  <li><b>Video call or file download — which gets TCP?</b> The download. The call takes UDP: a late pixel is useless, but a missing byte in a file is fatal.</li>
+</ul>
+
+<h2>the 20-second answer</h2>
+<p>TCP gives reliable, ordered delivery over IP's unreliable service. It opens with SYN, SYN-ACK, ACK — agreeing on sequence numbers both ways — then numbers every byte, confirms with ACKs, re-sends what goes missing, and paces itself with flow and congestion control. Slower than UDP, and safe on purpose.</p>

@@ -1,0 +1,111 @@
+<style>
+/* gateway: borderless textbook figures only — everything else is theme-native */
+.gw-fig{margin:12px auto 6px;max-width:600px;text-align:center}
+.gw-fig svg{width:100%;height:auto;display:block}
+.gw-fig figcaption{font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);margin-top:2px;line-height:1.55}
+</style>
+
+<p class="kicker">every packet leaving home shows its passport at one door.</p>
+
+<h2>the 30-second idea</h2>
+<p><b>A gateway connects two different networks and acts as the entry and exit point between them.</b> It receives requests from your local network, forwards them to the outside world, and hands the responses back to the correct device. Think of it as <b>translator + traffic controller</b> in one box.</p>
+<ul>
+  <li><b>The dumb-proof version:</b> your house has one main door. Nobody climbs through windows — family going out and guests coming in all pass through that door. The gateway is that door, between your home network and the internet.</li>
+  <li><b>In real life</b> the gateway is almost always your router — usually sitting at something like <code>192.168.1.1</code>.</li>
+</ul>
+
+<div class="callout remember"><b class="label">🧷 remember</b><br />Gateway = <b>the door between two different networks</b>. Outgoing requests go through it, incoming responses come back through it. Nothing crosses networks without it.</div>
+
+<h2>meet everyone first</h2>
+<p>One packet's journey involves exactly three parties. Learn them before the trip:</p>
+<ul>
+  <li><b>Local network (LAN) — <code>192.168.1.0/24</code>:</b> your laptop (<code>192.168.1.10</code>), your phone (<code>192.168.1.11</code>), your printer (<code>192.168.1.12</code>). They can chat among themselves freely.</li>
+  <li><b>Gateway (router):</b> the middlebox. Every packet headed outside stops here first.</li>
+  <li><b>External network (internet):</b> everything else — for our story, a web server at <code>8.8.8.8</code> (Google DNS).</li>
+</ul>
+
+<h2>one packet's full journey — follow the numbers</h2>
+<p>Your laptop (<code>192.168.1.10</code>) wants to reach Google DNS (<code>8.8.8.8</code>). The packet it sends looks like this:</p>
+<ul>
+  <li><b>Source IP:</b> <code>192.168.1.10</code> (who is asking)</li>
+  <li><b>Destination IP:</b> <code>8.8.8.8</code> (who it wants)</li>
+  <li><b>Data:</b> a request packet</li>
+</ul>
+<figure class="gw-fig">
+<svg viewBox="0 0 600 330" role="img" aria-label="Numbered packet journey: laptop to gateway to web server and back">
+  <defs>
+    <marker id="gw-b" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f6fed"></path></marker>
+    <marker id="gw-p" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"></path></marker>
+  </defs>
+  <rect x="8" y="12" width="152" height="306" rx="14" fill="#eaf3ff" stroke="#1c1a15" stroke-width="2"/>
+  <text x="84" y="36" text-anchor="middle" font-size="12" font-weight="800" fill="#1c1a15">Local (LAN)</text>
+  <text x="84" y="52" text-anchor="middle" font-size="10.5" font-family="monospace" fill="#575046">192.168.1.0/24</text>
+  <text x="84" y="96" text-anchor="middle" font-size="30">💻</text>
+  <text x="84" y="116" text-anchor="middle" font-size="11" font-weight="700" fill="#1c1a15">Laptop</text>
+  <text x="84" y="130" text-anchor="middle" font-size="10.5" font-family="monospace" fill="#575046">.10</text>
+  <text x="84" y="176" text-anchor="middle" font-size="30">📱</text>
+  <text x="84" y="196" text-anchor="middle" font-size="11" font-weight="700" fill="#1c1a15">Phone .11</text>
+  <text x="84" y="252" text-anchor="middle" font-size="30">🖨️</text>
+  <text x="84" y="272" text-anchor="middle" font-size="11" font-weight="700" fill="#1c1a15">Printer .12</text>
+  <rect x="200" y="92" width="200" height="146" rx="14" fill="#e9f9ef" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="300" y="116" text-anchor="middle" font-size="12" font-weight="800" fill="#1c1a15">Gateway (Router)</text>
+  <text x="300" y="164" text-anchor="middle" font-size="34">📡</text>
+  <text x="300" y="196" text-anchor="middle" font-size="11" fill="#575046">checks every packet</text>
+  <text x="300" y="216" text-anchor="middle" font-size="11" font-weight="700" fill="#1c1a15">forwards it on</text>
+  <rect x="440" y="12" width="152" height="306" rx="14" fill="#eaf3ff" stroke="#1c1a15" stroke-width="2"/>
+  <text x="516" y="36" text-anchor="middle" font-size="12" font-weight="800" fill="#1c1a15">Internet</text>
+  <text x="516" y="100" text-anchor="middle" font-size="40">☁️</text>
+  <text x="516" y="190" text-anchor="middle" font-size="34">🖥️</text>
+  <text x="516" y="214" text-anchor="middle" font-size="11" font-weight="700" fill="#1c1a15">Web Server</text>
+  <text x="516" y="230" text-anchor="middle" font-size="11" font-family="monospace" fill="#575046">8.8.8.8</text>
+  <line x1="160" y1="120" x2="196" y2="120" stroke="#2f6fed" stroke-width="3" marker-end="url(#gw-b)"/>
+  <circle cx="160" cy="120" r="12" fill="#2f6fed" stroke="#1c1a15" stroke-width="2"/>
+  <text x="160" y="125" text-anchor="middle" font-size="12" font-weight="800" fill="#fff">1</text>
+  <line x1="400" y1="140" x2="436" y2="140" stroke="#2f6fed" stroke-width="3" marker-end="url(#gw-b)"/>
+  <circle cx="418" cy="140" r="12" fill="#2f6fed" stroke="#1c1a15" stroke-width="2"/>
+  <text x="418" y="145" text-anchor="middle" font-size="12" font-weight="800" fill="#fff">3</text>
+  <line x1="436" y1="200" x2="400" y2="200" stroke="#7c3aed" stroke-width="3" marker-end="url(#gw-p)"/>
+  <circle cx="418" cy="200" r="12" fill="#7c3aed" stroke="#1c1a15" stroke-width="2"/>
+  <text x="418" y="205" text-anchor="middle" font-size="12" font-weight="800" fill="#fff">4</text>
+  <line x1="196" y1="218" x2="160" y2="218" stroke="#7c3aed" stroke-width="3" marker-end="url(#gw-p)"/>
+  <circle cx="196" cy="218" r="12" fill="#7c3aed" stroke="#1c1a15" stroke-width="2"/>
+  <text x="196" y="223" text-anchor="middle" font-size="12" font-weight="800" fill="#fff">5</text>
+  <g>
+    <circle cx="300" cy="120" r="12" fill="#2f6fed" stroke="#1c1a15" stroke-width="2"/>
+    <text x="300" y="125" text-anchor="middle" font-size="12" font-weight="800" fill="#fff">2</text>
+  </g>
+  <text x="300" y="268" text-anchor="middle" font-size="11" font-weight="700" fill="#1c1a15">2 = the gateway checks the destination</text>
+  <text x="300" y="292" text-anchor="middle" font-size="11" fill="#575046">blue = request going out · purple = response coming home</text>
+</svg>
+<figcaption>follow the numbers — blue goes out, purple comes home, 2 is the gateway's check</figcaption>
+</figure>
+
+<h3>the trip, step by step</h3>
+<ul>
+  <li><b>1 — Laptop sends data out.</b> It wants <code>8.8.8.8</code>, which is outside its LAN, so the packet goes to the gateway first. Nothing leaves the network on its own.</li>
+  <li><b>2 — Gateway checks the destination.</b> Is <code>8.8.8.8</code> inside <code>192.168.1.0/24</code>? No. So this packet needs forwarding.</li>
+  <li><b>3 — Gateway forwards it to the internet.</b> The packet travels to the web server at <code>8.8.8.8</code> — same source, same destination, same request data.</li>
+  <li><b>4 — Server replies to the gateway.</b> Google DNS sends the response back. It answers the gateway, because that is who knocked.</li>
+  <li><b>5 — Gateway hands it to the laptop.</b> It remembers who asked (<code>192.168.1.10</code>) and delivers the response to exactly that device.</li>
+</ul>
+
+<div class="callout exam"><b class="label">⭐ exam tip</b><br />One line earns full marks: <b>a gateway is the entry/exit point between two different networks — it forwards requests out and delivers responses back to the right device.</b> Anchor it with the example: <code>192.168.1.10 → 8.8.8.8</code> via the gateway.</div>
+
+<h2>the check that saves everything (step 2)</h2>
+<p>Step 2 exists so local traffic never takes a world tour. Two cases:</p>
+<ul>
+  <li><b>Outside?</b> Laptop (<code>.10</code>) → <code>8.8.8.8</code>. Not in <code>192.168.1.0/24</code> → gateway forwards it out.</li>
+  <li><b>Inside?</b> Laptop (<code>.10</code>) → printer (<code>.12</code>). Both in <code>192.168.1.0/24</code> → delivered directly inside the LAN. The gateway does nothing.</li>
+</ul>
+
+<div class="callout gotcha"><b class="label">⚠️ gotcha</b><br /><b>Local-to-local packets never touch the gateway.</b> And on the way back, the response <b>must return through the same gateway</b> — it is the only one that knows which device asked. A reply arriving anywhere else gets lost.</div>
+
+<h2>quick check</h2>
+<ul>
+  <li><b>Your phone (.11) opens a website. What is the very first stop?</b> The gateway. Nothing leaves the LAN on its own.</li>
+  <li><b>Your laptop prints to the printer (.12). Does the gateway get involved?</b> No — both addresses are inside <code>192.168.1.0/24</code>, so it stays local.</li>
+  <li><b>Why does the server reply to the gateway instead of your laptop?</b> Because as far as the internet sees, the gateway is the one asking. It keeps track and routes the answer home.</li>
+</ul>
+
+<h2>the 20-second answer</h2>
+<p>A gateway connects two different networks and acts as their entry and exit point. It takes requests from the local network, checks whether the destination is outside, forwards those packets on, and delivers each response back to the device that asked — translator and traffic controller in one.</p>

@@ -1,0 +1,256 @@
+<style>
+/* load-balancer: one flow diagram, nothing else custom */
+.lb-flow-diagram{margin:14px 0 4px;overflow-x:auto}
+.lb-flow-diagram svg{width:100%;min-width:540px;height:auto;display:block}
+.lb-flow{stroke-dasharray:7 7;animation:lb-dash 1.1s linear infinite}
+@keyframes lb-dash{to{stroke-dashoffset:-14}}
+.lb-legend{font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);margin:0 0 6px}
+/* textbook figures: no borders, no shadows — just a small diagram + caption in the flow */
+.lb-fig{margin:12px auto 6px;max-width:460px;text-align:center}
+.lb-fig svg{width:100%;height:auto;display:block}
+.lb-fig figcaption{font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);margin-top:2px;line-height:1.55}
+@media (prefers-reduced-motion:reduce){.lb-flow{animation:none}}
+</style>
+
+<p class="kicker">one bouncer in front, three servers behind — nobody gets crushed.</p>
+
+<h2>the 30-second idea</h2>
+<p><b>A load balancer sits in front of your servers and splits incoming requests across them</b>, so no single server melts while the others sit idle.</p>
+<ul>
+  <li><b>Without one:</b> 10,000 users hit a single server. It slows, then dies, then everyone sees an error page.</li>
+  <li><b>With one:</b> the same 10,000 users are shared across Server 1, 2 and 3. One server can die and nobody notices.</li>
+  <li><b>Four things you get for free:</b> high availability, scalability, better performance, fault tolerance.</li>
+</ul>
+
+<h2>where it sits</h2>
+<p>Clients never talk to servers directly. Everything passes through the balancer first — watch the dots: blue is client to balancer, green is balancer to server.</p>
+
+<div class="lb-flow-diagram">
+<svg viewBox="0 0 640 300" role="img" aria-label="Clients send requests to a load balancer, which distributes them across three servers">
+  <defs>
+    <marker id="lb-arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1c1a15"></path>
+    </marker>
+  </defs>
+  <path id="lb-c1" class="lb-flow" d="M120,55 C190,55 210,140 295,140" stroke="#4d96ff" stroke-width="2.5" fill="none" marker-end="url(#lb-arr)"/>
+  <path id="lb-c2" class="lb-flow" d="M120,150 L295,150" stroke="#4d96ff" stroke-width="2.5" fill="none" marker-end="url(#lb-arr)"/>
+  <path id="lb-c3" class="lb-flow" d="M120,245 C190,245 210,160 295,160" stroke="#4d96ff" stroke-width="2.5" fill="none" marker-end="url(#lb-arr)"/>
+  <path id="lb-s1" class="lb-flow" d="M395,140 C460,140 470,60 540,60" stroke="#2e9e5b" stroke-width="2.5" fill="none" marker-end="url(#lb-arr)"/>
+  <path id="lb-s2" class="lb-flow" d="M395,150 L540,150" stroke="#2e9e5b" stroke-width="2.5" fill="none" marker-end="url(#lb-arr)"/>
+  <path id="lb-s3" class="lb-flow" d="M395,160 C460,160 470,240 540,240" stroke="#2e9e5b" stroke-width="2.5" fill="none" marker-end="url(#lb-arr)"/>
+  <text x="28" y="66" font-size="30">🌐</text><text x="66" y="60" font-size="13" font-weight="700" fill="#1c1a15">browser</text>
+  <text x="28" y="161" font-size="30">📱</text><text x="66" y="155" font-size="13" font-weight="700" fill="#1c1a15">mobile app</text>
+  <text x="28" y="256" font-size="30">💻</text><text x="66" y="250" font-size="13" font-weight="700" fill="#1c1a15">API client</text>
+  <rect x="300" y="110" width="90" height="80" rx="16" fill="#ffe14d" stroke="#1c1a15" stroke-width="3"/>
+  <text x="345" y="150" font-size="15" font-weight="800" text-anchor="middle" fill="#1c1a15">LB</text>
+  <text x="345" y="170" font-size="10.5" text-anchor="middle" fill="#575046">distributes load</text>
+  <g><rect x="545" y="35" width="70" height="50" rx="10" fill="#dcf9e8" stroke="#1c1a15" stroke-width="3"/><text x="580" y="57" font-size="20" text-anchor="middle">🖥️</text><text x="580" y="76" font-size="11" font-weight="800" text-anchor="middle">S1</text></g>
+  <g><rect x="545" y="125" width="70" height="50" rx="10" fill="#dcf9e8" stroke="#1c1a15" stroke-width="3"/><text x="580" y="147" font-size="20" text-anchor="middle">🖥️</text><text x="580" y="166" font-size="11" font-weight="800" text-anchor="middle">S2</text></g>
+  <g><rect x="545" y="215" width="70" height="50" rx="10" fill="#dcf9e8" stroke="#1c1a15" stroke-width="3"/><text x="580" y="237" font-size="20" text-anchor="middle">🖥️</text><text x="580" y="256" font-size="11" font-weight="800" text-anchor="middle">S3</text></g>
+  <circle r="7" fill="#4d96ff" stroke="#1c1a15" stroke-width="2"><animateMotion dur="1.4s" repeatCount="indefinite"><mpath href="#lb-c1"/></animateMotion></circle>
+  <circle r="7" fill="#4d96ff" stroke="#1c1a15" stroke-width="2"><animateMotion dur="1.1s" begin="0.4s" repeatCount="indefinite"><mpath href="#lb-c2"/></animateMotion></circle>
+  <circle r="7" fill="#4d96ff" stroke="#1c1a15" stroke-width="2"><animateMotion dur="1.7s" begin="0.8s" repeatCount="indefinite"><mpath href="#lb-c3"/></animateMotion></circle>
+  <circle r="7" fill="#2e9e5b" stroke="#1c1a15" stroke-width="2"><animateMotion dur="1.2s" repeatCount="indefinite"><mpath href="#lb-s1"/></animateMotion></circle>
+  <circle r="7" fill="#2e9e5b" stroke="#1c1a15" stroke-width="2"><animateMotion dur="1s" begin="0.3s" repeatCount="indefinite"><mpath href="#lb-s2"/></animateMotion></circle>
+  <circle r="7" fill="#2e9e5b" stroke="#1c1a15" stroke-width="2"><animateMotion dur="1.5s" begin="0.6s" repeatCount="indefinite"><mpath href="#lb-s3"/></animateMotion></circle>
+</svg>
+</div>
+<p class="lb-legend">blue dots — client to balancer · green dots — balancer to server</p>
+
+<div class="callout remember"><b class="label">🧷 remember</b><br />Balancer = <b>split traffic so no server takes all the pain</b>. One server dies, users never notice.</div>
+
+<h2>L4 vs L7 — the only comparison that matters</h2>
+<p><b>L4 is fast and dumb. L7 is smart and a little slower.</b> That is the whole fight.</p>
+<ul>
+  <li><b>L4 is a postman.</b> He never reads your letter — he checks the PIN code and house number and moves on. That is routing on <b>IP + port</b>.</li>
+  <li><b>L7 is hospital reception.</b> It asks what is wrong first — fever to Room 1, fracture to Room 2. That is routing on <b>content</b> like URL, headers and cookies.</li>
+</ul>
+<table>
+  <tr><th></th><th>Network LB (L4)</th><th>Application LB (L7)</th></tr>
+  <tr><td><b>Layer</b></td><td>Transport layer</td><td>Application layer</td></tr>
+  <tr><td><b>Decides using</b></td><td>IP address + port</td><td>URL, host, headers, cookies, query params</td></tr>
+  <tr><td><b>Protocols</b></td><td><code>TCP</code>, <code>UDP</code>, <code>TLS</code></td><td><code>HTTP</code>, <code>HTTPS</code>, <code>WebSocket</code></td></tr>
+  <tr><td><b>Strength</b></td><td>Millions of requests, very low latency</td><td>Smart routing, auth, caching, redirects</td></tr>
+  <tr><td><b>Use for</b></td><td>Raw throughput (e.g. video streaming)</td><td>Web apps, APIs, microservices</td></tr>
+  <tr><td><b>Examples</b></td><td>AWS NLB, Azure LB, GCP TCP/UDP LB</td><td>AWS ALB, Azure App Gateway, GCP HTTP(S) LB</td></tr>
+</table>
+
+<div class="callout exam"><b class="label">⭐ exam tip</b><br />One line earns full marks: <b>L4 routes on IP and port at the Transport layer; L7 routes on content such as URL, headers and cookies at the Application layer.</b> Add one example of each.</div>
+
+<h2>the 6 algorithms</h2>
+<p>Each one answers a different question. Read the question first, the name second.</p>
+
+<h3>1. Random — just roll the dice</h3>
+<p><b>No memory, no order.</b> Every request lands on any server. Fine when all servers are identical and you want the simplest thing possible.</p>
+<figure class="lb-fig">
+<svg viewBox="0 0 460 180" role="img" aria-label="Random routing: dashed lines from the balancer to all three servers">
+  <defs><marker id="lg1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#575046"></path></marker></defs>
+  <line x1="230" y1="46" x2="80" y2="110" stroke="#575046" stroke-width="2" stroke-dasharray="6 6" marker-end="url(#lg1)"/>
+  <line x1="230" y1="46" x2="230" y2="110" stroke="#575046" stroke-width="2" stroke-dasharray="6 6" marker-end="url(#lg1)"/>
+  <line x1="230" y1="46" x2="380" y2="110" stroke="#575046" stroke-width="2" stroke-dasharray="6 6" marker-end="url(#lg1)"/>
+  <rect x="195" y="10" width="70" height="34" rx="9" fill="#ffe14d" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="230" y="33" text-anchor="middle" font-size="13" font-weight="800" fill="#1c1a15">LB</text>
+  <rect x="30" y="112" width="100" height="48" rx="10" fill="#fffdf6" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="80" y="141" text-anchor="middle" font-size="15" font-weight="800" fill="#1c1a15">S1</text>
+  <rect x="180" y="112" width="100" height="48" rx="10" fill="#fffdf6" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="230" y="141" text-anchor="middle" font-size="15" font-weight="800" fill="#1c1a15">S2</text>
+  <rect x="330" y="112" width="100" height="48" rx="10" fill="#fffdf6" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="380" y="141" text-anchor="middle" font-size="15" font-weight="800" fill="#1c1a15">S3</text>
+</svg>
+<figcaption>dashed = no fixed path · any request can land on any server</figcaption>
+</figure>
+
+<h3>2. Round robin — roll numbers in class</h3>
+<p><b>Go in a circle: S1 → S2 → S3 → S1 → S2 → S3…</b> Everyone gets exactly one turn, fairly. Best when all servers are equally powerful.</p>
+<figure class="lb-fig">
+<svg viewBox="0 0 460 200" role="img" aria-label="Round robin: solid lines to each server in turn, with a cycle arrow underneath">
+  <defs><marker id="lg2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1c1a15"></path></marker></defs>
+  <line x1="230" y1="46" x2="80" y2="110" stroke="#1c1a15" stroke-width="2.5" marker-end="url(#lg2)"/>
+  <line x1="230" y1="46" x2="230" y2="110" stroke="#1c1a15" stroke-width="2.5" marker-end="url(#lg2)"/>
+  <line x1="230" y1="46" x2="380" y2="110" stroke="#1c1a15" stroke-width="2.5" marker-end="url(#lg2)"/>
+  <path d="M 368 168 Q 230 198 92 168" stroke="#575046" stroke-width="2" stroke-dasharray="6 6" fill="none" marker-end="url(#lg2)"/>
+  <rect x="195" y="10" width="70" height="34" rx="9" fill="#ffe14d" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="230" y="33" text-anchor="middle" font-size="13" font-weight="800" fill="#1c1a15">LB</text>
+  <rect x="30" y="112" width="100" height="48" rx="10" fill="#fffdf6" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="80" y="141" text-anchor="middle" font-size="15" font-weight="800" fill="#1c1a15">S1</text>
+  <rect x="180" y="112" width="100" height="48" rx="10" fill="#fffdf6" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="230" y="141" text-anchor="middle" font-size="15" font-weight="800" fill="#1c1a15">S2</text>
+  <rect x="330" y="112" width="100" height="48" rx="10" fill="#fffdf6" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="380" y="141" text-anchor="middle" font-size="15" font-weight="800" fill="#1c1a15">S3</text>
+</svg>
+<figcaption>strict rotation — R1→S1 · R2→S2 · R3→S3 · R4→S1 · R5→S2 · R6→S3 …</figcaption>
+</figure>
+
+<h3>3. Weighted round robin — the strong server lifts more</h3>
+<p><b>Strong servers get more turns.</b> With weights 5-3-2, out of 10 requests S1 takes 5, S2 takes 3, S3 takes 2. Use it when your servers have different sizes.</p>
+<figure class="lb-fig">
+<svg viewBox="0 0 460 180" role="img" aria-label="Weighted round robin: thicker arrow to S1 with weight 5, thinner to S3 with weight 2">
+  <defs><marker id="lg3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1c1a15"></path></marker></defs>
+  <line x1="230" y1="46" x2="80" y2="110" stroke="#1c1a15" stroke-width="6" marker-end="url(#lg3)"/>
+  <line x1="230" y1="46" x2="230" y2="110" stroke="#1c1a15" stroke-width="4" marker-end="url(#lg3)"/>
+  <line x1="230" y1="46" x2="380" y2="110" stroke="#1c1a15" stroke-width="2.5" marker-end="url(#lg3)"/>
+  <text x="140" y="70" font-size="12" font-weight="800" fill="#1c1a15">×5</text>
+  <text x="240" y="80" font-size="12" font-weight="800" fill="#1c1a15">×3</text>
+  <text x="316" y="70" font-size="12" font-weight="800" fill="#1c1a15">×2</text>
+  <rect x="195" y="10" width="70" height="34" rx="9" fill="#ffe14d" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="230" y="33" text-anchor="middle" font-size="13" font-weight="800" fill="#1c1a15">LB</text>
+  <rect x="30" y="112" width="100" height="48" rx="10" fill="#fffdf6" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="80" y="134" text-anchor="middle" font-size="14" font-weight="800" fill="#1c1a15">S1</text>
+  <text x="80" y="150" text-anchor="middle" font-size="11" fill="#575046">weight 5</text>
+  <rect x="180" y="112" width="100" height="48" rx="10" fill="#fffdf6" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="230" y="134" text-anchor="middle" font-size="14" font-weight="800" fill="#1c1a15">S2</text>
+  <text x="230" y="150" text-anchor="middle" font-size="11" fill="#575046">weight 3</text>
+  <rect x="330" y="112" width="100" height="48" rx="10" fill="#fffdf6" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="380" y="134" text-anchor="middle" font-size="14" font-weight="800" fill="#1c1a15">S3</text>
+  <text x="380" y="150" text-anchor="middle" font-size="11" fill="#575046">weight 2</text>
+</svg>
+<figcaption>thicker arrow = bigger share — S1 S1 S1 S1 S1 · S2 S2 S2 · S3 S3</figcaption>
+</figure>
+
+<h3>4. Least connections — join the shortest queue</h3>
+<p><b>Every new request goes to whoever is least busy right now.</b> If S1 holds 10 connections, S2 holds 5 and S3 holds 2, the next request goes to S3. A live score, not a fixed ratio — best when requests take uneven time.</p>
+<figure class="lb-fig">
+<svg viewBox="0 0 460 180" role="img" aria-label="Least connections: S1 has 10, S2 has 5, S3 has 2, so the new request goes to S3">
+  <defs><marker id="lg4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2e9e5b"></path></marker>
+  <marker id="lg4f" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b9b09a"></path></marker></defs>
+  <line x1="230" y1="46" x2="80" y2="110" stroke="#b9b09a" stroke-width="2" stroke-dasharray="4 5" marker-end="url(#lg4f)"/>
+  <line x1="230" y1="46" x2="230" y2="110" stroke="#b9b09a" stroke-width="2" stroke-dasharray="4 5" marker-end="url(#lg4f)"/>
+  <line x1="230" y1="46" x2="380" y2="110" stroke="#2e9e5b" stroke-width="4" marker-end="url(#lg4)"/>
+  <text x="312" y="72" font-size="12" font-weight="800" fill="#2e9e5b">new ↓</text>
+  <rect x="195" y="10" width="70" height="34" rx="9" fill="#ffe14d" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="230" y="33" text-anchor="middle" font-size="13" font-weight="800" fill="#1c1a15">LB</text>
+  <rect x="30" y="112" width="100" height="48" rx="10" fill="#fffdf6" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="80" y="134" text-anchor="middle" font-size="14" font-weight="800" fill="#1c1a15">S1</text>
+  <text x="80" y="150" text-anchor="middle" font-size="11" fill="#575046">10 active</text>
+  <rect x="180" y="112" width="100" height="48" rx="10" fill="#fffdf6" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="230" y="134" text-anchor="middle" font-size="14" font-weight="800" fill="#1c1a15">S2</text>
+  <text x="230" y="150" text-anchor="middle" font-size="11" fill="#575046">5 active</text>
+  <rect x="330" y="112" width="100" height="48" rx="10" fill="#dcf9e8" stroke="#1c1a15" stroke-width="3"/>
+  <text x="380" y="134" text-anchor="middle" font-size="14" font-weight="800" fill="#1c1a15">S3</text>
+  <text x="380" y="150" text-anchor="middle" font-size="11" fill="#575046">2 active ✓</text>
+</svg>
+<figcaption>the smallest count wins — next request goes to S3</figcaption>
+</figure>
+
+<h3>5. Path based — the URL decides</h3>
+<p><b>Route by URL path:</b> <code>/api → S1</code>, <code>/images → S2</code>, <code>/files → S3</code>. Only an L7 balancer can do this, because L4 cannot even read URLs. The classic microservices pick.</p>
+<figure class="lb-fig">
+<svg viewBox="0 0 460 212" role="img" aria-label="Path based routing: api goes to S1, images to S2, files to S3">
+  <defs><marker id="lg5" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1c1a15"></path></marker></defs>
+  <line x1="230" y1="46" x2="80" y2="76" stroke="#1c1a15" stroke-width="2" marker-end="url(#lg5)"/>
+  <line x1="230" y1="46" x2="230" y2="76" stroke="#1c1a15" stroke-width="2" marker-end="url(#lg5)"/>
+  <line x1="230" y1="46" x2="380" y2="76" stroke="#1c1a15" stroke-width="2" marker-end="url(#lg5)"/>
+  <line x1="80" y1="108" x2="80" y2="140" stroke="#1c1a15" stroke-width="2" marker-end="url(#lg5)"/>
+  <line x1="230" y1="108" x2="230" y2="140" stroke="#1c1a15" stroke-width="2" marker-end="url(#lg5)"/>
+  <line x1="380" y1="108" x2="380" y2="140" stroke="#1c1a15" stroke-width="2" marker-end="url(#lg5)"/>
+  <rect x="195" y="10" width="70" height="34" rx="9" fill="#ffe14d" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="230" y="33" text-anchor="middle" font-size="13" font-weight="800" fill="#1c1a15">LB</text>
+  <rect x="25" y="78" width="110" height="30" rx="15" fill="#fff" stroke="#1c1a15" stroke-width="2"/>
+  <text x="80" y="98" text-anchor="middle" font-size="12.5" font-family="monospace" font-weight="700" fill="#1c1a15">/api</text>
+  <rect x="175" y="78" width="110" height="30" rx="15" fill="#fff" stroke="#1c1a15" stroke-width="2"/>
+  <text x="230" y="98" text-anchor="middle" font-size="12.5" font-family="monospace" font-weight="700" fill="#1c1a15">/images</text>
+  <rect x="325" y="78" width="110" height="30" rx="15" fill="#fff" stroke="#1c1a15" stroke-width="2"/>
+  <text x="380" y="98" text-anchor="middle" font-size="12.5" font-family="monospace" font-weight="700" fill="#1c1a15">/files</text>
+  <rect x="30" y="142" width="100" height="48" rx="10" fill="#fffdf6" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="80" y="171" text-anchor="middle" font-size="15" font-weight="800" fill="#1c1a15">S1</text>
+  <rect x="180" y="142" width="100" height="48" rx="10" fill="#fffdf6" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="230" y="171" text-anchor="middle" font-size="15" font-weight="800" fill="#1c1a15">S2</text>
+  <rect x="330" y="142" width="100" height="48" rx="10" fill="#fffdf6" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="380" y="171" text-anchor="middle" font-size="15" font-weight="800" fill="#1c1a15">S3</text>
+</svg>
+<figcaption>the URL decides — /api→S1 · /images→S2 · /files→S3</figcaption>
+</figure>
+
+<h3>6. IP hash — the same customer keeps their barber</h3>
+<p><b><code>hash(client IP)</code> pins each user to one server, every visit.</b> Client A always lands on S1, B on S2, C on S3. Logins and carts survive. That stickiness is called <b>session persistence</b>.</p>
+<figure class="lb-fig">
+<svg viewBox="0 0 460 200" role="img" aria-label="IP hash: each client IP always maps to the same server">
+  <defs>
+    <marker id="lg6o" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ff6b35"></path></marker>
+    <marker id="lg6b" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#4d96ff"></path></marker>
+    <marker id="lg6g" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2e9e5b"></path></marker>
+  </defs>
+  <rect x="10" y="27" width="170" height="36" rx="10" fill="#fff" stroke="#1c1a15" stroke-width="2"/>
+  <text x="95" y="50" text-anchor="middle" font-size="12" font-family="monospace" font-weight="700" fill="#1c1a15">A · 192.168.1.5</text>
+  <rect x="10" y="92" width="170" height="36" rx="10" fill="#fff" stroke="#1c1a15" stroke-width="2"/>
+  <text x="95" y="115" text-anchor="middle" font-size="12" font-family="monospace" font-weight="700" fill="#1c1a15">B · 10.0.0.9</text>
+  <rect x="10" y="157" width="170" height="36" rx="10" fill="#fff" stroke="#1c1a15" stroke-width="2"/>
+  <text x="95" y="180" text-anchor="middle" font-size="12" font-family="monospace" font-weight="700" fill="#1c1a15">C · 172.16.4.2</text>
+  <line x1="182" y1="45" x2="328" y2="45" stroke="#ff6b35" stroke-width="3" marker-end="url(#lg6o)"/>
+  <text x="255" y="36" text-anchor="middle" font-size="10.5" font-family="monospace" fill="#575046">hash</text>
+  <line x1="182" y1="110" x2="328" y2="110" stroke="#4d96ff" stroke-width="3" marker-end="url(#lg6b)"/>
+  <text x="255" y="101" text-anchor="middle" font-size="10.5" font-family="monospace" fill="#575046">hash</text>
+  <line x1="182" y1="175" x2="328" y2="175" stroke="#2e9e5b" stroke-width="3" marker-end="url(#lg6g)"/>
+  <text x="255" y="166" text-anchor="middle" font-size="10.5" font-family="monospace" fill="#575046">hash</text>
+  <rect x="330" y="23" width="100" height="44" rx="10" fill="#fffdf6" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="380" y="50" text-anchor="middle" font-size="15" font-weight="800" fill="#1c1a15">S1</text>
+  <rect x="330" y="88" width="100" height="44" rx="10" fill="#fffdf6" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="380" y="115" text-anchor="middle" font-size="15" font-weight="800" fill="#1c1a15">S2</text>
+  <rect x="330" y="153" width="100" height="44" rx="10" fill="#fffdf6" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="380" y="180" text-anchor="middle" font-size="15" font-weight="800" fill="#1c1a15">S3</text>
+</svg>
+<figcaption>same IP, same server — refresh 100 times, nothing moves</figcaption>
+</figure>
+
+<div class="callout gotcha"><b class="label">⚠️ gotcha</b><br /><b>Weighted is a fixed power ratio</b> set once by you. <b>Least-connections is live busyness</b> measured every second. <b>Path-based needs L7.</b> <b>IP hash is the only one that remembers the client.</b></div>
+
+<h2>cheat table</h2>
+<table>
+  <tr><th>Algorithm</th><th>Mental image</th><th>Use when</th></tr>
+  <tr><td>Random</td><td>dice roll</td><td>servers are equal, keep it simple</td></tr>
+  <tr><td>Round robin</td><td>class roll numbers</td><td>servers are equal, keep it fair</td></tr>
+  <tr><td>Weighted</td><td>strong lifts more</td><td>servers have different sizes</td></tr>
+  <tr><td>Least connections</td><td>shortest queue</td><td>requests take uneven time</td></tr>
+  <tr><td>Path based</td><td>hospital reception</td><td>microservices, split by content</td></tr>
+  <tr><td>IP hash</td><td>same barber</td><td>sessions, logins, carts</td></tr>
+</table>
+
+<h2>quick check</h2>
+<ul>
+  <li><b>A video site serves a million viewers — L4 or L7?</b> L4. You need raw throughput for streams; nobody needs to read URLs.</li>
+  <li><b><code>/pay</code> needs secure servers, <code>/blog</code> needs cheap ones?</b> Path based, on an L7 balancer — only L7 can split by URL path.</li>
+  <li><b>Users keep getting logged out mid-session?</b> IP hash. It pins each client to one server, so the session stays alive.</li>
+</ul>
+
+<h2>the 20-second answer</h2>
+<p>A load balancer splits client requests across servers for availability and scale. L4 routes on IP and port, so it is very fast. L7 routes on content such as URLs and cookies, so it is smarter. Round-robin suits equal servers, weighted suits unequal ones, least-connections suits uneven work, path-based suits microservices, and IP hash suits sticky sessions.</p>

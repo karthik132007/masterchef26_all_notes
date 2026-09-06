@@ -2,47 +2,92 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { daySlug, dayLabel, dayNumber } from "../lib/courses";
+import {
+  getEntrySlugs,
+  entryLabel,
+  entryNumber,
+  isConceptCourse,
+} from "../lib/courses";
+
+// Give every h2 in a note fragment a stable id and return the
+// "on this page" entries for the right rail. Parses as an inert
+// fragment (NOT DOMParser-as-document: that would lift the note's
+// inline <style> into <head> and drop it from the injected HTML).
+function withHeadingIds(fragment) {
+  const tpl = document.createElement("template");
+  tpl.innerHTML = fragment;
+  const seen = {};
+  const items = [];
+  tpl.content.querySelectorAll("h2").forEach((h) => {
+    const label = h.textContent.trim().replace(/\s+/g, " ");
+    if (!label) return;
+    let slug =
+      label
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "") || "section";
+    if (seen[slug] != null) {
+      seen[slug] += 1;
+      slug = `${slug}-${seen[slug]}`;
+    } else {
+      seen[slug] = 0;
+    }
+    h.setAttribute("id", slug);
+    items.push({ id: slug, label });
+  });
+  return { html: tpl.innerHTML, items };
+}
 
 export default function CourseView({ course, day, hasPlan }) {
-  const n = dayNumber(day);
-  const total = course.totalDays;
+  const isConcepts = isConceptCourse(course);
 
   const [html, setHtml] = useState(null); // null = loading, string = notes, false = not added yet
+  const [toc, setToc] = useState([]); // [{ id, label }] built from the note's h2s
   const [query, setQuery] = useState("");
   const [drawer, setDrawer] = useState(false);
 
   useEffect(() => {
     let alive = true;
     setHtml(null);
+    setToc([]);
     fetch(`/notes/${course.id}/${day}.html`)
       .then((r) => {
         if (!r.ok) throw new Error("missing");
         return r.text();
       })
       .then((t) => {
-        if (alive) setHtml(t.trim() ? t : false);
+        if (!alive) return;
+        if (!t.trim()) {
+          setHtml(false);
+          return;
+        }
+        const { html: fixed, items } = withHeadingIds(t);
+        setToc(items);
+        setHtml(fixed);
       })
       .catch(() => {
-        if (alive) setHtml(false);
+        if (!alive) return;
+        setToc([]);
+        setHtml(false);
       });
     return () => {
       alive = false;
     };
   }, [course.id, day]);
 
-  const days = useMemo(
-    () => Array.from({ length: total }, (_, i) => daySlug(i + 1)),
-    [total]
-  );
+  const days = useMemo(() => getEntrySlugs(course), [course]);
 
   const visible = days.filter((d) =>
-    dayLabel(d).toLowerCase().includes(query.trim().toLowerCase())
+    entryLabel(course, d).toLowerCase().includes(query.trim().toLowerCase())
   );
 
+  const idx = days.indexOf(day);
   const prev =
-    n > 1 ? daySlug(n - 1) : n === 1 && hasPlan ? "plan" : null;
-  const next = n < total ? daySlug(n + 1) : null;
+    idx > 0 ? days[idx - 1] : idx === 0 && hasPlan ? "plan" : null;
+  const next = idx >= 0 && idx < days.length - 1 ? days[idx + 1] : null;
+  // plan -> first entry link
+  const planNext = day === "plan" ? days[0] || null : null;
+  const nextLink = next || planNext;
 
   return (
     <>
@@ -52,19 +97,19 @@ export default function CourseView({ course, day, hasPlan }) {
             ← home
           </Link>
           <span className="course-title-sm">
-            {course.title} <small>· {dayLabel(day)}</small>
+            {course.title} <small>· {entryLabel(course, day)}</small>
           </span>
           <button
             className="btn burger"
             style={{ padding: "8px 14px", fontSize: 14 }}
             onClick={() => setDrawer((v) => !v)}
           >
-            ☰ days
+            ☰ {isConcepts ? "concepts" : "days"}
           </button>
           <label className="search">
             <input
               type="search"
-              placeholder="filter days…"
+              placeholder={isConcepts ? "filter concepts…" : "filter days…"}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               autoComplete="off"
@@ -73,10 +118,10 @@ export default function CourseView({ course, day, hasPlan }) {
         </div>
       </div>
 
-      <div className="course-layout">
+      <div className={`course-layout${toc.length ? " has-toc" : ""}`}>
         <aside className={`sidebar${drawer ? " open" : ""}`}>
           <div className="side-head">
-            <b>class days</b>
+            <b>{isConcepts ? "concepts" : "class days"}</b>
           </div>
           <nav className="side-nav">
             {hasPlan && (
@@ -97,13 +142,19 @@ export default function CourseView({ course, day, hasPlan }) {
                 className={`day-link${d === day ? " active" : ""}`}
               >
                 <span className="idx">
-                  {String(dayNumber(d)).padStart(2, "0")}
+                  {String(entryNumber(course, d)).padStart(2, "0")}
                 </span>
-                <span>{dayLabel(d)}</span>
+                <span>{entryLabel(course, d)}</span>
               </Link>
             ))}
             {visible.length === 0 && (
-              <div className="no-results">no day matches that.</div>
+              <div className="no-results">
+                {days.length === 0
+                  ? "concepts dropping soon."
+                  : isConcepts
+                    ? "no concept matches that."
+                    : "no day matches that."}
+              </div>
             )}
           </nav>
         </aside>
@@ -132,12 +183,13 @@ export default function CourseView({ course, day, hasPlan }) {
             {html === false && (
               <div className="soon">
                 <h2>
-                  {dayLabel(day).toLowerCase()} notes{" "}
+                  {entryLabel(course, day).toLowerCase()} notes{" "}
                   <span className="u">coming soon</span>
                 </h2>
                 <p>
-                  This day hasn&apos;t been written up yet — it usually lands
-                  right after class. Check back soon.
+                  {isConcepts
+                    ? "This concept hasn't been written up yet — check back soon."
+                    : "This day hasn't been written up yet — it usually lands right after class. Check back soon."}
                 </p>
                 <span className="hint">
                   to add: public/notes/{course.id}/{day}.html
@@ -156,7 +208,7 @@ export default function CourseView({ course, day, hasPlan }) {
           <div className="day-nav">
             {prev ? (
               <Link className="btn" href={`/courses/${course.id}/${prev}`}>
-                ← {dayLabel(prev)}
+                ← {entryLabel(course, prev)}
               </Link>
             ) : (
               <Link className="btn" href="/">
@@ -164,13 +216,26 @@ export default function CourseView({ course, day, hasPlan }) {
               </Link>
             )}
             <span className="spacer"></span>
-            {next && (
-              <Link className="btn dark" href={`/courses/${course.id}/${next}`}>
-                {dayLabel(next)} →
+            {nextLink && (
+              <Link className="btn dark" href={`/courses/${course.id}/${nextLink}`}>
+                {entryLabel(course, nextLink)} →
               </Link>
             )}
           </div>
         </div>
+
+        {toc.length > 0 && (
+          <aside className="toc" aria-label="On this page">
+            <div className="toc-head">on this page</div>
+            <nav className="toc-nav">
+              {toc.map((t) => (
+                <a key={t.id} href={`#${t.id}`}>
+                  {t.label}
+                </a>
+              ))}
+            </nav>
+          </aside>
+        )}
       </div>
     </>
   );

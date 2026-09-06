@@ -1,0 +1,37 @@
+<!--
+  HOW TO ADD NOTES FOR A CONCEPT (hld is concept-wise, not day-wise)
+  ==================================================================
+  1. Concepts live in `lib/courses.js` under hld.topics.
+     To add one, add `{ slug: "my-concept", title: "My Concept" }` there.
+  2. Copy this file to `<slug>.html` in this same folder (e.g. caching.html).
+     File name MUST match the sidebar concept slug.
+  3. Delete this comment + the placeholder below, write your notes.
+  3. Only the fragment matters — no <html>/<head>/<body> needed.
+     It gets injected into the page, and these styles apply automatically:
+       .kicker            handwritten hook line under a heading
+       .callout.exam      ⭐ yellow exam-tip box
+       .callout.gotcha    ⚠️ pink common-mistake box
+       .callout.remember  🧷 green remember box
+       .callout.try       🔬 blue try-it-yourself box
+     Plain <h2>, <p>, <ul>, <table>, <pre> all styled already.
+     Use <b class="label">…</b> as the first line inside a callout.
+  4. Push to main — Vercel redeploys, sidebar picks it up by itself.
+-->
+
+<p class="kicker">one-line hook for the day — what system did we design?</p>
+
+<h2>the problem</h2>
+<p>Scale, users, constraints — start with what we're designing for.</p>
+<ul>
+  <li><b>Bold the key constraint</b> first (reads, writes, latency…), then the rest.</li>
+  <li>State your assumptions and estimates.</li>
+</ul>
+
+<div class="callout exam"><b class="label">⭐ exam tip</b><br />Interviewers score the trade-off discussion, not the diagram. Capture it here.</div>
+
+<h2>the design</h2>
+<p>Components + why each one exists. ASCII diagrams welcome:</p>
+<pre># example: keep it simple, label the arrows
+client → LB → [api × N] → cache → db (primary + replica)</pre>
+
+<div class="callout gotcha"><b class="label">⚠️ gotcha</b><br />Caching without invalidation, single points of failure — whatever got questioned today.</div>

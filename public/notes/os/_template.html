@@ -1,0 +1,39 @@
+<!--
+  HOW TO ADD NOTES FOR A CONCEPT (os is concept-wise, not day-wise)
+  ================================================================
+  1. Concepts live in `lib/courses.js` under os.topics.
+     To add one, add `{ slug: "my-concept", title: "My Concept" }` there.
+  2. Copy this file to `<slug>.html` in this same folder (e.g. processes.html).
+     File name MUST match the sidebar concept slug.
+  3. Delete this comment + the placeholder below, write your notes.
+  3. Only the fragment matters — no <html>/<head>/<body> needed.
+     It gets injected into the page, and these styles apply automatically:
+       .kicker            handwritten hook line under a heading
+       .callout.exam      ⭐ yellow exam-tip box
+       .callout.gotcha    ⚠️ pink common-mistake box
+       .callout.remember  🧷 green remember box
+       .callout.try       🔬 blue try-it-yourself box
+     Plain <h2>, <p>, <ul>, <table>, <pre> all styled already.
+     Use <b class="label">…</b> as the first line inside a callout.
+  4. Push to main — Vercel redeploys, sidebar picks it up by itself.
+-->
+
+<p class="kicker">one-line hook for the day — what does the OS do here?</p>
+
+<h2>the concept</h2>
+<p>Explain it like the reader bunked class. One concept per section, short paras.</p>
+<ul>
+  <li><b>Bold the punchline</b> of every bullet, then explain.</li>
+  <li>Second point goes here.</li>
+</ul>
+
+<div class="callout exam"><b class="label">⭐ exam tip</b><br />Definitions + one diagram description = full marks. Put them here.</div>
+
+<h2>worked example</h2>
+<p>Scheduling traces, page replacement steps, fork outputs — show the working:</p>
+<pre># example: trace it step by step
+P1 arrives at 0, burst 5
+P2 arrives at 1, burst 3
+FCFS order: P1 → P2</pre>
+
+<div class="callout gotcha"><b class="label">⚠️ gotcha</b><br />Process vs thread, starvation vs deadlock — whatever confused people today.</div>
