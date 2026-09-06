@@ -1,0 +1,36 @@
+<!--
+  HOW TO ADD NOTES FOR A DAY
+  ==========================
+  1. Copy this file to `day-N.html` in this same folder (e.g. day-1.html).
+     File name MUST match the sidebar day: day-1.html, day-2.html, ...
+  2. Delete this comment + the placeholder below, write your notes.
+  3. Only the fragment matters — no <html>/<head>/<body> needed.
+     It gets injected into the page, and these styles apply automatically:
+       .kicker            handwritten hook line under a heading
+       .callout.exam      ⭐ yellow exam-tip box
+       .callout.gotcha    ⚠️ pink common-mistake box
+       .callout.remember  🧷 green remember box
+       .callout.try       🔬 blue try-it-yourself box
+     Plain <h2>, <p>, <ul>, <table>, <pre> all styled already.
+     Use <b class="label">…</b> as the first line inside a callout.
+  4. Push to main — Vercel redeploys, sidebar picks it up by itself.
+-->
+
+<p class="kicker">one-line hook for the day — what did we actually learn?</p>
+
+<h2>topic one</h2>
+<p>Write it like you'd explain it to a friend who bunked. Short paras, no textbook voice.</p>
+<ul>
+  <li><b>Bold the punchline</b> of every bullet, then explain.</li>
+  <li>Second point goes here.</li>
+</ul>
+
+<div class="callout exam"><b class="label">⭐ exam tip</b><br />The one line that gets full marks lives here.</div>
+
+<h2>topic two</h2>
+<p>Code? Just paste it in a pre block — monospace + dark theme is automatic.</p>
+<pre>// example: nothing to configure, it just looks right
+const day = 1;
+console.log("notes for day", day);</pre>
+
+<div class="callout gotcha"><b class="label">⚠️ gotcha</b><br />The mistake everyone (including you) made in class.</div>

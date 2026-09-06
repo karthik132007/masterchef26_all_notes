@@ -1,0 +1,36 @@
+<!--
+  HOW TO ADD NOTES FOR A DAY
+  ==========================
+  1. Copy this file to `day-N.html` in this same folder (e.g. day-1.html).
+     File name MUST match the sidebar day: day-1.html, day-2.html, ...
+  2. Delete this comment + the placeholder below, write your notes.
+  3. Only the fragment matters — no <html>/<head>/<body> needed.
+     It gets injected into the page, and these styles apply automatically:
+       .kicker            handwritten hook line under a heading
+       .callout.exam      ⭐ yellow exam-tip box
+       .callout.gotcha    ⚠️ pink common-mistake box
+       .callout.remember  🧷 green remember box
+       .callout.try       🔬 blue try-it-yourself box
+     Plain <h2>, <p>, <ul>, <table>, <pre> all styled already.
+     Use <b class="label">…</b> as the first line inside a callout.
+  4. Push to main — Vercel redeploys, sidebar picks it up by itself.
+-->
+
+<p class="kicker">one-line hook for the day — what did we build today?</p>
+
+<h2>setup / recap</h2>
+<p>What we covered, in the order sir covered it. Assume the reader missed class.</p>
+
+<h2>the main concept</h2>
+<p>Explain, then show. Every Spring Boot day should have at least one runnable snippet:</p>
+<pre>// paste the day's key code here — copy-paste ready
+@RestController
+@RequestMapping("/api/demo")
+public class DemoController {
+    @GetMapping
+    public String hello() { return "day 1 works"; }
+}</pre>
+
+<div class="callout exam"><b class="label">⭐ exam tip</b><br />Status codes, annotations, layering — whatever gets asked every time.</div>
+
+<div class="callout gotcha"><b class="label">⚠️ gotcha</b><br />The error that ate 20 minutes of class today, and its fix.</div>

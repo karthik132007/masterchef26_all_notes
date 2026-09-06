@@ -1,0 +1,226 @@
+<!--
+  COURSE PLAN — shown as the first sidebar entry ("Course plan") inside the
+  notes layout, same sidebar + reading area as every day.
+  Fragment only, no <html>/<head>/<body>. Styled automatically, classes:
+    .kicker        mono uppercase hook line
+    .plan-lede     intro paragraph
+    .plan-tags     row of .tag pills
+    .plan-outcomes mint box — "by the end" list (plain <ol>)
+    .plan-day      white day card: .plan-daynum, h2, ul topics, a.plan-open
+    .plan-day.important  yellow variant + <span class="imp">important</span>
+    .plan-rule     dark rule card at the end, .plan-quote for the quote
+  Day links MUST look like: /courses/genai-agentic-ai/day-N
+-->
+
+<p class="kicker">genai &amp; agentic ai · 3 hours/day × 12 days</p>
+<h1>From Transformers to Production-Grade AI Agents</h1>
+<p class="plan-lede">Twelve days, zero fluff. We start at “what is an LLM” and end with a working multi-agent system — understanding every layer underneath, not just the framework on top.</p>
+
+<div class="plan-outcomes">
+  <b>By the end of 12 days, you know:</b>
+  <ol>
+    <li>What an LLM is</li>
+    <li>How to use OpenAI API keys</li>
+    <li>Why RAG</li>
+    <li>Tools</li>
+    <li>Agents</li>
+    <li>Evaluating and debugging AI systems</li>
+    <li>How to build a complex multi-agent AI system</li>
+  </ol>
+</div>
+
+<div class="plan-timeline">
+<section class="plan-day">
+  <span class="plan-daynum">Day 1</span>
+  <h2>Foundations</h2>
+  <ul>
+    <li>LLMs</li>
+    <li>Tokens</li>
+    <li>Transformers</li>
+    <li>Attention</li>
+    <li><em>Attention Is All You Need</em> — paper explanation</li>
+    <li>Context window</li>
+    <li>Temperature &amp; sampling</li>
+  </ul>
+  <a class="plan-open" href="/courses/genai-agentic-ai/day-1">open day 1 notes →</a>
+</section>
+
+<section class="plan-day important">
+  <span class="plan-daynum">Day 2</span><span class="imp">important</span>
+  <h2>Working with LLMs</h2>
+  <ul>
+    <li>Prompting</li>
+    <li>System &amp; user messages</li>
+    <li>Context management</li>
+    <li>OpenAI API</li>
+    <li>Streaming</li>
+    <li>API costs</li>
+    <li>Model selection
+      <ul>
+        <li>MoE</li>
+        <li>Dense</li>
+        <li>Vision</li>
+        <li>GAN</li>
+      </ul>
+    </li>
+  </ul>
+  <a class="plan-open" href="/courses/genai-agentic-ai/day-2">open day 2 notes →</a>
+</section>
+
+<section class="plan-day">
+  <span class="plan-daynum">Day 3</span>
+  <h2>Building a Small Chatbot</h2>
+  <ul>
+    <li>Build a small chatbot</li>
+    <li>Knowledge cutoff</li>
+    <li>Hallucinations</li>
+    <li>Why “just prompt it harder” doesn’t solve everything</li>
+    <li>Grounding</li>
+  </ul>
+  <a class="plan-open" href="/courses/genai-agentic-ai/day-3">open day 3 notes →</a>
+</section>
+
+<section class="plan-day">
+  <span class="plan-daynum">Day 4</span>
+  <h2>RAG</h2>
+  <ul>
+    <li>What is RAG?</li>
+    <li>Chunking strategies</li>
+    <li>Chunk overlap</li>
+    <li>Embeddings</li>
+    <li>Cosine similarity</li>
+    <li>BM25 &amp; TF-IDF</li>
+    <li>Hybrid retrieval</li>
+    <li>Reranking</li>
+  </ul>
+  <a class="plan-open" href="/courses/genai-agentic-ai/day-4">open day 4 notes →</a>
+</section>
+
+<section class="plan-day important">
+  <span class="plan-daynum">Day 5</span><span class="imp">important</span>
+  <h2>RAG Evaluation</h2>
+  <ul>
+    <li>Why RAG evaluation matters</li>
+    <li>Retrieval evaluation</li>
+    <li>Recall@K</li>
+    <li>Precision@K</li>
+    <li>MRR</li>
+    <li>Golden answers</li>
+    <li>Failure analysis</li>
+  </ul>
+  <a class="plan-open" href="/courses/genai-agentic-ai/day-5">open day 5 notes →</a>
+</section>
+
+<section class="plan-day">
+  <span class="plan-daynum">Day 6</span>
+  <h2>Agents</h2>
+  <ul>
+    <li>Tools</li>
+    <li>Tool calling</li>
+    <li>Tool selection</li>
+    <li>Tool execution</li>
+    <li>Tool results</li>
+    <li>Agent loops</li>
+    <li>Tool permissions</li>
+  </ul>
+  <a class="plan-open" href="/courses/genai-agentic-ai/day-6">open day 6 notes →</a>
+</section>
+
+<section class="plan-day">
+  <span class="plan-daynum">Day 7</span>
+  <h2>Building an Agent from Scratch</h2>
+  <ul>
+    <li>Introduction to LangChain</li>
+    <li>Development setup</li>
+    <li><code>uv</code></li>
+    <li>Messages</li>
+    <li>Tool calling</li>
+    <li>Structured outputs &amp; JSON outputs</li>
+    <li>Build a small, half-cooked agent</li>
+  </ul>
+  <a class="plan-open" href="/courses/genai-agentic-ai/day-7">open day 7 notes →</a>
+</section>
+
+<section class="plan-day">
+  <span class="plan-daynum">Day 8</span>
+  <h2>Agent Evaluation &amp; Debugging</h2>
+  <ul>
+    <li>Why agent evaluations matter</li>
+    <li>LLM-as-a-judge</li>
+    <li>Ground truths</li>
+    <li>Tracing</li>
+    <li>Observability</li>
+    <li>Evaluation datasets</li>
+    <li>Understanding why an agent failed</li>
+  </ul>
+  <a class="plan-open" href="/courses/genai-agentic-ai/day-8">open day 8 notes →</a>
+</section>
+
+<section class="plan-day">
+  <span class="plan-daynum">Day 9</span>
+  <h2>Principles of Agentic AI</h2>
+  <ul>
+    <li>Limitations of single-agent systems</li>
+    <li>Reflection</li>
+    <li>Human-in-the-loop</li>
+    <li>Interrupts</li>
+    <li>One-shot vs. N-shot prompting</li>
+    <li>Chain-of-thought</li>
+    <li>When <b>not</b> to use an agent</li>
+  </ul>
+  <a class="plan-open" href="/courses/genai-agentic-ai/day-9">open day 9 notes →</a>
+</section>
+
+<section class="plan-day">
+  <span class="plan-daynum">Day 10</span>
+  <h2>Multi-Agent Systems</h2>
+  <ul>
+    <li>Why multi-agent systems?</li>
+    <li>Multi-agent architectures</li>
+    <li>Co-Founder project explanation</li>
+    <li>Model selection based on task</li>
+    <li>Using different models within the same system</li>
+    <li>Introduction to LangGraph</li>
+    <li>Human-in-the-loop + multi-agent workflows</li>
+  </ul>
+  <a class="plan-open" href="/courses/genai-agentic-ai/day-10">open day 10 notes →</a>
+</section>
+
+<section class="plan-day">
+  <span class="plan-daynum">Day 11</span>
+  <h2>Building a Small Co-Founder Clone</h2>
+  <p>Build a small version of the <b>Co-Founder architecture</b> using LangChain. Combine:</p>
+  <ul>
+    <li>LLMs</li>
+    <li>Tools</li>
+    <li>RAG</li>
+    <li>Agents</li>
+    <li>Evaluation</li>
+    <li>Human-in-the-loop</li>
+    <li>LangChain</li>
+  </ul>
+  <p><b>Goal:</b> take everything learned so far and put it into one working system.</p>
+  <a class="plan-open" href="/courses/genai-agentic-ai/day-11">open day 11 notes →</a>
+</section>
+
+<section class="plan-day">
+  <span class="plan-daynum">Day 12</span>
+  <h2>What’s Next?</h2>
+  <ul>
+    <li>Self-improving agents</li>
+    <li>Agent autonomy</li>
+    <li>Local AI</li>
+    <li>Fine-tuning</li>
+    <li>MCP</li>
+    <li>Where agentic AI is heading</li>
+    <li>How to continue learning beyond this masterclass</li>
+  </ul>
+  <a class="plan-open" href="/courses/genai-agentic-ai/day-12">open day 12 notes →</a>
+</section>
+</div>
+
+<div class="plan-rule">
+  <b>One rule for all 12 days: no vibe coding.</b>
+  <p>Use AI as an assistant, but understand and be able to explain every line you write.</p>
+  <p class="plan-quote">“Don’t memorize LangChain. Understand the concepts underneath it.”</p>
+</div>
