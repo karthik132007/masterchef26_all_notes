@@ -133,7 +133,7 @@ export default function Home() {
           </div>
           <a
             className="btn dark"
-            href="https://github.com"
+            href="https://github.com/karthik132007/masterchef26_all_notes"
             target="_blank"
             rel="noopener"
           >
