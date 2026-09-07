@@ -1,0 +1,1899 @@
+<style>
+/* ── GenAI Topic 02: Embeddings & Vector Space Styling ── */
+.emb-fig { margin: 16px auto 10px; max-width: 640px; text-align: center; }
+.emb-fig svg { width: 100%; height: auto; display: block; }
+.emb-fig figcaption { font-family: var(--font-mono); font-size: 12px; color: var(--ink-soft); margin-top: 6px; line-height: 1.5; }
+.note-body figure.emb-fig { animation: emb-rise .6s ease both; animation-timeline: view(); animation-range: entry 0% cover 22%; }
+@keyframes emb-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+.emb-dash { stroke-dasharray: 6 6; animation: emb-dash-anim 1.2s linear infinite; }
+@keyframes emb-dash-anim { to { stroke-dashoffset: -12; } }
+@media (prefers-reduced-motion: reduce) { .emb-dash { animation: none; } .note-body figure.emb-fig { animation: none; } }
+
+/* Lab Card System */
+.lab-card {
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: var(--card-shadow);
+  padding: 16px 18px;
+  margin: 20px 0;
+}
+.lab-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-bottom: 1.5px dashed #d5cdbd;
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+}
+.lab-title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+.lab-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 9px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: var(--yellow);
+}
+
+/* Tabs & Presets */
+.emb-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.emb-tab-btn {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  background: var(--paper);
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+.emb-tab-btn:hover {
+  background: var(--yellow);
+  transform: translateY(-1px);
+}
+.emb-tab-btn.active {
+  background: var(--ink);
+  color: #fff;
+  box-shadow: 2px 2px 0 var(--yellow);
+}
+
+.preset-wrap {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 8px 0 12px;
+}
+.preset-chip {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border: 1.5px solid var(--ink);
+  border-radius: 8px;
+  background: var(--paper);
+  cursor: pointer;
+  transition: transform 0.1s ease, background 0.1s ease;
+}
+.preset-chip:hover {
+  background: var(--yellow);
+  transform: translateY(-1px);
+}
+.preset-chip.active {
+  background: var(--yellow);
+  border-color: var(--ink);
+  font-weight: 800;
+}
+
+/* 3D Canvas Box */
+.canvas-wrapper {
+  position: relative;
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  background: #fdfbf7;
+  overflow: hidden;
+  box-shadow: inset 0 0 12px rgba(28,26,21,0.06);
+  margin: 12px 0;
+  user-select: none;
+}
+.canvas-wrapper canvas {
+  display: block;
+  width: 100%;
+  height: 440px;
+  cursor: grab;
+}
+.canvas-wrapper canvas:active {
+  cursor: grabbing;
+}
+.canvas-hint {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1.5px solid var(--ink);
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  pointer-events: none;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+.canvas-legend {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1.5px solid var(--ink);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  line-height: 1.4;
+  pointer-events: none;
+}
+.canvas-legend span {
+  display: inline-block;
+  margin-right: 8px;
+}
+
+/* Dual Sentence Display */
+.dual-sentence-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+  margin: 12px 0;
+}
+.sentence-card {
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: #fff;
+  box-shadow: 2.5px 2.5px 0 var(--ink);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  cursor: pointer;
+}
+.sentence-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+.sentence-card.card-a {
+  border-left: 6px solid #10b981;
+}
+.sentence-card.card-b {
+  border-left: 6px solid #3b82f6;
+}
+.sentence-card.active-focus {
+  background: #fffdf5;
+  box-shadow: 4px 4px 0 var(--ink);
+  outline: 2px solid var(--ink);
+}
+
+/* Telemetry Dashboard */
+.telemetry-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  margin: 12px 0;
+}
+.telemetry-cell {
+  border: 1.5px solid var(--ink);
+  border-radius: 8px;
+  background: var(--paper);
+  padding: 8px 12px;
+}
+.telemetry-label {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+.telemetry-val {
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+  font-weight: 800;
+}
+
+/* Slider Controls */
+.slider-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 10px 0;
+}
+.slider-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13.5px;
+  font-weight: 700;
+}
+.slider-badge {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  background: var(--paper);
+  border: 1.5px solid var(--ink);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+.clean-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: #e3dcce;
+  outline: none;
+  border: 1.5px solid var(--ink);
+  cursor: pointer;
+}
+.clean-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--yellow);
+  border: 2px solid var(--ink);
+  cursor: grab;
+}
+.clean-range::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.15);
+}
+
+/* Similarity Bar System */
+.sim-meter {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 12px 0;
+}
+.sim-track {
+  height: 22px;
+  background: #f4efe1;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+}
+.sim-fill {
+  height: 100%;
+  background: var(--mint);
+  border-right: 2px solid var(--ink);
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s;
+}
+.sim-center-mark {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  background: rgba(28,26,21,0.3);
+  border-left: 1px dashed var(--ink);
+}
+
+/* Vector Arithmetic Board */
+.math-board {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  background: var(--paper);
+  border: 1.5px solid var(--ink);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin: 10px 0;
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 700;
+}
+.math-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border: 1.5px solid var(--ink);
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+.math-chip.plus { background: #dcf9e8; }
+.math-chip.minus { background: #ffe3ef; }
+.math-chip.res { background: var(--yellow); }
+
+/* Next topic banner */
+.next-topic-banner {
+  margin: 28px 0 14px;
+  padding: 16px 18px;
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  background: var(--paper);
+  box-shadow: var(--card-shadow);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+</style>
+
+<p class="kicker">the secret geometry of language: how AI turns words into coordinates in 3d space and navigates meaning.</p>
+
+<!-- ============================================================ -->
+<!-- 30-SECOND IDEA -->
+<!-- ============================================================ -->
+<h2>the 30-second idea</h2>
+<p><b>An Embedding is a GPS coordinate for meaning.</b></p>
+<p>In Topic 01, we saw that AI turns words into <b>Tokens</b> like <code>#4219</code>. But raw numbers are dumb. Token <code>#4219</code> has no clue that it's related to <code>#4220</code>, just like house number 12 doesn't know what kind of food the neighbor eats.</p>
+<p>To do math on human thought, computers convert every word into a list of numbers called a <b>Vector</b> (for example, $[0.82, -0.41, 0.65]$). You can think of these numbers as coordinates in an invisible multi-dimensional room:</p>
+
+<p style="font-size:16.5px; font-weight:700; text-align:center; padding:12px 16px; background:var(--yellow); border:2px solid var(--ink); border-radius:10px; box-shadow:3px 3px 0 var(--ink); margin:16px 0;">
+  Words with similar meanings point in similar directions. The closer two vectors point, the more related their concepts are!
+</p>
+
+<div class="callout remember">
+  <b class="label">🧷 the golden rule of embeddings</b><br />
+  <b>Meaning is geometry.</b> In an embedding space:
+  <ul>
+    <li><b>Proximity = Similarity:</b> <code>"cat"</code> and <code>"kitten"</code> sit right next to each other.</li>
+    <li><b>Direction = Concept:</b> Moving in the "royalty" direction takes you from <code>"man"</code> to <code>"king"</code> and from <code>"woman"</code> to <code>"queen"</code>.</li>
+    <li><b>Angle = Relatedness:</b> We measure similarity using the angle between arrows (Cosine Similarity), not how long the arrow is.</li>
+  </ul>
+</div>
+
+<!-- ============================================================ -->
+<!-- 1. FROM DUMB IDS TO SEMANTIC SPACE -->
+<!-- ============================================================ -->
+<h2>why token ids fail: the need for coordinates</h2>
+<p>Imagine if we gave every word a one-hot ID number or an isolated slot. The word <code>"puppy"</code> would be just as distant from <code>"dog"</code> as it is from <code>"submarine"</code> or <code>"refrigerator"</code>! The computer would have zero intuition that puppies and dogs are both furry four-legged pets.</p>
+
+<figure class="emb-fig">
+<svg viewBox="0 0 640 220" role="img" aria-label="One-Hot IDs vs Continuous Dense Embedding Space">
+  <!-- Left Side: One-Hot / Dumb IDs -->
+  <rect x="10" y="15" width="295" height="190" rx="10" fill="#fffdfa" stroke="#1c1a15" stroke-width="2"></rect>
+  <text x="157" y="38" text-anchor="middle" font-size="12" font-weight="800">DUMB TOKEN IDS: Isolated Numbers</text>
+  
+  <rect x="30" y="62" width="72" height="38" rx="6" fill="#ffe3ef" stroke="#1c1a15" stroke-width="1.8"></rect>
+  <text x="66" y="81" text-anchor="middle" font-size="11" font-weight="700">"dog"</text>
+  <text x="66" y="94" text-anchor="middle" font-size="9" font-family="monospace">#3814</text>
+
+  <rect x="122" y="62" width="72" height="38" rx="6" fill="#ffe3ef" stroke="#1c1a15" stroke-width="1.8"></rect>
+  <text x="158" y="81" text-anchor="middle" font-size="11" font-weight="700">"puppy"</text>
+  <text x="158" y="94" text-anchor="middle" font-size="9" font-family="monospace">#8912</text>
+
+  <rect x="214" y="62" width="72" height="38" rx="6" fill="#ffe3ef" stroke="#1c1a15" stroke-width="1.8"></rect>
+  <text x="250" y="81" text-anchor="middle" font-size="11" font-weight="700">"toaster"</text>
+  <text x="250" y="94" text-anchor="middle" font-size="9" font-family="monospace">#8913</text>
+
+  <line x1="102" y1="81" x2="122" y2="81" stroke="#d1345b" stroke-width="2" stroke-dasharray="3 3"></line>
+  <line x1="194" y1="81" x2="214" y2="81" stroke="#d1345b" stroke-width="2" stroke-dasharray="3 3"></line>
+
+  <text x="157" y="132" text-anchor="middle" font-size="11" fill="#d1345b" font-weight="700">❌ Zero semantic awareness</text>
+  <text x="157" y="152" text-anchor="middle" font-size="10.5" fill="#575046">#8912 and #8913 are adjacent numbers,</text>
+  <text x="157" y="170" text-anchor="middle" font-size="10.5" fill="#575046">but "puppy" and "toaster" have zero relation!</text>
+
+  <!-- Right Side: Continuous Vector Space -->
+  <rect x="335" y="15" width="295" height="190" rx="10" fill="#f6fff9" stroke="#1c1a15" stroke-width="2"></rect>
+  <text x="482" y="38" text-anchor="middle" font-size="12" font-weight="800">EMBEDDING SPACE: Semantic Map</text>
+
+  <!-- Animal Cluster -->
+  <ellipse cx="405" cy="95" rx="55" ry="38" fill="#dcf9e8" stroke="#2e9e5b" stroke-width="1.5" stroke-dasharray="4 4"></ellipse>
+  <text x="405" y="75" text-anchor="middle" font-size="9.5" font-weight="800" fill="#197a43">ANIMAL CLUSTER</text>
+  <circle cx="385" cy="100" r="4" fill="#1c1a15"></circle>
+  <text x="385" y="115" text-anchor="middle" font-size="10" font-weight="700">"dog"</text>
+  <circle cx="425" cy="96" r="4" fill="#1c1a15"></circle>
+  <text x="425" y="115" text-anchor="middle" font-size="10" font-weight="700">"puppy"</text>
+  <line x1="385" y1="100" x2="425" y2="96" stroke="#2e9e5b" stroke-width="1.8"></line>
+
+  <!-- Appliance Cluster -->
+  <ellipse cx="560" cy="115" rx="48" ry="32" fill="#fff4c2" stroke="#d49c00" stroke-width="1.5" stroke-dasharray="4 4"></ellipse>
+  <text x="560" y="100" text-anchor="middle" font-size="9.5" font-weight="800" fill="#a06000">APPLIANCES</text>
+  <circle cx="560" cy="125" r="4" fill="#1c1a15"></circle>
+  <text x="560" y="140" text-anchor="middle" font-size="10" font-weight="700">"toaster"</text>
+
+  <text x="482" y="165" text-anchor="middle" font-size="11" fill="#197a43" font-weight="700">✓ Meaning = Geometric Proximity</text>
+  <text x="482" y="183" text-anchor="middle" font-size="10.5" fill="#575046">"puppy" and "dog" are neighbors in space</text>
+</svg>
+<figcaption>raw token IDs are like zip codes (numbers with no meaning); embeddings position words on a semantic terrain</figcaption>
+</figure>
+
+<!-- ============================================================ -->
+<!-- 2. LAB 1: 3D VECTOR SPACE & POLYSEMY (APPLE, MOLE, ETC.) -->
+<!-- ============================================================ -->
+<h2>lab 1: 3d meaning space: one word, two divergent directions</h2>
+<p>In real AI models (like OpenAI's <code>text-embedding-3-small</code>), vectors live in <b>1,536 dimensions</b>. While human brains cannot picture 1,536 dimensions, the math is identical to <b>3D space</b> $(X, Y, Z)$!</p>
+<p>Let's map our 3D space to three intuitive semantic axes:</p>
+<ul>
+  <li><b>X-Axis (Red):</b> <i>Organic / Biology</i> $\longleftrightarrow$ <i>Technology / Manufactured</i></li>
+  <li><b>Y-Axis (Green):</b> <i>Living Creature</i> $\longleftrightarrow$ <i>Abstract Science / Corporate System</i></li>
+  <li><b>Z-Axis (Blue):</b> <i>Food / Consumption</i> $\longleftrightarrow$ <i>Espionage / Secret Tools</i></li>
+</ul>
+
+<p>Now look at <b>chameleon words</b> like <b>"apple"</b>, <b>"mole"</b>, <b>"bank"</b>, or <b>"bat"</b>. In the 3D space below, <b>both meanings are shown simultaneously</b> as separate arrows shooting from the origin $(0,0,0)$ in completely different directions:</p>
+
+<div class="lab-card" id="lab-3d-container">
+  <div class="lab-head">
+    <h3 class="lab-title"><span>🪐</span> 3D Meaning Space: See Dual Vectors at the Same Time!</h3>
+    <span class="lab-badge">interactive 3d</span>
+  </div>
+
+  <p style="margin:0 0 10px; font-size:13.5px; color:var(--ink-soft);">
+    <b>1. Pick a word</b> below. <b>2. Notice the two arrows pointing in different worlds</b> (e.g. Apple Fruit vs Apple Company) with the divergence angle arc between them. <b>3. Click &amp; drag the 3D canvas</b> to orbit around the origin in 360°!
+  </p>
+
+  <!-- Word Tabs -->
+  <div class="emb-tabs">
+    <button class="emb-tab-btn active" onclick="selectPolysemyPair('apple')">🍎 "Apple" (Fruit vs Company)</button>
+    <button class="emb-tab-btn" onclick="selectPolysemyPair('mole')">🐾 "Mole" (Animal vs Chemistry)</button>
+    <button class="emb-tab-btn" onclick="selectPolysemyPair('bank')">🏦 "Bank" (River vs Finance)</button>
+    <button class="emb-tab-btn" onclick="selectPolysemyPair('bat')">🦇 "Bat" (Mammal vs Baseball)</button>
+    <button class="emb-tab-btn" onclick="selectPolysemyPair('jaguar')">🐆 "Jaguar" (Predator vs Car)</button>
+  </div>
+
+  <!-- Dual Sentence Cards (Side by Side) -->
+  <div class="dual-sentence-grid" id="dual-sentence-display">
+    <!-- Populated by JS -->
+  </div>
+
+  <!-- Dynamic Explanation Box -->
+  <div id="vector-insight-banner" style="padding:10px 14px; background:#fff4c2; border:1.5px solid var(--ink); border-radius:8px; font-size:13.5px; margin-bottom:12px; line-height:1.5;">
+    <!-- Populated by JS -->
+  </div>
+
+  <!-- 3D Canvas Box -->
+  <div class="canvas-wrapper">
+    <div class="canvas-hint">🖱️ Click + Drag to rotate 3D view · Scroll to zoom</div>
+    <div class="canvas-legend">
+      <span style="color:#059669;">■ Vector A (Direction 1)</span>
+      <span style="color:#2563eb;">■ Vector B (Direction 2)</span>
+      <span style="color:#d97706;">■ Probe Vector</span>
+      <span style="color:#d1345b;">■ Axes X/Y/Z</span>
+    </div>
+    <canvas id="emb-3d-canvas" width="760" height="460"></canvas>
+  </div>
+
+  <!-- Camera Controls & View Filter -->
+  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-top:8px;">
+    <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+      <button class="preset-chip active" id="btn-view-both" onclick="setViewMode('both')">Show Both Directions</button>
+      <button class="preset-chip" id="btn-view-a" onclick="setViewMode('A')">Highlight Direction 1</button>
+      <button class="preset-chip" id="btn-view-b" onclick="setViewMode('B')">Highlight Direction 2</button>
+      <button class="preset-chip" onclick="reset3DCamera()">🔄 Reset 3D</button>
+      <label style="font-size:12px; font-family:var(--font-mono); display:flex; align-items:center; gap:5px; cursor:pointer;">
+        <input type="checkbox" id="emb-auto-rotate" checked="" onchange="toggleAutoRotate(this.checked)" /> Auto-spin 3D
+      </label>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px; font-size:12.5px; font-family:var(--font-mono);">
+      <span>Zoom:</span>
+      <input type="range" class="clean-range" id="zoom-slider" min="0.7" max="1.6" step="0.05" value="1.0" style="width:100px;" oninput="set3DZoom(this.value)" />
+    </div>
+  </div>
+
+  <!-- Interactive Sentence Probe Tester -->
+  <div style="margin:14px 0 8px; padding:12px 14px; background:var(--paper); border:1.5px solid var(--ink); border-radius:10px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+      <span style="font-family:var(--font-display); font-size:14px; font-weight:800;">
+        🎯 Test Context Pull: See Which Direction Captures Your Sentence!
+      </span>
+      <span class="lab-badge" id="probe-verdict-badge" style="background:#dcf9e8;">Aligned with Direction 1</span>
+    </div>
+    <div style="font-size:12px; color:var(--ink-soft); margin-bottom:6px;">
+      Click a sample phrase or type your own to watch the yellow probe arrow swing toward Fruit or Tech in 3D:
+    </div>
+    <div class="preset-wrap" id="probe-preset-buttons">
+      <!-- Populated by JS -->
+    </div>
+    <div style="display:flex; gap:10px; align-items:center; margin-top:8px;">
+      <input type="text" id="custom-probe-input" class="lab-input" placeholder="Type words with this concept (e.g. 'fresh sweet apple pie' or 'apple nasdaq stock')..." oninput="onCustomProbeInput(this.value)" />
+    </div>
+  </div>
+
+  <!-- Live Telemetry Grid -->
+  <div class="telemetry-grid">
+    <div class="telemetry-cell" style="border-left:4px solid #10b981;">
+      <div class="telemetry-label">Direction 1: Meaning A</div>
+      <div class="telemetry-val" id="tele-a-name">🍏 Apple (Fruit)</div>
+      <div style="font-size:11px; font-family:var(--font-mono); color:var(--ink-soft); margin-top:3px;" id="tele-a-coords">[X: +0.86, Y: -0.42, Z: +0.76]</div>
+      <div style="font-size:11px; font-family:var(--font-mono); margin-top:3px;" id="tele-a-cluster">Cluster: banana, orange, orchard, sweet</div>
+    </div>
+
+    <div class="telemetry-cell" style="text-align:center; background:#fffdf5; border-color:var(--ink);">
+      <div class="telemetry-label">3D Vector Divergence</div>
+      <div class="telemetry-val" id="tele-divergence-val" style="font-size:17px; color:#d1345b;">θ = 158.4°</div>
+      <div style="font-size:12px; font-family:var(--font-mono); font-weight:700; margin-top:2px;" id="tele-cos-val">Cosine: -0.930</div>
+      <div style="font-size:10px; color:var(--ink-soft); margin-top:2px;">Almost Opposite Directions in Space!</div>
+    </div>
+
+    <div class="telemetry-cell" style="border-left:4px solid #3b82f6;">
+      <div class="telemetry-label">Direction 2: Meaning B</div>
+      <div class="telemetry-val" id="tele-b-name">💻 Apple (Tech Co)</div>
+      <div style="font-size:11px; font-family:var(--font-mono); color:var(--ink-soft); margin-top:3px;" id="tele-b-coords">[X: -0.84, Y: +0.72, Z: -0.70]</div>
+      <div style="font-size:11px; font-family:var(--font-mono); margin-top:3px;" id="tele-b-cluster">Cluster: Microsoft, Google, iPhone, NASDAQ</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 3. LAB 2: COSINE SIMILARITY & THE PROTRACTOR -->
+<!-- ============================================================ -->
+<h2>lab 2: cosine similarity — why angles measure meaning</h2>
+<p>Once words are vectors, how do we tell if two words mean the same thing? You might guess: <i>"Just measure the straight-line ruler distance (Euclidean distance) between the points!"</i></p>
+
+<div class="callout gotcha">
+  <b class="label">🚨 the trap: why euclidean distance fails for text</b><br />
+  Suppose you have:
+  <ul>
+    <li>A <b>500-page book</b> about chocolate cake recipes.</li>
+    <li>A <b>1-sentence tweet</b>: <i>"Baking a yummy chocolate cake with cocoa!"</i></li>
+  </ul>
+  Because the book mentions chocolate words 5,000 times, its vector arrow is <b>enormously long</b>. The tweet's vector arrow is <b>very short</b>. The straight-line distance between their arrow tips is massive! But they are talking about the exact same topic!<br />
+  <b>Solution:</b> We ignore arrow length (magnitude) and look only at the <b>Angle $\theta$</b> between the arrows. That is <b>Cosine Similarity</b>!
+</div>
+
+<p>The mathematical formula is simple: normalize both arrows to length $1$ and compute their dot product:</p>
+<p style="text-align:center; font-size:18px; font-weight:700; margin:14px 0;">
+  $$\text{Cosine Similarity} = \cos(\theta) = \frac{\mathbf{u} \cdot \mathbf{v}}{\|\mathbf{u}\| \|\mathbf{v}\|}$$
+</p>
+
+<div class="lab-card" id="cosine-lab">
+  <div class="lab-head">
+    <h3 class="lab-title"><span>📐</span> Interactive Angle &amp; Similarity Protractor</h3>
+    <span class="lab-badge">interactive</span>
+  </div>
+
+  <p style="margin-top:0; font-size:13.5px; color:var(--ink-soft);">
+    Choose a comparison pair or adjust the angle slider to see how vector angle directly translates into semantic similarity:
+  </p>
+
+  <div class="preset-wrap">
+    <button class="preset-chip active" onclick="setAnglePreset('apple_banana')">apple (fruit) vs banana</button>
+    <button class="preset-chip" onclick="setAnglePreset('apple_msft')">apple (tech) vs microsoft</button>
+    <button class="preset-chip" onclick="setAnglePreset('apple_mismatch')">apple (fruit) vs iphone</button>
+    <button class="preset-chip" onclick="setAnglePreset('mole_chem')">mole (chem) vs atom</button>
+    <button class="preset-chip" onclick="setAnglePreset('mole_spy')">mole (spy) vs CIA agent</button>
+    <button class="preset-chip" onclick="setAnglePreset('mole_opp')">mole (spy) vs burrowing mole</button>
+    <button class="preset-chip" onclick="setAnglePreset('hot_cold')">hot vs cold (opposites)</button>
+  </div>
+
+  <!-- Angle Slider -->
+  <div class="slider-bar">
+    <div class="slider-meta">
+      <span>Vector Separation Angle ($\theta$):</span>
+      <span class="slider-badge" id="cos-angle-disp">18.0°</span>
+    </div>
+    <input type="range" class="clean-range" id="cos-angle-slider" min="0" max="180" value="18" oninput="onAngleSliderChange(this.value)" />
+  </div>
+
+  <!-- Similarity Meter -->
+  <div class="sim-meter">
+    <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:13px; font-weight:700;">
+      <span>Cosine Similarity: <b id="cos-score-val" style="font-size:15px; color:#197a43;">+0.951</b></span>
+      <span id="cos-verdict" class="lab-badge" style="background:var(--mint);">Nearly Identical Meaning</span>
+    </div>
+    <div class="sim-track">
+      <div class="sim-center-mark" title="Zero Correlation (90°)"></div>
+      <div class="sim-fill" id="cos-bar-fill" style="width: 97.5%;"></div>
+    </div>
+    <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:10.5px; color:var(--ink-soft); margin-top:2px;">
+      <span>-1.0 (Opposite: 180°)</span>
+      <span>0.0 (Unrelated / Orthogonal: 90°)</span>
+      <span>+1.0 (Identical Direction: 0°)</span>
+    </div>
+  </div>
+
+  <!-- 2D Protractor Visualizer Canvas -->
+  <div style="text-align:center; margin:14px auto 6px; max-width:440px;">
+    <canvas id="cos-protractor-canvas" width="440" height="220" style="border:1.5px solid var(--ink); border-radius:10px; background:#fff; box-shadow:2px 2px 0 var(--ink); width:100%; height:auto;"></canvas>
+  </div>
+
+  <div id="cos-insight-box" style="padding:10px 12px; background:var(--paper); border:1.5px solid var(--ink); border-radius:8px; font-size:13px; margin-top:8px;">
+    <!-- Set by JS -->
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 4. LAB 3: VECTOR ARITHMETIC (KING - MAN + WOMAN = QUEEN) -->
+<!-- ============================================================ -->
+<h2>lab 3: vector arithmetic — algebra on human ideas</h2>
+<p>Because embeddings place concepts in continuous geometric space, concepts have <b>direction vectors</b>. In 2013, researchers training Word2Vec discovered that basic addition and subtraction could solve analogies!</p>
+
+<figure class="emb-fig">
+<svg viewBox="0 0 640 200" role="img" aria-label="King minus Man plus Woman equals Queen">
+  <defs>
+    <marker id="arr-v" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1c1a15"></path>
+    </marker>
+  </defs>
+
+  <!-- Background grid subtle -->
+  <rect x="10" y="10" width="620" height="180" rx="10" fill="#fffdfa" stroke="#1c1a15" stroke-width="2"></rect>
+
+  <!-- Points -->
+  <!-- Man -->
+  <circle cx="100" cy="140" r="5" fill="#ff6b35"></circle>
+  <text x="100" y="162" text-anchor="middle" font-size="12" font-weight="700">"Man"</text>
+
+  <!-- King -->
+  <circle cx="230" cy="65" r="5" fill="#ff6b35"></circle>
+  <text x="230" y="52" text-anchor="middle" font-size="12" font-weight="700">"King"</text>
+
+  <!-- Royalty Vector (Man -> King) -->
+  <line x1="100" y1="140" x2="225" y2="68" stroke="#1c1a15" stroke-width="2.5" marker-end="url(#arr-v)"></line>
+  <text x="145" y="92" text-anchor="middle" font-size="11" font-family="monospace" font-weight="700" fill="#1c1a15">+Royalty vector</text>
+
+  <!-- Woman -->
+  <circle cx="390" cy="140" r="5" fill="#7df0b2"></circle>
+  <text x="390" y="162" text-anchor="middle" font-size="12" font-weight="700">"Woman"</text>
+
+  <!-- Gender step -->
+  <line x1="105" y1="140" x2="380" y2="140" stroke="#8b8a95" stroke-width="1.8" stroke-dasharray="4 4" marker-end="url(#arr-v)"></line>
+  <text x="245" y="132" text-anchor="middle" font-size="10.5" fill="#575046">+Female concept vector</text>
+
+  <!-- Queen -->
+  <circle cx="520" cy="65" r="6" fill="#ffe14d" stroke="#1c1a15" stroke-width="2"></circle>
+  <text x="520" y="50" text-anchor="middle" font-size="13" font-weight="800">"Queen" 👑</text>
+
+  <!-- Royalty Vector on Woman (Woman -> Queen) -->
+  <line x1="390" y1="140" x2="515" y2="68" stroke="#1c1a15" stroke-width="2.5" marker-end="url(#arr-v)"></line>
+  <text x="435" y="92" text-anchor="middle" font-size="11" font-family="monospace" font-weight="700" fill="#1c1a15">+Royalty vector</text>
+</svg>
+<figcaption>the parallel displacement: subtracting "man" removes gender; adding "woman" reattaches female gender at royal elevation</figcaption>
+</figure>
+
+<div class="lab-card" id="algebra-lab">
+  <div class="lab-head">
+    <h3 class="lab-title"><span>🧮</span> Vector Arithmetic Playground</h3>
+    <span class="lab-badge">interactive</span>
+  </div>
+
+  <p style="margin-top:0; font-size:13.5px; color:var(--ink-soft);">
+    Pick a classic semantic equation to watch the vector formula calculate the nearest word in vector space:
+  </p>
+
+  <div class="preset-wrap">
+    <button class="preset-chip active" onclick="setMathEquation('royalty')">King - Man + Woman = ?</button>
+    <button class="preset-chip" onclick="setMathEquation('capitals')">Paris - France + Japan = ?</button>
+    <button class="preset-chip" onclick="setMathEquation('apple_tech')">Apple - Fruit + Company = ?</button>
+    <button class="preset-chip" onclick="setMathEquation('mole_chem')">Mole - Animal + Science = ?</button>
+    <button class="preset-chip" onclick="setMathEquation('baby_animals')">Puppy - Dog + Cat = ?</button>
+  </div>
+
+  <div class="math-board" id="math-equation-display">
+    <!-- Populated by JS -->
+  </div>
+
+  <div id="math-explanation-box" style="padding:10px 14px; background:var(--paper); border:1.5px solid var(--ink); border-radius:8px; font-size:13.5px; line-height:1.5;">
+    <!-- Populated by JS -->
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 5. SUMMARY TABLE -->
+<!-- ============================================================ -->
+<h2>summary: token id vs one-hot vs dense embedding</h2>
+
+<table>
+  <tr>
+    <th>Method</th>
+    <th>Format Example</th>
+    <th>Dimensions</th>
+    <th>Knows Meaning?</th>
+  </tr>
+  <tr>
+    <td><b>Token ID</b></td>
+    <td><code>#4219</code> (Integer)</td>
+    <td>1 single number</td>
+    <td>❌ No. Completely arbitrary index from BPE dictionary.</td>
+  </tr>
+  <tr>
+    <td><b>One-Hot Vector</b></td>
+    <td><code>[0, 0, 0, 1, 0, ..., 0]</code></td>
+    <td>100,000+ (vocabulary size)</td>
+    <td>❌ No. All words are equidistant and orthogonal to each other.</td>
+  </tr>
+  <tr>
+    <td><b>Dense Embedding</b></td>
+    <td><code>[0.34, -0.81, 0.12, ...]</code></td>
+    <td>768 to 4,096 continuous floats</td>
+    <td>✅ Yes! Geometry preserves nuances, analogies, and semantic clusters.</td>
+  </tr>
+</table>
+
+<!-- ============================================================ -->
+<!-- QUIZ -->
+<!-- ============================================================ -->
+<h2>quick check: test your intuition</h2>
+
+<details class="callout try" style="margin:10px 0; cursor:pointer;">
+  <summary style="font-weight:700;">1. Why can't we just measure distance between words with a regular ruler (Euclidean distance)?</summary>
+  <div style="margin-top:8px; font-size:14px; color:var(--ink-soft);">
+    Because longer documents or higher word frequencies stretch the vector arrow outward without changing its conceptual topic. By using <b>Cosine Similarity</b>, we only compare the <i>direction</i> the arrow points, rendering the comparison immune to length differences.
+  </div>
+</details>
+
+<details class="callout try" style="margin:10px 0; cursor:pointer;">
+  <summary style="font-weight:700;">2. How does a modern LLM handle a word like "apple" that has two completely different meanings?</summary>
+  <div style="margin-top:8px; font-size:14px; color:var(--ink-soft);">
+    Through <b>contextual embeddings</b>! In modern Transformer architectures, the surrounding words (e.g. <i>"pie, cinnamon"</i> vs <i>"iPhone, NASDAQ"</i>) pull and rotate the word's vector toward the appropriate semantic cluster before generation begins.
+  </div>
+</details>
+
+<details class="callout try" style="margin:10px 0; cursor:pointer;">
+  <summary style="font-weight:700;">3. How does this lead directly into our next topic: Attention?</summary>
+  <div style="margin-top:8px; font-size:14px; color:var(--ink-soft);">
+    Embeddings give every word an initial vector in space. <b>Attention</b> is the dynamic flashlight mechanism where vectors compute dot products against each other to decide how much they should update their positions based on surrounding words!
+  </div>
+</details>
+
+<!-- Next topic banner -->
+<div class="next-topic-banner">
+  <div>
+    <div style="font-size:12px; font-family:var(--font-mono); font-weight:700; color:var(--ink-soft);">UP NEXT · TOPIC 03</div>
+    <div style="font-size:17px; font-weight:800; font-family:var(--font-display); margin-top:2px;">Attention: The Brain's Flashlight</div>
+  </div>
+  <a class="btn yellow" href="/courses/genai-agentic-ai/attention">Go to Attention Notes →</a>
+</div>
+
+<!-- ============================================================ -->
+<!-- JAVASCRIPT: 3D VECTOR SPACE, COSINE PROTRACTOR & ALGEBRA -->
+<!-- ============================================================ -->
+<script>
+(function() {
+  // ─────────────────────────────────────────────────────────────
+  // 1. DUAL-DIRECTION 3D VECTOR SPACE CANVAS & POLYSEMY PROBE
+  // ─────────────────────────────────────────────────────────────
+  var canvas = document.getElementById("emb-3d-canvas");
+  if (!canvas) return;
+  var ctx = canvas.getContext("2d");
+
+  // High DPI scaling
+  var dpr = window.devicePixelRatio || 1;
+  var width = canvas.width;
+  var height = canvas.height;
+
+  // 3D Camera State
+  var camYaw = 0.75;    // Horizontal rotation
+  var camPitch = 0.30;  // Vertical rotation
+  var camZoom = 1.0;
+  var autoSpin = true;
+  var isDragging = false;
+  var lastMouseX = 0;
+  var lastMouseY = 0;
+
+  var viewMode = "both"; // 'both', 'A', 'B'
+
+  // Polysemy Database with explicit opposing directions
+  var polysemyPairs = {
+    apple: {
+      word: "apple",
+      title: "Apple",
+      iconA: "🍏",
+      iconB: "💻",
+      meaningA: {
+        name: "Apple (Fruit)",
+        short: "Fruit",
+        badge: "🍏 Direction 1: Fruit & Nature",
+        color: "#10b981", // emerald
+        target: { x: 0.86, y: -0.42, z: 0.76 },
+        sentence: "I baked a fresh pie with green apple slices.",
+        desc: "🍎 <b>Fruit Direction:</b> In a kitchen or agricultural context, the word points into <b>Organic &amp; Food</b> space, right alongside banana, orange, and orchard.",
+        cluster: "banana, orange, orchard, sweet, pie",
+        landmarks: [
+          { text: "banana", pos: { x: 0.80, y: -0.38, z: 0.72 } },
+          { text: "orange", pos: { x: 0.88, y: -0.45, z: 0.70 } },
+          { text: "orchard", pos: { x: 0.78, y: -0.50, z: 0.82 } }
+        ]
+      },
+      meaningB: {
+        name: "Apple (Tech Co)",
+        short: "Tech Co",
+        badge: "💻 Direction 2: Tech & Corporate",
+        color: "#3b82f6", // blue
+        target: { x: -0.84, y: 0.72, z: -0.70 },
+        sentence: "Traders bought stock when Apple revealed the new iPad.",
+        desc: "💻 <b>Tech Co Direction:</b> In a business or gadget context, the exact same word swings 158° toward Silicon Valley tech giants, right alongside Microsoft, Google, and NASDAQ!",
+        cluster: "Microsoft, Google, iPhone, NASDAQ, MacBook",
+        landmarks: [
+          { text: "Microsoft", pos: { x: -0.80, y: 0.76, z: -0.66 } },
+          { text: "iPhone", pos: { x: -0.88, y: 0.68, z: -0.74 } },
+          { text: "NASDAQ", pos: { x: -0.74, y: 0.80, z: -0.72 } }
+        ]
+      },
+      probes: [
+        { label: "grandma's apple pie", text: "grandma's homemade apple pie with cinnamon", align: "A", score: 0.98 },
+        { label: "apple stock earnings", text: "apple stock surged on quarterly earnings day", align: "B", score: 0.97 },
+        { label: "apple orchard harvest", text: "autumn apple orchard fruit harvest in the sun", align: "A", score: 0.96 },
+        { label: "apple m3 macbook", text: "apple m3 chip macbook pro laptop announcement", align: "B", score: 0.99 }
+      ]
+    },
+    mole: {
+      word: "mole",
+      title: "Mole",
+      iconA: "🦔",
+      iconB: "🧪",
+      meaningA: {
+        name: "Mole (Animal)",
+        short: "Animal",
+        badge: "🦔 Direction 1: Burrowing Mammal",
+        color: "#10b981",
+        target: { x: 0.85, y: -0.82, z: -0.45 },
+        sentence: "The underground mole dug intricate tunnels beneath the garden lawn.",
+        desc: "🦔 <b>Animal Direction:</b> Subterranean burrowing mammal with velvety fur, small eyes, and spade-like digging claws living underground.",
+        cluster: "burrow, rodent, claws, soil, mammal, lawn",
+        landmarks: [
+          { text: "burrow", pos: { x: 0.82, y: -0.78, z: -0.42 } },
+          { text: "claws", pos: { x: 0.88, y: -0.84, z: -0.46 } }
+        ]
+      },
+      meaningB: {
+        name: "Mole (Chemistry)",
+        short: "Chemistry",
+        badge: "🧪 Direction 2: Chemistry (6.022×10²³)",
+        color: "#8b5cf6", // purple
+        target: { x: -0.42, y: 0.92, z: -0.68 },
+        sentence: "One mole of carbon contains exactly 6.022 × 10²³ atoms.",
+        desc: "🧪 <b>Chemistry Direction:</b> The fundamental scientific SI unit for amount of substance, tied to Avogadro's constant and atomic mass.",
+        cluster: "Avogadro, atoms, mass, grams, stoichiometry",
+        landmarks: [
+          { text: "Avogadro", pos: { x: -0.38, y: 0.95, z: -0.65 } },
+          { text: "atoms", pos: { x: -0.45, y: 0.88, z: -0.70 } }
+        ]
+      },
+      probes: [
+        { label: "blind mole in dirt", text: "the blind mole lives in deep dirt burrows", align: "A", score: 0.97 },
+        { label: "2.5 moles of carbon", text: "calculate the mass of 2.5 moles of carbon atoms", align: "B", score: 0.98 },
+        { label: "lawn molehills", text: "garden lawn covered with fresh dirt molehills", align: "A", score: 0.95 },
+        { label: "avogadro constant", text: "avogadro constant per mole of chemical particles", align: "B", score: 0.99 }
+      ]
+    },
+    bank: {
+      word: "bank",
+      title: "Bank",
+      iconA: "🌊",
+      iconB: "🏦",
+      meaningA: {
+        name: "Bank (River Edge)",
+        short: "River Edge",
+        badge: "🌊 Direction 1: River Shoreline",
+        color: "#06b6d4", // cyan
+        target: { x: 0.88, y: -0.52, z: 0.40 },
+        sentence: "We pitched our tents and fished along the muddy river bank.",
+        desc: "🌊 <b>River Shoreline Direction:</b> The sloping land alongside a body of flowing water, surrounded by mud, reeds, and riparian flora.",
+        cluster: "river, shoreline, stream, mud, water, creek",
+        landmarks: [
+          { text: "river", pos: { x: 0.84, y: -0.48, z: 0.38 } },
+          { text: "shoreline", pos: { x: 0.90, y: -0.54, z: 0.42 } }
+        ]
+      },
+      meaningB: {
+        name: "Bank (Financial Vault)",
+        short: "Finance",
+        badge: "🏦 Direction 2: Financial Vault",
+        color: "#f59e0b", // amber
+        target: { x: -0.82, y: 0.82, z: -0.62 },
+        sentence: "I visited the central bank to deposit funds and pay off the mortgage.",
+        desc: "🏦 <b>Finance Direction:</b> Financial institution licensed to receive monetary deposits, issue loans, and handle credit accounts.",
+        cluster: "vault, loan, interest, ATM, cash, deposit",
+        landmarks: [
+          { text: "vault", pos: { x: -0.80, y: 0.85, z: -0.60 } },
+          { text: "loan", pos: { x: -0.85, y: 0.78, z: -0.65 } }
+        ]
+      },
+      probes: [
+        { label: "fishing on river bank", text: "fishing on the grassy river bank with a rod", align: "A", score: 0.98 },
+        { label: "withdrew bank cash", text: "withdrew hundred dollar bills from bank vault", align: "B", score: 0.98 },
+        { label: "flooded river bank", text: "stream overflowing the green river bank in spring", align: "A", score: 0.96 },
+        { label: "central bank rates", text: "central bank raised loan interest rates this month", align: "B", score: 0.99 }
+      ]
+    },
+    bat: {
+      word: "bat",
+      title: "Bat",
+      iconA: "🦇",
+      iconB: "⚾",
+      meaningA: {
+        name: "Bat (Mammal)",
+        short: "Mammal",
+        badge: "🦇 Direction 1: Cave Creature",
+        color: "#10b981",
+        target: { x: 0.80, y: -0.75, z: -0.40 },
+        sentence: "The nocturnal bat flew out of the limestone cave using echolocation.",
+        desc: "🦇 <b>Flying Mammal Direction:</b> Nocturnal mammal with webbed wings capable of true flight and high-frequency sonar navigation.",
+        cluster: "wings, nocturnal, sonar, cave, mammal",
+        landmarks: [
+          { text: "wings", pos: { x: 0.78, y: -0.72, z: -0.38 } },
+          { text: "cave", pos: { x: 0.82, y: -0.78, z: -0.44 } }
+        ]
+      },
+      meaningB: {
+        name: "Bat (Baseball)",
+        short: "Baseball",
+        badge: "⚾ Direction 2: Baseball Equipment",
+        color: "#f97316", // orange
+        target: { x: -0.70, y: -0.18, z: 0.84 },
+        sentence: "The batter stepped up to home plate swinging a solid wooden bat.",
+        desc: "⚾ <b>Sports Direction:</b> Smooth wooden or aluminum club used in baseball, cricket, and softball to strike pitched balls.",
+        cluster: "baseball, homerun, pitch, dugout, strike",
+        landmarks: [
+          { text: "baseball", pos: { x: -0.68, y: -0.15, z: 0.82 } },
+          { text: "homerun", pos: { x: -0.72, y: -0.22, z: 0.86 } }
+        ]
+      },
+      probes: [
+        { label: "cave bat wings", text: "bats hanging upside down in the dark cave roof", align: "A", score: 0.98 },
+        { label: "home run bat", text: "he hit a grand slam home run with the maple bat", align: "B", score: 0.98 },
+        { label: "fruit bat sonar", text: "fruit bat sonar navigation in twilight forest", align: "A", score: 0.96 },
+        { label: "wooden baseball bat", text: "the umpire checked the wooden baseball bat", align: "B", score: 0.99 }
+      ]
+    },
+    jaguar: {
+      word: "jaguar",
+      title: "Jaguar",
+      iconA: "🐆",
+      iconB: "🏎️",
+      meaningA: {
+        name: "Jaguar (Predator)",
+        short: "Predator",
+        badge: "🐆 Direction 1: Jungle Cat",
+        color: "#10b981",
+        target: { x: 0.88, y: -0.72, z: -0.35 },
+        sentence: "The spotted jaguar stalked its prey silently through the rainforest.",
+        desc: "🐆 <b>Predator Direction:</b> Carnivorous apex feline of the Americas with powerful bite and rosette patterned coat.",
+        cluster: "leopard, predator, rainforest, claws, feline",
+        landmarks: [
+          { text: "leopard", pos: { x: 0.85, y: -0.70, z: -0.32 } },
+          { text: "rainforest", pos: { x: 0.90, y: -0.75, z: -0.38 } }
+        ]
+      },
+      meaningB: {
+        name: "Jaguar (Luxury Car)",
+        short: "Sports Car",
+        badge: "🏎️ Direction 2: Sports Automobile",
+        color: "#ef4444", // red
+        target: { x: -0.82, y: 0.65, z: -0.75 },
+        sentence: "He accelerated down the highway in his supercharged Jaguar coupe.",
+        desc: "🏎️ <b>Automotive Direction:</b> Luxury performance sports car marque engineered in Britain.",
+        cluster: "Porsche, Ferrari, coupe, engine, horsepower",
+        landmarks: [
+          { text: "Porsche", pos: { x: -0.80, y: 0.68, z: -0.72 } },
+          { text: "coupe", pos: { x: -0.85, y: 0.62, z: -0.78 } }
+        ]
+      },
+      probes: [
+        { label: "rainforest predator", text: "jaguar hunting wild tapir in the deep rainforest", align: "A", score: 0.98 },
+        { label: "v8 supercharged car", text: "parked his metallic jaguar v8 sports coupe outside", align: "B", score: 0.98 }
+      ]
+    }
+  };
+
+  var activePairKey = "apple";
+
+  // Vector Interpolation Targets
+  var vecA = { x: 0.86, y: -0.42, z: 0.76 };
+  var vecB = { x: -0.84, y: 0.72, z: -0.70 };
+  var probeVec = { x: 0.86, y: -0.42, z: 0.76 };
+  var targetProbeVec = { x: 0.86, y: -0.42, z: 0.76 };
+  var probeActive = true;
+  var probeText = "grandma's homemade apple pie";
+
+  // 3D Projection Helpers
+  function project3D(p) {
+    // 1. Rotate around Y (Yaw)
+    var cosY = Math.cos(camYaw);
+    var sinY = Math.sin(camYaw);
+    var x1 = p.x * cosY + p.z * sinY;
+    var y1 = p.y;
+    var z1 = -p.x * sinY + p.z * cosY;
+
+    // 2. Rotate around X (Pitch)
+    var cosX = Math.cos(camPitch);
+    var sinX = Math.sin(camPitch);
+    var x2 = x1;
+    var y2 = y1 * cosX - z1 * sinX;
+    var z2 = y1 * sinX + z1 * cosX;
+
+    // 3. Perspective Projection
+    var fov = 420 * camZoom;
+    var distance = 3.5;
+    var factor = fov / (distance + z2);
+
+    return {
+      x: width / 2 + x2 * factor,
+      y: height / 2 - y2 * factor,
+      depth: z2
+    };
+  }
+
+  // Draw 3D Axes & Coordinate Grid
+  function draw3DAxes() {
+    var origin = project3D({ x: 0, y: 0, z: 0 });
+
+    // Grid on X-Z ground plane
+    ctx.strokeStyle = "rgba(28,26,21,0.08)";
+    ctx.lineWidth = 1;
+    for (var g = -1; g <= 1; g += 0.5) {
+      var p1 = project3D({ x: -1, y: 0, z: g });
+      var p2 = project3D({ x: 1, y: 0, z: g });
+      ctx.beginPath();
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
+      ctx.stroke();
+
+      var q1 = project3D({ x: g, y: 0, z: -1 });
+      var q2 = project3D({ x: g, y: 0, z: 1 });
+      ctx.beginPath();
+      ctx.moveTo(q1.x, q1.y);
+      ctx.lineTo(q2.x, q2.y);
+      ctx.stroke();
+    }
+
+    // Axes
+    var axes = [
+      { end: { x: 1.15, y: 0, z: 0 }, color: "#d1345b", label: "+X (Organic)" },
+      { end: { x: -1.15, y: 0, z: 0 }, color: "#d1345b", label: "-X (Tech)" },
+      { end: { x: 0, y: 1.15, z: 0 }, color: "#197a43", label: "+Y (Abstract)" },
+      { end: { x: 0, y: -1.15, z: 0 }, color: "#197a43", label: "-Y (Living)" },
+      { end: { x: 0, y: 0, z: 1.15 }, color: "#2060df", label: "+Z (Espionage/Food)" },
+      { end: { x: 0, y: 0, z: -1.15 }, color: "#2060df", label: "-Z (Tools)" }
+    ];
+
+    axes.forEach(function(a) {
+      var ep = project3D(a.end);
+      ctx.strokeStyle = a.color;
+      ctx.lineWidth = 1.2;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(origin.x, origin.y);
+      ctx.lineTo(ep.x, ep.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.font = "9.5px monospace";
+      ctx.fillStyle = a.color;
+      ctx.fillText(a.label, ep.x + 4, ep.y + 4);
+    });
+
+    // Origin pivot
+    ctx.fillStyle = "#1c1a15";
+    ctx.beginPath();
+    ctx.arc(origin.x, origin.y, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.font = "9px monospace";
+    ctx.fillText("Origin (0,0,0)", origin.x + 6, origin.y - 5);
+  }
+
+  // Draw 3D Vector Arrow from origin to Target
+  function drawVectorArrow(to3D, color, labelText, isDimmed, pulse) {
+    var pFrom = project3D({ x: 0, y: 0, z: 0 });
+    var pTo = project3D(to3D);
+
+    ctx.save();
+    if (isDimmed) {
+      ctx.globalAlpha = 0.22;
+    }
+
+    // Outer dark outline
+    ctx.strokeStyle = "#1c1a15";
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(pFrom.x, pFrom.y);
+    ctx.lineTo(pTo.x, pTo.y);
+    ctx.stroke();
+
+    // Vibrant arrow core
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(pFrom.x, pFrom.y);
+    ctx.lineTo(pTo.x, pTo.y);
+    ctx.stroke();
+
+    // Arrowhead calculations in 2D projection
+    var angle = Math.atan2(pTo.y - pFrom.y, pTo.x - pFrom.x);
+    var headLen = 15;
+
+    ctx.fillStyle = color;
+    ctx.strokeStyle = "#1c1a15";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(pTo.x, pTo.y);
+    ctx.lineTo(pTo.x - headLen * Math.cos(angle - Math.PI / 7), pTo.y - headLen * Math.sin(angle - Math.PI / 7));
+    ctx.lineTo(pTo.x - headLen * Math.cos(angle + Math.PI / 7), pTo.y - headLen * Math.sin(angle + Math.PI / 7));
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Pulsing tip badge
+    ctx.beginPath();
+    ctx.arc(pTo.x, pTo.y, pulse ? 7 : 5, 0, Math.PI * 2);
+    ctx.fillStyle = "#fff";
+    ctx.fill();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+    // Word Pill Label in 3D
+    ctx.font = "bold 12px monospace";
+    var tw = ctx.measureText(labelText).width;
+    var bx = pTo.x - tw / 2 - 8;
+    var by = pTo.y - 30;
+
+    ctx.fillStyle = "#fff";
+    ctx.strokeStyle = "#1c1a15";
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.roundRect(bx, by, tw + 16, 22, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = color;
+    ctx.fillText(labelText, bx + 8, by + 15);
+
+    ctx.restore();
+  }
+
+  // Draw 3D Semantic Cluster Halo around vector tips
+  function drawClusterOrbit(center3D, landmarks, color, isDimmed) {
+    ctx.save();
+    if (isDimmed) ctx.globalAlpha = 0.22;
+
+    // Draw neighbor landmark points
+    (landmarks || []).forEach(function(lm) {
+      var p = project3D(lm.pos);
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#1c1a15";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.fillStyle = "#575046";
+      ctx.font = "9.5px monospace";
+      ctx.fillText(lm.text, p.x + 5, p.y + 3);
+    });
+
+    ctx.restore();
+  }
+
+  // Draw 3D Arc between Vector A and Vector B
+  function draw3DAngleArc(vA, vB) {
+    var magA = Math.sqrt(vA.x * vA.x + vA.y * vA.y + vA.z * vA.z);
+    var magB = Math.sqrt(vB.x * vB.x + vB.y * vB.y + vB.z * vB.z);
+    if (magA < 0.001 || magB < 0.001) return;
+
+    var dot = (vA.x * vB.x + vA.y * vB.y + vA.z * vB.z) / (magA * magB);
+    dot = Math.max(-1, Math.min(1, dot));
+    var angleRad = Math.acos(dot);
+    var angleDeg = (angleRad * 180) / Math.PI;
+
+    if (viewMode !== "both") return; // Only show arc when comparing both
+
+    // Spherical arc points in 3D (radius = 0.42)
+    var arcRadius = 0.45;
+    var steps = 18;
+    var points2D = [];
+
+    var sinAngle = Math.sin(angleRad);
+    if (Math.abs(sinAngle) < 0.001) return;
+
+    for (var i = 0; i <= steps; i++) {
+      var t = i / steps;
+      var wA = Math.sin((1 - t) * angleRad) / sinAngle;
+      var wB = Math.sin(t * angleRad) / sinAngle;
+
+      var px = (wA * (vA.x / magA) + wB * (vB.x / magB)) * arcRadius;
+      var py = (wA * (vA.y / magA) + wB * (vB.y / magB)) * arcRadius;
+      var pz = (wA * (vA.z / magA) + wB * (vB.z / magB)) * arcRadius;
+
+      points2D.push(project3D({ x: px, y: py, z: pz }));
+    }
+
+    // Draw arc line
+    ctx.strokeStyle = "#ffe14d";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    points2D.forEach(function(p, idx) {
+      if (idx === 0) ctx.moveTo(p.x, p.y);
+      else ctx.lineTo(p.x, p.y);
+    });
+    ctx.stroke();
+
+    ctx.strokeStyle = "#1c1a15";
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    points2D.forEach(function(p, idx) {
+      if (idx === 0) ctx.moveTo(p.x, p.y);
+      else ctx.lineTo(p.x, p.y);
+    });
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Midpoint Divergence Badge in 3D
+    var midP = points2D[Math.floor(points2D.length / 2)];
+    var badgeText = "Divergence θ=" + angleDeg.toFixed(1) + "°";
+    ctx.font = "bold 11px monospace";
+    var tw = ctx.measureText(badgeText).width;
+
+    var bx = midP.x - tw / 2 - 6;
+    var by = midP.y - 12;
+
+    ctx.fillStyle = "#fff4c2";
+    ctx.strokeStyle = "#1c1a15";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(bx, by, tw + 12, 20, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = "#d1345b";
+    ctx.fillText(badgeText, bx + 6, by + 14);
+  }
+
+  // Draw Probe Vector in 3D
+  function drawProbeVector() {
+    if (!probeActive) return;
+    var pFrom = project3D({ x: 0, y: 0, z: 0 });
+    var pTo = project3D(probeVec);
+
+    ctx.strokeStyle = "#1c1a15";
+    ctx.lineWidth = 4.5;
+    ctx.beginPath();
+    ctx.moveTo(pFrom.x, pFrom.y);
+    ctx.lineTo(pTo.x, pTo.y);
+    ctx.stroke();
+
+    ctx.strokeStyle = "#ffe14d";
+    ctx.lineWidth = 2.8;
+    ctx.beginPath();
+    ctx.moveTo(pFrom.x, pFrom.y);
+    ctx.lineTo(pTo.x, pTo.y);
+    ctx.stroke();
+
+    // Arrowhead
+    var angle = Math.atan2(pTo.y - pFrom.y, pTo.x - pFrom.x);
+    var headLen = 13;
+    ctx.fillStyle = "#ffe14d";
+    ctx.strokeStyle = "#1c1a15";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(pTo.x, pTo.y);
+    ctx.lineTo(pTo.x - headLen * Math.cos(angle - Math.PI / 7), pTo.y - headLen * Math.sin(angle - Math.PI / 7));
+    ctx.lineTo(pTo.x - headLen * Math.cos(angle + Math.PI / 7), pTo.y - headLen * Math.sin(angle + Math.PI / 7));
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Probe Label
+    ctx.font = "bold 11px monospace";
+    var text = "🎯 Probe: \"" + (probeText.length > 22 ? probeText.slice(0, 22) + "…" : probeText) + "\"";
+    var tw = ctx.measureText(text).width;
+    var bx = pTo.x - tw / 2 - 8;
+    var by = pTo.y + 14;
+
+    ctx.fillStyle = "#ffe14d";
+    ctx.strokeStyle = "#1c1a15";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(bx, by, tw + 16, 20, 5);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = "#1c1a15";
+    ctx.fillText(text, bx + 8, by + 14);
+  }
+
+  // Main 3D Render Loop
+  function render3D() {
+    ctx.clearRect(0, 0, width, height);
+
+    // Auto-spin logic
+    if (autoSpin && !isDragging) {
+      camYaw += 0.0035;
+    }
+
+    // Smooth Probe Interpolation
+    probeVec.x += (targetProbeVec.x - probeVec.x) * 0.12;
+    probeVec.y += (targetProbeVec.y - probeVec.y) * 0.12;
+    probeVec.z += (targetProbeVec.z - probeVec.z) * 0.12;
+
+    var pair = polysemyPairs[activePairKey];
+
+    draw3DAxes();
+
+    // Draw Vector A (Direction 1)
+    var isDimA = viewMode === "B";
+    drawClusterOrbit(pair.meaningA.target, pair.meaningA.landmarks, pair.meaningA.color, isDimA);
+    drawVectorArrow(pair.meaningA.target, pair.meaningA.color, pair.iconA + " " + pair.meaningA.name, isDimA, false);
+
+    // Draw Vector B (Direction 2)
+    var isDimB = viewMode === "A";
+    drawClusterOrbit(pair.meaningB.target, pair.meaningB.landmarks, pair.meaningB.color, isDimB);
+    drawVectorArrow(pair.meaningB.target, pair.meaningB.color, pair.iconB + " " + pair.meaningB.name, isDimB, false);
+
+    // Draw 3D Angle Arc connecting the two vectors
+    draw3DAngleArc(pair.meaningA.target, pair.meaningB.target);
+
+    // Draw Probe Vector
+    drawProbeVector();
+
+    requestAnimationFrame(render3D);
+  }
+
+  // Mouse & Touch Orbit Listeners
+  canvas.addEventListener("mousedown", function(e) {
+    isDragging = true;
+    lastMouseX = e.clientX;
+    lastMouseY = e.clientY;
+  });
+
+  window.addEventListener("mouseup", function() {
+    isDragging = false;
+  });
+
+  window.addEventListener("mousemove", function(e) {
+    if (!isDragging) return;
+    var dx = e.clientX - lastMouseX;
+    var dy = e.clientY - lastMouseY;
+    lastMouseX = e.clientX;
+    lastMouseY = e.clientY;
+
+    camYaw += dx * 0.008;
+    camPitch = Math.max(-1.4, Math.min(1.4, camPitch + dy * 0.008));
+  });
+
+  // Touch handlers for mobile
+  canvas.addEventListener("touchstart", function(e) {
+    if (e.touches.length === 1) {
+      isDragging = true;
+      lastMouseX = e.touches[0].clientX;
+      lastMouseY = e.touches[0].clientY;
+    }
+  }, { passive: true });
+
+  window.addEventListener("touchend", function() {
+    isDragging = false;
+  });
+
+  window.addEventListener("touchmove", function(e) {
+    if (!isDragging || e.touches.length !== 1) return;
+    var dx = e.touches[0].clientX - lastMouseX;
+    var dy = e.touches[0].clientY - lastMouseY;
+    lastMouseX = e.touches[0].clientX;
+    lastMouseY = e.touches[0].clientY;
+
+    camYaw += dx * 0.008;
+    camPitch = Math.max(-1.4, Math.min(1.4, camPitch + dy * 0.008));
+  }, { passive: true });
+
+  // Zoom
+  canvas.addEventListener("wheel", function(e) {
+    e.preventDefault();
+    var delta = e.deltaY > 0 ? -0.05 : 0.05;
+    camZoom = Math.max(0.6, Math.min(1.8, camZoom + delta));
+    var zSlider = document.getElementById("zoom-slider");
+    if (zSlider) zSlider.value = camZoom;
+  }, { passive: false });
+
+  window.set3DZoom = function(val) {
+    camZoom = parseFloat(val);
+  };
+
+  window.reset3DCamera = function() {
+    camYaw = 0.75;
+    camPitch = 0.30;
+    camZoom = 1.0;
+    var zSlider = document.getElementById("zoom-slider");
+    if (zSlider) zSlider.value = 1.0;
+  };
+
+  window.toggleAutoRotate = function(val) {
+    autoSpin = !!val;
+  };
+
+  window.setViewMode = function(mode) {
+    viewMode = mode;
+    var btnBoth = document.getElementById("btn-view-both");
+    var btnA = document.getElementById("btn-view-a");
+    var btnB = document.getElementById("btn-view-b");
+    if (btnBoth) btnBoth.className = mode === "both" ? "preset-chip active" : "preset-chip";
+    if (btnA) btnA.className = mode === "A" ? "preset-chip active" : "preset-chip";
+    if (btnB) btnB.className = mode === "B" ? "preset-chip active" : "preset-chip";
+
+    // Update sentence card highlight
+    var cardA = document.getElementById("sentence-card-a");
+    var cardB = document.getElementById("sentence-card-b");
+    if (cardA) cardA.className = "sentence-card card-a" + (mode === "A" ? " active-focus" : "");
+    if (cardB) cardB.className = "sentence-card card-b" + (mode === "B" ? " active-focus" : "");
+  };
+
+  // Pair Selection
+  window.selectPolysemyPair = function(key) {
+    activePairKey = key;
+    var pair = polysemyPairs[key];
+    if (!pair) return;
+
+    // Update tabs
+    var tabs = document.querySelectorAll(".emb-tab-btn");
+    tabs.forEach(function(t) {
+      if (t.textContent.toLowerCase().indexOf(key) !== -1) {
+        t.className = "emb-tab-btn active";
+      } else {
+        t.className = "emb-tab-btn";
+      }
+    });
+
+    viewMode = "both";
+    window.setViewMode("both");
+
+    renderDualSentenceCards();
+    renderProbeButtons();
+    updateTelemetry();
+
+    // Default probe to first sample
+    if (pair.probes && pair.probes.length > 0) {
+      window.setProbeSentence(0);
+    }
+  };
+
+  function renderDualSentenceCards() {
+    var cont = document.getElementById("dual-sentence-display");
+    if (!cont) return;
+    var pair = polysemyPairs[activePairKey];
+
+    var mA = pair.meaningA;
+    var mB = pair.meaningB;
+
+    var html =
+      "<div class='sentence-card card-a' id='sentence-card-a' onclick='setViewMode(\"A\")'>" +
+        "<div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;'>" +
+          "<span class='lab-badge' style='background:#dcf9e8; color:#065f46; border-color:#059669; font-size:11.5px;'>" +
+            mA.badge +
+          "</span>" +
+          "<span style='font-family:var(--font-mono); font-size:11px; font-weight:700; color:#059669;'>Vector A ➔</span>" +
+        "</div>" +
+        "<div style='font-size:14.5px; font-family:var(--font-display); line-height:1.4; margin:6px 0;'>" +
+          "\"" + highlightKeyword(mA.sentence, pair.word, "#7df0b2") + "\"" +
+        "</div>" +
+        "<div style='font-size:11.5px; color:var(--ink-soft); font-family:var(--font-mono); margin-top:4px;'>" +
+          "📍 Coords: <b>[X: " + formatCoord(mA.target.x) + ", Y: " + formatCoord(mA.target.y) + ", Z: " + formatCoord(mA.target.z) + "]</b>" +
+        "</div>" +
+      "</div>" +
+
+      "<div class='sentence-card card-b' id='sentence-card-b' onclick='setViewMode(\"B\")'>" +
+        "<div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;'>" +
+          "<span class='lab-badge' style='background:#e0f2fe; color:#0369a1; border-color:#0284c7; font-size:11.5px;'>" +
+            mB.badge +
+          "</span>" +
+          "<span style='font-family:var(--font-mono); font-size:11px; font-weight:700; color:#0284c7;'>Vector B ➔</span>" +
+        "</div>" +
+        "<div style='font-size:14.5px; font-family:var(--font-display); line-height:1.4; margin:6px 0;'>" +
+          "\"" + highlightKeyword(mB.sentence, pair.word, "#a8d8ff") + "\"" +
+        "</div>" +
+        "<div style='font-size:11.5px; color:var(--ink-soft); font-family:var(--font-mono); margin-top:4px;'>" +
+          "📍 Coords: <b>[X: " + formatCoord(mB.target.x) + ", Y: " + formatCoord(mB.target.y) + ", Z: " + formatCoord(mB.target.z) + "]</b>" +
+        "</div>" +
+      "</div>";
+
+    cont.innerHTML = html;
+
+    var banner = document.getElementById("vector-insight-banner");
+    if (banner) banner.innerHTML = pair.meaningA.desc + "<br />" + pair.meaningB.desc;
+  }
+
+  function highlightKeyword(str, word, bg) {
+    var re = new RegExp("\\b(" + word + ")\\b", "gi");
+    return str.replace(re, "<mark style='background:" + bg + "; padding:1px 6px; border-radius:4px; font-weight:800; border:1px solid #1c1a15;'>$1</mark>");
+  }
+
+  function formatCoord(val) {
+    return (val >= 0 ? "+" : "") + val.toFixed(2);
+  }
+
+  function renderProbeButtons() {
+    var cont = document.getElementById("probe-preset-buttons");
+    if (!cont) return;
+    var pair = polysemyPairs[activePairKey];
+    var html = "";
+    (pair.probes || []).forEach(function(pr, idx) {
+      html += "<button class='preset-chip' onclick='setProbeSentence(" + idx + ")'>\"" + pr.label + "\"</button>";
+    });
+    cont.innerHTML = html;
+  }
+
+  window.setProbeSentence = function(idx) {
+    var pair = polysemyPairs[activePairKey];
+    var pr = pair.probes[idx];
+    if (!pr) return;
+
+    probeText = pr.text;
+    var inp = document.getElementById("custom-probe-input");
+    if (inp) inp.value = pr.text;
+
+    // Highlight preset chip
+    var chips = document.querySelectorAll("#probe-preset-buttons .preset-chip");
+    chips.forEach(function(c, i) {
+      c.className = i === idx ? "preset-chip active" : "preset-chip";
+    });
+
+    var isA = pr.align === "A";
+    var pct = pr.score;
+
+    // Interpolate target vector
+    var tA = pair.meaningA.target;
+    var tB = pair.meaningB.target;
+
+    targetProbeVec = {
+      x: tA.x * (isA ? pct : (1 - pct)) + tB.x * (isA ? (1 - pct) : pct),
+      y: tA.y * (isA ? pct : (1 - pct)) + tB.y * (isA ? (1 - pct) : pct),
+      z: tA.z * (isA ? pct : (1 - pct)) + tB.z * (isA ? (1 - pct) : pct)
+    };
+
+    var badge = document.getElementById("probe-verdict-badge");
+    if (badge) {
+      badge.textContent = "Aligned " + (pct * 100).toFixed(0) + "% with " + (isA ? pair.meaningA.name : pair.meaningB.name);
+      badge.style.background = isA ? "#dcf9e8" : "#e0f2fe";
+      badge.style.color = isA ? "#065f46" : "#0369a1";
+      badge.style.borderColor = isA ? "#059669" : "#0284c7";
+    }
+  };
+
+  window.onCustomProbeInput = function(val) {
+    probeText = val || "custom context";
+    var pair = polysemyPairs[activePairKey];
+    var clean = val.toLowerCase();
+
+    // Word scoring heuristic based on cluster keywords
+    var scoreA = 0;
+    var scoreB = 0;
+
+    pair.meaningA.cluster.split(",").forEach(function(k) {
+      if (clean.indexOf(k.trim().toLowerCase()) !== -1) scoreA += 2;
+    });
+    pair.meaningB.cluster.split(",").forEach(function(k) {
+      if (clean.indexOf(k.trim().toLowerCase()) !== -1) scoreB += 2;
+    });
+
+    if (scoreA === 0 && scoreB === 0) {
+      scoreA = 1;
+      scoreB = 1;
+    }
+
+    var total = scoreA + scoreB;
+    var weightA = scoreA / total;
+    var weightB = scoreB / total;
+
+    var tA = pair.meaningA.target;
+    var tB = pair.meaningB.target;
+
+    targetProbeVec = {
+      x: tA.x * weightA + tB.x * weightB,
+      y: tA.y * weightA + tB.y * weightB,
+      z: tA.z * weightA + tB.z * weightB
+    };
+
+    var badge = document.getElementById("probe-verdict-badge");
+    if (badge) {
+      var winner = weightA >= weightB ? pair.meaningA.name : pair.meaningB.name;
+      var winPct = Math.round(Math.max(weightA, weightB) * 100);
+      badge.textContent = "Aligned " + winPct + "% with " + winner;
+      badge.style.background = weightA >= weightB ? "#dcf9e8" : "#e0f2fe";
+    }
+  };
+
+  function updateTelemetry() {
+    var pair = polysemyPairs[activePairKey];
+    var tA = pair.meaningA.target;
+    var tB = pair.meaningB.target;
+
+    var magA = Math.sqrt(tA.x * tA.x + tA.y * tA.y + tA.z * tA.z);
+    var magB = Math.sqrt(tB.x * tB.x + tB.y * tB.y + tB.z * tB.z);
+    var dot = (tA.x * tB.x + tA.y * tB.y + tA.z * tB.z) / (magA * magB);
+    dot = Math.max(-1, Math.min(1, dot));
+    var angleDeg = (Math.acos(dot) * 180) / Math.PI;
+
+    var aName = document.getElementById("tele-a-name");
+    var aCoords = document.getElementById("tele-a-coords");
+    var aCluster = document.getElementById("tele-a-cluster");
+    if (aName) aName.textContent = pair.iconA + " " + pair.meaningA.name;
+    if (aCoords) aCoords.textContent = "[X: " + formatCoord(tA.x) + ", Y: " + formatCoord(tA.y) + ", Z: " + formatCoord(tA.z) + "]";
+    if (aCluster) aCluster.textContent = "Cluster: " + pair.meaningA.cluster;
+
+    var bName = document.getElementById("tele-b-name");
+    var bCoords = document.getElementById("tele-b-coords");
+    var bCluster = document.getElementById("tele-b-cluster");
+    if (bName) bName.textContent = pair.iconB + " " + pair.meaningB.name;
+    if (bCoords) bCoords.textContent = "[X: " + formatCoord(tB.x) + ", Y: " + formatCoord(tB.y) + ", Z: " + formatCoord(tB.z) + "]";
+    if (bCluster) bCluster.textContent = "Cluster: " + pair.meaningB.cluster;
+
+    var divVal = document.getElementById("tele-divergence-val");
+    var cosVal = document.getElementById("tele-cos-val");
+    if (divVal) divVal.textContent = "θ = " + angleDeg.toFixed(1) + "°";
+    if (cosVal) cosVal.textContent = "Cosine: " + (dot >= 0 ? "+" : "") + dot.toFixed(3);
+  }
+
+  // Initialize
+  window.selectPolysemyPair("apple");
+  requestAnimationFrame(render3D);
+
+  // ─────────────────────────────────────────────────────────────
+  // 2. COSINE SIMILARITY & PROTRACTOR LAB
+  // ─────────────────────────────────────────────────────────────
+  var angleSlider = document.getElementById("cos-angle-slider");
+  var angleDisp = document.getElementById("cos-angle-disp");
+  var scoreVal = document.getElementById("cos-score-val");
+  var verdictBadge = document.getElementById("cos-verdict");
+  var barFill = document.getElementById("cos-bar-fill");
+  var protractorCanvas = document.getElementById("cos-protractor-canvas");
+  var insightBox = document.getElementById("cos-insight-box");
+
+  var currentAngleDeg = 18;
+
+  var anglePresets = {
+    apple_banana: {
+      angle: 18,
+      desc: "🍌 <b>'Apple (fruit)' vs 'Banana':</b> Angle is very sharp (18°). Similarity is <b>+0.951</b>. In the fruit aisle of vector space, they point in almost the exact same direction!"
+    },
+    apple_msft: {
+      angle: 22,
+      desc: "💻 <b>'Apple (tech)' vs 'Microsoft':</b> Angle is 22°. Similarity is <b>+0.927</b>. Both are massive corporate tech ecosystems with software, hardware, and billions in revenue."
+    },
+    apple_mismatch: {
+      angle: 78,
+      desc: "⚠️ <b>'Apple (fruit)' vs 'iPhone':</b> Angle is wide (78°). Similarity drops to <b>+0.208</b>! Eating a crisp fruit has almost zero semantic relation to lithium batteries and cellular antennas."
+    },
+    mole_chem: {
+      angle: 14,
+      desc: "🧪 <b>'Mole (chemistry)' vs 'Atom':</b> Angle is only 14°. Similarity is <b>+0.970</b>! A mole is $6.022 \\times 10^{23}$ atoms; they reside right next to each other in chemistry textbooks."
+    },
+    mole_spy: {
+      angle: 20,
+      desc: "🕵️ <b>'Mole (spy)' vs 'CIA Agent':</b> Angle is 20°. Similarity is <b>+0.940</b>! Deep within government espionage context, both words point directly into intelligence work."
+    },
+    mole_opp: {
+      angle: 86,
+      desc: "🦔 <b>'Mole (spy)' vs 'Burrowing Mole (animal)':</b> Angle is 86° (nearly perpendicular!). Similarity is <b>+0.070</b>. Even though they share the exact same letters, their meanings point in totally different directions!"
+    },
+    hot_cold: {
+      angle: 165,
+      desc: "❄️🔥 <b>'Hot' vs 'Cold':</b> Angle is 165° (almost opposite). Similarity is <b>-0.966</b>. Antonyms point in almost diametrically opposed directions!"
+    }
+  };
+
+  window.setAnglePreset = function(key) {
+    var p = anglePresets[key];
+    if (!p) return;
+    currentAngleDeg = p.angle;
+    if (angleSlider) angleSlider.value = p.angle;
+    if (insightBox) insightBox.innerHTML = p.desc;
+    updateCosineUI();
+  };
+
+  window.onAngleSliderChange = function(val) {
+    currentAngleDeg = parseFloat(val);
+    if (insightBox) {
+      insightBox.innerHTML = "📐 Angle manually set to <b>" + currentAngleDeg.toFixed(1) + "°</b>. Notice how cosine drops from $+1.0$ at $0^\\circ$ to $0.0$ at $90^\\circ$ (orthogonal/unrelated) and $-1.0$ at $180^\\circ$ (opposites).";
+    }
+    updateCosineUI();
+  };
+
+  function updateCosineUI() {
+    var rad = (currentAngleDeg * Math.PI) / 180;
+    var cosVal = Math.cos(rad);
+
+    if (angleDisp) angleDisp.textContent = currentAngleDeg.toFixed(1) + "°";
+    if (scoreVal) {
+      scoreVal.textContent = (cosVal >= 0 ? "+" : "") + cosVal.toFixed(3);
+      scoreVal.style.color = cosVal > 0.7 ? "#197a43" : cosVal > 0.2 ? "#a06000" : "#d1345b";
+    }
+
+    if (verdictBadge) {
+      if (cosVal > 0.85) {
+        verdictBadge.textContent = "Twins / Closely Related";
+        verdictBadge.style.background = "var(--mint)";
+      } else if (cosVal > 0.5) {
+        verdictBadge.textContent = "Related Topic";
+        verdictBadge.style.background = "var(--yellow)";
+      } else if (cosVal > -0.2) {
+        verdictBadge.textContent = "Unrelated / Orthogonal";
+        verdictBadge.style.background = "#e3dcce";
+      } else {
+        verdictBadge.textContent = "Opposite Meaning";
+        verdictBadge.style.background = "var(--pink)";
+      }
+    }
+
+    // Similarity track (scale from -1 at 0% to +1 at 100%)
+    if (barFill) {
+      var pct = ((cosVal + 1) / 2) * 100;
+      barFill.style.width = pct + "%";
+      barFill.style.background = cosVal > 0.7 ? "var(--mint)" : cosVal > 0.2 ? "var(--yellow)" : "var(--pink)";
+    }
+
+    drawProtractor();
+  }
+
+  function drawProtractor() {
+    if (!protractorCanvas) return;
+    var pctx = protractorCanvas.getContext("2d");
+    var pw = protractorCanvas.width;
+    var ph = protractorCanvas.height;
+
+    pctx.clearRect(0, 0, pw, ph);
+
+    var cx = pw / 2;
+    var cy = ph - 30;
+    var r = 140;
+
+    // Semicircle arc background
+    pctx.beginPath();
+    pctx.arc(cx, cy, r, Math.PI, 0, false);
+    pctx.strokeStyle = "rgba(28,26,21,0.15)";
+    pctx.lineWidth = 1.5;
+    pctx.stroke();
+
+    // 90 degree orthogonal line
+    pctx.beginPath();
+    pctx.setLineDash([3, 3]);
+    pctx.moveTo(cx, cy);
+    pctx.lineTo(cx, cy - r);
+    pctx.strokeStyle = "#8b8a95";
+    pctx.stroke();
+    pctx.setLineDash([]);
+    pctx.font = "9px monospace";
+    pctx.fillStyle = "#8b8a95";
+    pctx.fillText("90° (Unrelated)", cx - 36, cy - r - 6);
+
+    // Vector 1 (Base vector pointing right at 0 degrees)
+    pctx.beginPath();
+    pctx.moveTo(cx, cy);
+    pctx.lineTo(cx + r, cy);
+    pctx.strokeStyle = "#1c1a15";
+    pctx.lineWidth = 3;
+    pctx.stroke();
+
+    pctx.fillStyle = "#1c1a15";
+    pctx.font = "bold 11px monospace";
+    pctx.fillText("Vector A ➔", cx + r - 65, cy + 18);
+
+    // Vector 2 (Rotated vector)
+    var rad = (currentAngleDeg * Math.PI) / 180;
+    var x2 = cx + r * Math.cos(-rad);
+    var y2 = cy + r * Math.sin(-rad);
+
+    pctx.beginPath();
+    pctx.moveTo(cx, cy);
+    pctx.lineTo(x2, y2);
+    pctx.strokeStyle = "#d1345b";
+    pctx.lineWidth = 3;
+    pctx.stroke();
+
+    // Arrowhead on Vector 2
+    var aAngle = Math.atan2(y2 - cy, x2 - cx);
+    var hLen = 10;
+    pctx.fillStyle = "#d1345b";
+    pctx.beginPath();
+    pctx.moveTo(x2, y2);
+    pctx.lineTo(x2 - hLen * Math.cos(aAngle - Math.PI / 6), y2 - hLen * Math.sin(aAngle - Math.PI / 6));
+    pctx.lineTo(x2 - hLen * Math.cos(aAngle + Math.PI / 6), y2 - hLen * Math.sin(aAngle + Math.PI / 6));
+    pctx.closePath();
+    pctx.fill();
+
+    pctx.fillStyle = "#d1345b";
+    pctx.font = "bold 11px monospace";
+    pctx.fillText("Vector B (θ=" + currentAngleDeg.toFixed(0) + "°)", x2 - 20, y2 - 8);
+
+    // Angle Arc
+    pctx.beginPath();
+    pctx.arc(cx, cy, 45, -rad, 0, false);
+    pctx.strokeStyle = "#ffe14d";
+    pctx.lineWidth = 6;
+    pctx.stroke();
+    pctx.beginPath();
+    pctx.arc(cx, cy, 45, -rad, 0, false);
+    pctx.strokeStyle = "#1c1a15";
+    pctx.lineWidth = 1.5;
+    pctx.stroke();
+
+    // Origin pivot
+    pctx.beginPath();
+    pctx.arc(cx, cy, 5, 0, Math.PI * 2);
+    pctx.fillStyle = "#1c1a15";
+    pctx.fill();
+  }
+
+  setAnglePreset("apple_banana");
+
+  // ─────────────────────────────────────────────────────────────
+  // 3. VECTOR ARITHMETIC LAB
+  // ─────────────────────────────────────────────────────────────
+  var mathEquations = {
+    royalty: {
+      w1: "King",
+      op1: "-",
+      w2: "Man",
+      op2: "+",
+      w3: "Woman",
+      res: "Queen 👑",
+      desc: "👑 <b>Royal Analogy:</b> Taking <code>'King'</code> and subtracting the direction vector for <code>'Man'</code> isolates the pure concept of <b>Royalty</b>. Adding <code>'Woman'</code> reapplies female gender to that royalty concept, landing directly on <b>'Queen'</b>!"
+    },
+    capitals: {
+      w1: "Paris",
+      op1: "-",
+      w2: "France",
+      op2: "+",
+      w3: "Japan",
+      res: "Tokyo 🗼",
+      desc: "🗼 <b>Capital City Direction:</b> Subtracting <code>'France'</code> from <code>'Paris'</code> isolates the concept of <i>'Capital City of'</i>. Adding <code>'Japan'</code> shifts that exact relationship vector over to <b>'Tokyo'</b>!"
+    },
+    apple_tech: {
+      w1: "Apple",
+      op1: "-",
+      w2: "Fruit",
+      op2: "+",
+      w3: "Software",
+      res: "Microsoft 💻",
+      desc: "💻 <b>Industry Sector Shift:</b> Stripping the agricultural fruit concept from <code>'Apple'</code> and adding <code>'Software'</code> lands directly on its historical rival <b>'Microsoft'</b>!"
+    },
+    mole_chem: {
+      w1: "Mole",
+      op1: "-",
+      w2: "Animal",
+      op2: "+",
+      w3: "Science",
+      res: "Avogadro / Atom 🧪",
+      desc: "🧪 <b>Semantic Disambiguation:</b> Subtracting the zoology mammal features from <code>'Mole'</code> and adding <code>'Science'</code> shifts the vector coordinates to <b>Avogadro</b> and atomic molar mass!"
+    },
+    baby_animals: {
+      w1: "Puppy",
+      op1: "-",
+      w2: "Dog",
+      op2: "+",
+      w3: "Cat",
+      res: "Kitten 🐱",
+      desc: "🐱 <b>Juvenile Life-Stage Vector:</b> <code>'Puppy' - 'Dog'</code> yields the universal direction vector for <i>'young baby mammal'</i>. Applying it to <code>'Cat'</code> gives <b>'Kitten'</b>!"
+    }
+  };
+
+  window.setMathEquation = function(key) {
+    var eq = mathEquations[key];
+    if (!eq) return;
+
+    var disp = document.getElementById("math-equation-display");
+    if (disp) {
+      disp.innerHTML =
+        "<span class='math-chip'>" + eq.w1 + "</span>" +
+        "<span style='color:#d1345b;'>-</span>" +
+        "<span class='math-chip minus'>" + eq.w2 + "</span>" +
+        "<span style='color:#197a43;'>+</span>" +
+        "<span class='math-chip plus'>" + eq.w3 + "</span>" +
+        "<span>=</span>" +
+        "<span class='math-chip res'><b>" + eq.res + "</b></span>";
+    }
+
+    var exp = document.getElementById("math-explanation-box");
+    if (exp) exp.innerHTML = eq.desc;
+  };
+
+  setMathEquation("royalty");
+})();
+</script>
