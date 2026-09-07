@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   getEntrySlugs,
@@ -43,13 +43,19 @@ export default function CourseView({ course, day, hasPlan }) {
 
   const [html, setHtml] = useState(null); // null = loading, string = notes, false = not added yet
   const [toc, setToc] = useState([]); // [{ id, label }] built from the note's h2s
+  const [activeId, setActiveId] = useState("");
   const [query, setQuery] = useState("");
   const [drawer, setDrawer] = useState(false);
+
+  const clickedIdRef = useRef(null);
+  const clickTimerRef = useRef(null);
+  const tocRef = useRef(null);
 
   useEffect(() => {
     let alive = true;
     setHtml(null);
     setToc([]);
+    setActiveId("");
     fetch(`/notes/${course.id}/${day}.html`)
       .then((r) => {
         if (!r.ok) throw new Error("missing");
@@ -64,16 +70,118 @@ export default function CourseView({ course, day, hasPlan }) {
         const { html: fixed, items } = withHeadingIds(t);
         setToc(items);
         setHtml(fixed);
+        if (items.length > 0) {
+          const hash = window.location.hash.replace(/^#/, "");
+          if (hash && items.some((it) => it.id === hash)) {
+            setActiveId(hash);
+          } else {
+            setActiveId(items[0].id);
+          }
+        }
       })
       .catch(() => {
         if (!alive) return;
         setToc([]);
         setHtml(false);
+        setActiveId("");
       });
     return () => {
       alive = false;
     };
   }, [course.id, day]);
+
+  // Cancel click lock when user manually scrolls via wheel or touch
+  useEffect(() => {
+    const handleUserScroll = () => {
+      clickedIdRef.current = null;
+    };
+    window.addEventListener("wheel", handleUserScroll, { passive: true });
+    window.addEventListener("touchmove", handleUserScroll, { passive: true });
+    return () => {
+      window.removeEventListener("wheel", handleUserScroll);
+      window.removeEventListener("touchmove", handleUserScroll);
+      if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
+    };
+  }, []);
+
+  // Highlight the current topic as user scrolls through the notes
+  useEffect(() => {
+    if (!toc.length || typeof html !== "string") return;
+
+    const computeActive = () => {
+      if (clickedIdRef.current) return;
+
+      const scrollHeight = document.documentElement.scrollHeight;
+      const clientHeight = document.documentElement.clientHeight;
+      const scrollY = window.scrollY || window.pageYOffset || 0;
+
+      const isScrollable = scrollHeight > clientHeight + 80;
+      const isBottom =
+        isScrollable && scrollY + clientHeight >= scrollHeight - 50;
+
+      if (isBottom) {
+        setActiveId(toc[toc.length - 1].id);
+        return;
+      }
+
+      // Sticky top header is ~56px. Headings have scroll-margin-top: 90px.
+      // Offset of 120px gives comfortable margin for detecting the active heading.
+      const OFFSET = 120;
+      let currentId = toc[0].id;
+      for (let i = 0; i < toc.length; i++) {
+        const el = document.getElementById(toc[i].id);
+        if (!el) continue;
+        const rect = el.getBoundingClientRect();
+        if (rect.top <= OFFSET) {
+          currentId = toc[i].id;
+        } else {
+          break;
+        }
+      }
+
+      setActiveId(currentId);
+    };
+
+    let ticking = false;
+    const onScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          computeActive();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    computeActive();
+    const t = setTimeout(computeActive, 150);
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [toc, html]);
+
+  // Keep active topic visible within TOC if TOC has scroll overflow
+  useEffect(() => {
+    if (!activeId || !tocRef.current) return;
+    const activeEl = tocRef.current.querySelector("a.active");
+    if (!activeEl) return;
+
+    const container = tocRef.current;
+    const activeRect = activeEl.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+
+    if (activeRect.top < containerRect.top) {
+      container.scrollTop -= containerRect.top - activeRect.top + 10;
+    } else if (activeRect.bottom > containerRect.bottom) {
+      container.scrollTop += activeRect.bottom - containerRect.bottom + 10;
+    }
+  }, [activeId]);
 
   // Render LaTeX with KaTeX after the note HTML is injected (Jupyter / paper style)
   useEffect(() => {
@@ -112,6 +220,15 @@ export default function CourseView({ course, day, hasPlan }) {
   }, [html]);
 
   const days = useMemo(() => getEntrySlugs(course), [course]);
+
+  const handleTocClick = (e, id) => {
+    clickedIdRef.current = id;
+    setActiveId(id);
+    if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
+    clickTimerRef.current = setTimeout(() => {
+      clickedIdRef.current = null;
+    }, 800);
+  };
 
   const visible = days.filter((d) =>
     entryLabel(course, d).toLowerCase().includes(query.trim().toLowerCase())
@@ -261,11 +378,17 @@ export default function CourseView({ course, day, hasPlan }) {
         </div>
 
         {toc.length > 0 && (
-          <aside className="toc" aria-label="On this page">
+          <aside className="toc" aria-label="On this page" ref={tocRef}>
             <div className="toc-head">on this page</div>
             <nav className="toc-nav">
               {toc.map((t) => (
-                <a key={t.id} href={`#${t.id}`}>
+                <a
+                  key={t.id}
+                  href={`#${t.id}`}
+                  className={t.id === activeId ? "active" : ""}
+                  aria-current={t.id === activeId ? "true" : undefined}
+                  onClick={(e) => handleTocClick(e, t.id)}
+                >
                   {t.label}
                 </a>
               ))}
