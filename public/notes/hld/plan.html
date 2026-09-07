@@ -1,25 +1,96 @@
 <p class="kicker">high-level design · concept-wise track</p>
 <h1>HLD, Concept by Concept</h1>
-<p class="plan-lede">No day-wise grind here. This track is organised by concept — scaling, caching, sharding, CAP, load balancing — one page per idea. Topics are being added, check back soon.</p>
+<p class="plan-lede">No day-wise grind here. This track follows the natural scaling journey from a single server monolith all the way to distributed microservices: one focused design note per idea. Deep dive, interview-ready trade-offs.</p>
 
 <div class="plan-outcomes">
-  <b>How this track works:</b>
+  <b>The 0 to 10M user scaling progression:</b>
   <ol>
-    <li>Pick a concept from the sidebar</li>
-    <li>Each concept is one focused design note</li>
-    <li>Concepts land as classes happen</li>
+    <li>Start simple: Single process, in-memory nanosecond calls, and the Modular Monolith</li>
+    <li>Scale horizontally: Spread traffic across $N$ servers with Layer 4 &amp; Layer 7 Load Balancers</li>
+    <li>Guard the perimeter: API Gateways for edge auth, Token Bucket rate limiting, and BFFs</li>
+    <li>Accelerate reads: Sub-millisecond RAM caching (Redis) and beating the 3 Cache Disasters</li>
+    <li>Scale persistent state: SQL vs NoSQL, primary-replica replication lag, and consistent hashing sharding</li>
+    <li>Decompose at organizational scale: Microservices, Database-per-service, Sagas, and Circuit Breakers</li>
   </ol>
 </div>
 
 <div class="plan-timeline">
+
 <section class="plan-day">
-  <span class="plan-daynum">Track</span>
-  <h2>Concepts dropping soon</h2>
-  <p>The concept list lives in <code>lib/courses.js</code> under <code>hld.topics</code>. Once the first concept is added, it shows up in the sidebar automatically.</p>
+  <span class="plan-daynum">Topic 01</span>
+  <h2>Monolithic Architecture</h2>
+  <ul>
+    <li>The 30-second idea &amp; why unicorns scale with monoliths first</li>
+    <li>Modular monoliths, in-memory calls vs network RPC tax</li>
+    <li>AKF Scale Cube (X, Y, Z scaling) &amp; Conway’s Law breaking points</li>
+    <li>Interactive Architecture Decision Calculator &amp; Strangler Fig migration</li>
+  </ul>
+  <a class="plan-open" href="/courses/hld/monolith">open monolith notes →</a>
 </section>
+
+<section class="plan-day">
+  <span class="plan-daynum">Topic 02</span>
+  <h2>Load Balancer</h2>
+  <ul>
+    <li>Why load balancing matters (high availability &amp; scale)</li>
+    <li>Where it sits in architecture (L4 transport vs L7 application)</li>
+    <li>The 6 key routing algorithms (Round Robin, Least Connections, IP Hash, etc.)</li>
+    <li>Health checking, connection draining, and animated packet flow diagrams</li>
+  </ul>
+  <a class="plan-open" href="/courses/hld/load-balancer">open load balancer notes →</a>
+</section>
+
+<section class="plan-day">
+  <span class="plan-daynum">Topic 03</span>
+  <h2>API Gateway</h2>
+  <ul>
+    <li>Why microservices require a dedicated gateway entry point</li>
+    <li>Edge Authentication (stateless JWT verification via JWKS)</li>
+    <li>Rate Limiting algorithms: Token Bucket vs Leaky Bucket vs Sliding Window</li>
+    <li>BFF (Backend-for-Frontend) pattern, load shedding, and SPOF mitigation</li>
+  </ul>
+  <a class="plan-open" href="/courses/hld/api-gateway">open api gateway notes →</a>
+</section>
+
+<section class="plan-day">
+  <span class="plan-daynum">Topic 04</span>
+  <h2>Caching &amp; Distributed Caches</h2>
+  <ul>
+    <li>The Hardware Latency Pyramid (RAM 100ns vs SSD 50µs vs Disk 10ms)</li>
+    <li>Access patterns: Cache-Aside, Write-Through, Write-Back, Write-Around</li>
+    <li>Eviction mechanics: LRU ($O(1)$ Doubly-Linked List + Hash Map) &amp; LFU</li>
+    <li>The Big 3 Cache Disasters: Penetration (Bloom filters), Avalanche, and Stampede</li>
+  </ul>
+  <a class="plan-open" href="/courses/hld/caching">open caching notes →</a>
+</section>
+
+<section class="plan-day">
+  <span class="plan-daynum">Topic 05</span>
+  <h2>Databases: SQL vs NoSQL, Replication &amp; Sharding</h2>
+  <ul>
+    <li>Relational vs Document vs Key-Value vs Wide-Column vs Graph</li>
+    <li>Storage engines: B+ Trees (read-heavy) vs LSM-Trees (write-heavy append log)</li>
+    <li>Primary-Replica replication, replication lag &amp; Read-Your-Own-Writes</li>
+    <li>Horizontal sharding, hotspot avoidance &amp; Consistent Hashing mechanics</li>
+  </ul>
+  <a class="plan-open" href="/courses/hld/db">open database notes →</a>
+</section>
+
+<section class="plan-day">
+  <span class="plan-daynum">Topic 06</span>
+  <h2>Microservices Architecture</h2>
+  <ul>
+    <li>Domain-Driven Design (DDD) &amp; the golden Database-per-Service rule</li>
+    <li>Sync vs Async: REST vs gRPC (HTTP/2 binary) and Kafka vs RabbitMQ</li>
+    <li>The Hard Problems: Distributed Sagas (orchestration vs choreography) &amp; 2PC</li>
+    <li>Transactional Outbox pattern, CDC, and Circuit Breaker state machines</li>
+  </ul>
+  <a class="plan-open" href="/courses/hld/microservices">open microservices notes →</a>
+</section>
+
 </div>
 
 <div class="plan-rule">
   <b>One rule: trade-offs over diagrams.</b>
-  <p>Every design note must answer: why this component, what breaks, what it costs.</p>
+  <p>Every design note must answer: why this component, what breaks, what it costs, and how to defend it in a Staff/FAANG system design interview.</p>
 </div>

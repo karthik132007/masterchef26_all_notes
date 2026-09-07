@@ -1,0 +1,190 @@
+<style>
+/* microservices notes custom styles */
+.ms-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin:16px 0}
+.ms-card{background:var(--canvas);border:1.5px solid var(--border-dim);border-radius:10px;padding:16px}
+.ms-card h4{margin:0 0 8px;font-size:15px;display:flex;align-items:center;gap:8px}
+.ms-diagram-svg{width:100%;height:auto;display:block;margin:12px 0}
+</style>
+
+<p class="kicker">independent deployments, bounded contexts, database-per-service — and the distributed systems tax.</p>
+
+<h2>the 30-second elevator pitch</h2>
+<p>A <b>microservices architecture</b> decomposes an application into small, autonomous services modeled around <b>business domains</b> (Domain-Driven Design). Each service runs in its own process, deploys independently, and strictly owns its private datastore.</p>
+<ul>
+  <li><b>The Golden Rule:</b> <b>Database-Per-Service.</b> Service A never queries Service B's database directly. Communication occurs strictly over network protocols (REST, gRPC, or messaging queues).</li>
+  <li><b>The Core Benefit:</b> Independent scaling and deployment velocity. The Payments team can ship 15 times a day using Go and PostgreSQL without coordinating with the Catalog team using Python and MongoDB.</li>
+  <li><b>The Distributed Systems Tax:</b> You trade monolithic simplicity for network latency, partial failures, distributed transaction complexity, dual-write bugs, and operational overhead.</li>
+</ul>
+
+<div class="callout exam">
+  <b class="label">⭐ the #1 interview red flag</b><br />
+  If an interviewer asks: <i>"Can two microservices connect to the same PostgreSQL instance on different tables?"</i> The answer is <b>NO</b>. Shared databases create hidden schema coupling, bypass domain validation logic, and create a single point of failure (SPOF) that defeats the purpose of microservices.
+</div>
+
+<h2>inter-service communication: sync vs async</h2>
+<p>Microservices talk to each other through two distinct paradigms: synchronous remote calls and asynchronous event streams.</p>
+
+<table>
+  <tr><th>Protocol</th><th>Type</th><th>Latency</th><th>Best Used For</th><th>Failure Mode</th></tr>
+  <tr>
+    <td><b>REST (HTTP/1.1 JSON)</b></td>
+    <td>Synchronous</td>
+    <td><code>5 - 20 ms</code></td>
+    <td>Public client-to-backend APIs, simple CRUD queries</td>
+    <td>Cascading timeouts when downstream services stall</td>
+  </tr>
+  <tr>
+    <td><b>gRPC (HTTP/2 Protobuf)</b></td>
+    <td>Synchronous</td>
+    <td><code>1 - 3 ms</code></td>
+    <td>High-throughput internal service-to-service RPC</td>
+    <td>Binary serialization requires shared contract (.proto)</td>
+  </tr>
+  <tr>
+    <td><b>Kafka</b></td>
+    <td>Asynchronous (Event Log)</td>
+    <td>Sub-millisecond (Enqueue)</td>
+    <td>High-volume event streams (100k+ msg/s), state replication, auditable event sourcing</td>
+    <td>Consumer lag, partition rebalancing, eventual consistency</td>
+  </tr>
+  <tr>
+    <td><b>RabbitMQ</b></td>
+    <td>Asynchronous (Message Queue)</td>
+    <td>Sub-millisecond (Enqueue)</td>
+    <td>Complex task routing, job workers, point-to-point guaranteed command delivery</td>
+    <td>Memory bottlenecks if queues back up under high load</td>
+  </tr>
+</table>
+
+<svg class="ms-diagram-svg" viewBox="0 0 720 230" role="img" aria-label="Synchronous gRPC vs Asynchronous Event Bus">
+  <!-- Sync call -->
+  <rect x="20" y="20" width="320" height="190" rx="12" fill="#fff9db" stroke="#f59f00" stroke-width="2"/>
+  <text x="180" y="45" text-anchor="middle" font-weight="800" font-size="13" fill="#d9480f">Synchronous (gRPC / REST)</text>
+  
+  <rect x="40" y="70" width="90" height="50" rx="8" fill="#fff" stroke="#1c1a15" stroke-width="2"/>
+  <text x="85" y="100" text-anchor="middle" font-weight="700" font-size="12">Order Svc</text>
+
+  <rect x="230" y="70" width="90" height="50" rx="8" fill="#fff" stroke="#1c1a15" stroke-width="2"/>
+  <text x="275" y="100" text-anchor="middle" font-weight="700" font-size="12">Payment Svc</text>
+
+  <path d="M 130 85 L 230 85" stroke="#1c1a15" stroke-width="2.5" marker-end="url(#arr-sync)"/>
+  <text x="180" y="78" text-anchor="middle" font-size="11" font-family="monospace">1. call</text>
+  <path d="M 230 105 L 130 105" stroke="#2b8a3e" stroke-width="2.5" stroke-dasharray="4 4"/>
+  <text x="180" y="122" text-anchor="middle" font-size="11" font-family="monospace" fill="#2b8a3e">2. wait reply</text>
+  <text x="180" y="165" text-anchor="middle" font-size="11" fill="#777">⚠️ Order Svc BLOCKS until Payment replies</text>
+
+  <!-- Async call -->
+  <rect x="380" y="20" width="320" height="190" rx="12" fill="#e7f5ff" stroke="#1971c2" stroke-width="2"/>
+  <text x="540" y="45" text-anchor="middle" font-weight="800" font-size="13" fill="#1864ab">Asynchronous (Kafka / Event Log)</text>
+
+  <rect x="400" y="70" width="85" height="50" rx="8" fill="#fff" stroke="#1c1a15" stroke-width="2"/>
+  <text x="442" y="100" text-anchor="middle" font-weight="700" font-size="12">Order Svc</text>
+
+  <rect x="505" y="65" width="70" height="60" rx="8" fill="#339af0" stroke="#1c1a15" stroke-width="2"/>
+  <text x="540" y="95" text-anchor="middle" font-weight="800" font-size="11" fill="#fff">Kafka</text>
+  <text x="540" y="110" text-anchor="middle" font-size="9" fill="#fff">topic: orders</text>
+
+  <rect x="600" y="70" width="85" height="50" rx="8" fill="#fff" stroke="#1c1a15" stroke-width="2"/>
+  <text x="642" y="100" text-anchor="middle" font-weight="700" font-size="12">Payment Svc</text>
+
+  <path d="M 485 95 L 505 95" stroke="#1c1a15" stroke-width="2.5"/>
+  <path d="M 575 95 L 600 95" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="540" y="165" text-anchor="middle" font-size="11" fill="#1864ab">✓ Order Svc publishes &amp; moves on instantly</text>
+  <text x="540" y="185" text-anchor="middle" font-size="10" fill="#555">Payment consumes at its own pace</text>
+</svg>
+
+<h2>the distributed transactions nightmare: 2pc vs sagas</h2>
+<p>In a monolith, transferring money or placing an order is an atomic ACID database transaction. In microservices, placing an order requires mutating three independent databases: <b>Orders DB</b>, <b>Payments DB</b>, and <b>Inventory DB</b>.</p>
+
+<h3>Why Two-Phase Commit (2PC) Fails in the Cloud</h3>
+<p>2PC relies on a central coordinator asking all services: <i>"Can you commit?"</i> (Phase 1: Prepare), followed by <i>"Commit now"</i> (Phase 2: Commit). In cloud environments, 2PC is an <b>anti-pattern</b> because:</p>
+<ul>
+  <li>It holds database locks across network boundaries. If one node experiences a 500ms network blip, all participating rows stay locked.</li>
+  <li>If the coordinator crashes between phases, the entire cluster hangs indefinitely in a half-committed state.</li>
+</ul>
+
+<h3>The Industry Solution: The Saga Pattern</h3>
+<p>A <b>Saga</b> is a sequence of local transactions. Each transaction updates data in a single service and publishes an event. If a subsequent step fails, the Saga executes <b>compensating transactions</b> to undo the previous steps.</p>
+
+<div class="ms-grid">
+  <div class="ms-card">
+    <h4>1. Choreography-Based Saga</h4>
+    <p>Services listen to events and trigger their own next step without a central coordinator. <code>OrderCreated</code> &rarr; Payment listens and charges card &rarr; <code>PaymentProcessed</code> &rarr; Inventory listens and reserves stock.</p>
+    <p><b>Pros:</b> Simple for 2-3 services.<br/><b>Cons:</b> Spaghettifies quickly; impossible to visualize the complete flow when you have 10+ services.</p>
+  </div>
+  <div class="ms-card">
+    <h4>2. Orchestration-Based Saga</h4>
+    <p>A dedicated central orchestrator (e.g., <b>Temporal</b>, <b>AWS Step Functions</b>, or Camunda) manages the state machine. It explicitly tells Order Svc &rarr; Payment Svc &rarr; Inventory Svc what to do.</p>
+    <p><b>Pros:</b> Clear state visibility, automatic retry logic, clean compensating rollbacks.<br/><b>Cons:</b> Single point of orchestration management.</p>
+  </div>
+</div>
+
+<div class="callout gotcha">
+  <b class="label">⚠️ compensating actions are not rollbacks</b><br />
+  In a database rollback, nobody ever saw the intermediate state. In a Saga, the customer's card was actually charged! The compensating transaction is a <b>refund</b>, not a rewind. Your business logic must handle partial visibility (e.g., displaying order status as <code>PENDING_PAYMENT</code>).
+</div>
+
+<h2>the dual-write problem & transactional outbox</h2>
+<p>A classic production bug: your service updates its local database, then publishes an event to Kafka:</p>
+<pre># The Naive Approach (BROKEN IN PRODUCTION)
+db.orders.insert(order)          # 1. DB write succeeds
+kafka.publish("OrderCreated")     # 2. Network timeout! Event lost forever!</pre>
+<p>If you swap the order (publish to Kafka first, then insert DB), the DB write might throw a constraint violation, sending a phantom event downstream!</p>
+
+<h3>The Fix: The Transactional Outbox Pattern</h3>
+<p>Instead of talking directly to Kafka, write the event into an <code>outbox</code> table inside the <b>exact same local ACID transaction</b> as the business data:</p>
+
+<pre>BEGIN TRANSACTION;
+  INSERT INTO orders (id, user_id, amount) VALUES (101, 'alice', 50.00);
+  INSERT INTO outbox (event_type, payload) VALUES ('OrderCreated', '{"id":101}');
+COMMIT;</pre>
+
+<p>An asynchronous background reader (like <b>Debezium</b> using PostgreSQL <b>Change Data Capture / WAL</b>) streams rows from <code>outbox</code> to Kafka with zero dual-write anomalies!</p>
+
+<h2>resilience engineering: circuit breakers</h2>
+<p>In distributed systems, failures are guaranteed. If Service C begins timing out, Service B keeps sending requests, saturating its thread pool. In seconds, Service A runs out of memory, and your entire architecture experiences a <b>cascading collapse</b>.</p>
+
+<p>The <b>Circuit Breaker Pattern</b> wraps downstream calls with a 3-state protective breaker:</p>
+<ul>
+  <li><b>CLOSED (Normal):</b> All requests pass through. The breaker tracks the percentage of failed requests in a sliding window (e.g. last 100 requests).</li>
+  <li><b>OPEN (Tripped):</b> If error rate exceeds the threshold (e.g. 50%), the circuit trips OPEN. All calls <b>fail immediately</b> without touching the downstream service, returning cached or fallback responses!</li>
+  <li><b>HALF-OPEN (Testing):</b> After a cooldown period (e.g. 15 seconds), the circuit lets a limited number of test requests through. If they succeed, it transitions back to <b>CLOSED</b>. If they fail, it snaps back to <b>OPEN</b>.</li>
+</ul>
+
+<h2>distributed tracing: following the breadcrumbs</h2>
+<p>When an error occurs across 15 hops, standard log files are useless. You need <b>Distributed Tracing</b> (W3C Trace Context standard):</p>
+<ul>
+  <li><b>Trace ID:</b> A globally unique ID assigned at the API Gateway to represent the entire end-to-end user request. It is propagated across HTTP headers via <code>traceparent</code>:
+  <pre>traceparent: 00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01</pre>
+  </li>
+  <li><b>Span ID:</b> Identifies work done by a single specific service or database call within that trace.</li>
+  <li><b>OpenTelemetry (OTel):</b> The vendor-neutral industry standard SDK used to collect and export traces to Jaeger, Zipkin, or Datadog.</li>
+</ul>
+
+<h2>faang interview defense & war stories</h2>
+<table>
+  <tr><th>Interview Question</th><th>Key Architectural Insight</th><th>The Winning Answer</th></tr>
+  <tr>
+    <td><b>"How do you handle data consistency without 2PC?"</b></td>
+    <td>Sagas, Eventual Consistency, and Idempotency</td>
+    <td>Use an orchestration or choreography Saga pattern with compensating transactions. Design all downstream event handlers to be strictly idempotent using idempotency keys, and store events in a Transactional Outbox.</td>
+  </tr>
+  <tr>
+    <td><b>"Why did Amazon Prime Video move back to a monolith?"</b></td>
+    <td>Avoiding microservices over-engineering</td>
+    <td>Prime Video originally used AWS Step Functions and Lambda microservices to process video streams frame by frame. Orchestrating millions of tiny calls over S3 and SQS hit account rate limits and cost a fortune. Consolidating into a single monolithic process running in ECS reduced infrastructure costs by 90%.</td>
+  </tr>
+  <tr>
+    <td><b>"How do you query across two separate microservice databases?"</b></td>
+    <td>CQRS and read projections</td>
+    <td>Never do cross-database joins over HTTP. Use Command Query Responsibility Segregation (CQRS). Both services stream updates to Kafka, which feeds a materialized read-model (e.g. Elasticsearch or read-only Postgres) optimized for complex joins.</td>
+  </tr>
+</table>
+
+<h2>the 20-second summary</h2>
+<p>Microservices divide systems by business domains with strict <b>database-per-service</b> boundaries. Connect them with <b>gRPC for low-latency sync calls</b> and <b>Kafka for decoupled async events</b>. Guarantee data integrity using the <b>Saga pattern</b> and <b>Transactional Outbox</b>, and prevent cascading system-wide collapses using <b>Circuit Breakers</b> with fast fallbacks.</p>
+
+<div style="margin-top:28px;padding:16px;background:var(--canvas);border:1.5px solid var(--border-dim);border-radius:10px;text-align:center">
+  <span style="font-size:12px;font-family:var(--font-mono);color:var(--ink-soft);text-transform:uppercase;letter-spacing:1px">HLD Concept Track Complete</span><br/>
+  <a href="/courses/hld/plan" style="font-weight:800;font-size:16px;color:var(--ink);text-decoration:none;display:inline-block;margin-top:6px">← Return to HLD Course Plan</a>
+</div>

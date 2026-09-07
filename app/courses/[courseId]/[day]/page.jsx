@@ -44,6 +44,14 @@ export default async function DayPage({ params }) {
     redirect("/courses/genai-agentic-ai/foundations");
   }
 
+  if (courseId === "networking" && day === "load-balancer") {
+    redirect("/courses/hld/load-balancer");
+  }
+
+  if (courseId === "hld" && day === "cacheing") {
+    redirect("/courses/hld/caching");
+  }
+
   const hasPlan = existsSync(planPath(course.id));
   let slug = day;
   if (day === "plan") {

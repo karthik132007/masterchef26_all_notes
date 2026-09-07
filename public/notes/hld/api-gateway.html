@@ -1,0 +1,186 @@
+<style>
+/* api gateway notes custom styles */
+.gw-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin:16px 0}
+.gw-card{background:var(--canvas);border:1.5px solid var(--border-dim);border-radius:10px;padding:16px}
+.gw-card h4{margin:0 0 8px;font-size:15px;display:flex;align-items:center;gap:8px}
+.gw-diagram-svg{width:100%;height:auto;display:block;margin:12px 0}
+</style>
+
+<p class="kicker">the single front door: edge authentication, token buckets, and shielding your backend from the chaos of the internet.</p>
+
+<h2>the 30-second elevator pitch</h2>
+<p>An <b>API Gateway</b> is the unified single ingress entry point that sits between external clients (mobile apps, web browsers, public API consumers) and your internal microservices fleet.</p>
+<ul>
+  <li><b>The Client Decoupler:</b> External clients talk to one domain (<code>api.example.com</code>). They never know whether you run a monolith, 50 microservices in Go, or a legacy mainframe.</li>
+  <li><b>Cross-Cutting Edge Guard:</b> It centralizes non-business logic at the perimeter: <b>Authentication</b>, <b>SSL Termination</b>, <b>Rate Limiting</b>, <b>Request Aggregation (BFF)</b>, and <b>Load Shedding</b>.</li>
+  <li><b>The Golden Architectural Rule:</b> <b>Keep it thin.</b> Never leak business domain rules into gateway filter scripts. The moment your gateway starts reading product catalogs from a database, you’ve built a catastrophic bottleneck.</li>
+</ul>
+
+<h2>why microservices need an api gateway</h2>
+<p>Without an API Gateway, client applications would have to talk directly to dozens of individual microservices. In production, this causes four major architectural failures:</p>
+
+<div class="gw-grid">
+  <div class="gw-card">
+    <h4>1. Massive Attack Surface</h4>
+    <p>Every internal microservice would need a public IP address, open internet firewall ports, and independent DDoS defense. With a Gateway, only <b>one IP is public</b>; all microservices live hidden inside a private VPC.</p>
+  </div>
+  <div class="gw-card">
+    <h4>2. Cellular Radio Latency</h4>
+    <p>Mobile devices on cellular radios cannot afford 10 sequential HTTP requests to render one screen. The Gateway aggregates internal calls concurrently and returns one compressed payload.</p>
+  </div>
+  <div class="gw-card">
+    <h4>3. Leaky Internal Topology</h4>
+    <p>If you split or rename a backend service, you break every client in production. The Gateway acts as a stable contract façade — backend services can be rewritten or split without changing public API URLs.</p>
+  </div>
+  <div class="gw-card">
+    <h4>4. Duplicated Security Logic</h4>
+    <p>Without a gateway, every team independently writes JWT parsing, CORS handling, and rate limiting. The Gateway centralizes these cross-cutting concerns at the perimeter.</p>
+  </div>
+</div>
+
+<svg class="gw-diagram-svg" viewBox="0 0 720 250" role="img" aria-label="API Gateway Architecture and Request Lifecycle">
+  <!-- Clients -->
+  <g transform="translate(10, 35)">
+    <rect width="90" height="40" rx="8" fill="#fff" stroke="#1c1a15" stroke-width="2"/>
+    <text x="45" y="25" text-anchor="middle" font-size="12" font-weight="700">📱 Mobile</text>
+    <rect y="60" width="90" height="40" rx="8" fill="#fff" stroke="#1c1a15" stroke-width="2"/>
+    <text x="45" y="85" text-anchor="middle" font-size="12" font-weight="700">💻 Web App</text>
+    <rect y="120" width="90" height="40" rx="8" fill="#fff" stroke="#1c1a15" stroke-width="2"/>
+    <text x="45" y="145" text-anchor="middle" font-size="12" font-weight="700">🌐 3rd Party</text>
+  </g>
+
+  <!-- External traffic arrow -->
+  <path d="M 110 115 L 180 115" stroke="#1c1a15" stroke-width="3"/>
+  <text x="145" y="105" text-anchor="middle" font-size="10" font-family="monospace">HTTPS</text>
+
+  <!-- API Gateway Box -->
+  <rect x="180" y="20" width="230" height="200" rx="14" fill="#fff3bf" stroke="#f59f00" stroke-width="3"/>
+  <text x="295" y="45" text-anchor="middle" font-weight="800" font-size="14" fill="#d9480f">API GATEWAY (Edge)</text>
+  
+  <rect x="200" y="60" width="190" height="28" rx="6" fill="#fff" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="295" y="78" text-anchor="middle" font-size="11" font-weight="700">1. TLS / SSL Termination</text>
+
+  <rect x="200" y="95" width="190" height="28" rx="6" fill="#fff" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="295" y="113" text-anchor="middle" font-size="11" font-weight="700">2. JWT Verify (Stateless JWKS)</text>
+
+  <rect x="200" y="130" width="190" height="28" rx="6" fill="#fff" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="295" y="148" text-anchor="middle" font-size="11" font-weight="700">3. Token Bucket Rate Limiting</text>
+
+  <rect x="200" y="165" width="190" height="28" rx="6" fill="#fff" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="295" y="183" text-anchor="middle" font-size="11" font-weight="700">4. Header Injection &amp; Routing</text>
+
+  <!-- Internal VPC arrows -->
+  <path d="M 410 75 L 490 60" stroke="#2b8a3e" stroke-width="2.5"/>
+  <path d="M 410 120 L 490 120" stroke="#2b8a3e" stroke-width="2.5"/>
+  <path d="M 410 165 L 490 180" stroke="#2b8a3e" stroke-width="2.5"/>
+
+  <!-- Private Microservices VPC -->
+  <rect x="490" y="20" width="210" height="200" rx="14" fill="#f4fbf7" stroke="#2b8a3e" stroke-width="2.5" stroke-dasharray="6 4"/>
+  <text x="595" y="42" text-anchor="middle" font-weight="800" font-size="12" fill="#2b8a3e">🔒 Private VPC (Zero Public IPs)</text>
+
+  <rect x="510" y="55" width="170" height="36" rx="6" fill="#dcf9e8" stroke="#2b8a3e" stroke-width="1.5"/>
+  <text x="595" y="78" text-anchor="middle" font-size="11" font-weight="700">Users Service (gRPC)</text>
+
+  <rect x="510" y="105" width="170" height="36" rx="6" fill="#dcf9e8" stroke="#2b8a3e" stroke-width="1.5"/>
+  <text x="595" y="128" text-anchor="middle" font-size="11" font-weight="700">Orders Service (gRPC)</text>
+
+  <rect x="510" y="155" width="170" height="36" rx="6" fill="#dcf9e8" stroke="#2b8a3e" stroke-width="1.5"/>
+  <text x="595" y="178" text-anchor="middle" font-size="11" font-weight="700">Payments Service (gRPC)</text>
+</svg>
+
+<h2>edge authentication: the stateless jwt pattern</h2>
+<p><b>The Disaster Pattern:</b> Every microservice independently calls the Auth Service over the network to check whether a session is valid. 100k requests/sec creates 100k internal network calls to an Auth database that promptly catches fire.</p>
+
+<p><b>The Staff Solution:</b> Validate at the Edge using <b>Asymmetric JWTs (JSON Web Tokens)</b>:</p>
+<ol>
+  <li>The Auth service signs the token with its <b>Private Key</b> upon login.</li>
+  <li>The API Gateway downloads the Auth service’s public keys (JWKS endpoint) once and caches them in memory.</li>
+  <li>When a request arrives with <code>Authorization: Bearer &lt;token&gt;</code>, the gateway verifies the cryptographic signature locally in <b>microsecond math</b> (zero database lookups!).</li>
+  <li>The gateway strips the heavy raw token and injects clean, trusted plaintext headers for downstream services:
+  <pre>X-User-Id: 98124
+X-User-Role: admin
+X-User-Tenant: enterprise_acme</pre>
+  </li>
+  <li>Because internal services live inside an isolated VPC, they trust these headers implicitly.</li>
+</ol>
+
+<h2>rate limiting algorithms: token bucket vs leaky bucket</h2>
+<p>Rate limiting protects your systems from DDoS attacks, rogue scripts, and noisy neighbors. There are four core algorithms tested in system design interviews:</p>
+
+<table>
+  <tr><th>Algorithm</th><th>Mechanism</th><th>Handles Bursts?</th><th>Trade-Off</th></tr>
+  <tr>
+    <td><b>Token Bucket (Standard)</b></td>
+    <td>Tokens fill a bucket at a fixed rate. Each request consumes 1 token. When empty, requests are rejected.</td>
+    <td><b>Yes (up to bucket capacity)</b></td>
+    <td>Most common (AWS, Stripe, GitHub). Allows legitimate bursts of traffic without dropping packets.</td>
+  </tr>
+  <tr>
+    <td><b>Leaky Bucket</b></td>
+    <td>Requests enter a queue (bucket) and leak out to workers at a strict, continuous constant rate.</td>
+    <td><b>No (smooths traffic flat)</b></td>
+    <td>Great for traffic shaping when downstream databases cannot handle any spikes, but adds latency to bursts.</td>
+  </tr>
+  <tr>
+    <td><b>Fixed Window Counter</b></td>
+    <td>Count requests in 1-minute blocks (e.g. 10:00:00 to 10:01:00). Reset to zero at the minute mark.</td>
+    <td><b>Flawed at edges</b></td>
+    <td>A user can send the entire limit at 10:00:59 and another full limit at 10:01:01 (2x burst across window!).</td>
+  </tr>
+  <tr>
+    <td><b>Sliding Window Log</b></td>
+    <td>Keep timestamps of every request in a Redis Sorted Set (ZSET). Drop timestamps older than 60s.</td>
+    <td><b>Accurate</b></td>
+    <td>Memory heavy for high-volume users because every request timestamp is saved in RAM.</td>
+  </tr>
+</table>
+
+<h2>the bff pattern: backend-for-frontend</h2>
+<p>Modern apps don't have just one client. They have iOS apps on weak mobile cellular data, web dashboards on high-speed fiber, and third-party API partners.</p>
+<ul>
+  <li><b>The Problem:</b> A web page needs 50 fields. A mobile smartwatch only needs 3 fields. Making the mobile app download the 50-field payload wastes cellular bandwidth and battery.</li>
+  <li><b>The BFF Solution:</b> Deploy separate lightweight gateway layers: <b>Mobile BFF</b> and <b>Web BFF</b>.
+    <ul>
+      <li>Mobile BFF calls internal microservices in parallel, strips unused JSON keys, and returns a lean 2KB payload.</li>
+      <li>Web BFF returns rich payloads and pre-computed charts.</li>
+    </ul>
+  </li>
+</ul>
+
+<h2>preventing the single point of failure (spof)</h2>
+<p>If all traffic flows through the API Gateway, doesn't that make it a dangerous Single Point of Failure?</p>
+<p>In production cloud architecture, an API Gateway is <b>stateless</b>. Here is how FAANG makes it survive data center failures:</p>
+
+<ol>
+  <li><b>GeoDNS Anycast:</b> Client DNS queries resolve to the closest edge point of presence (PoP).</li>
+  <li><b>Layer 4 ECMP (Equal-Cost Multi-Path) Routers:</b> Hardware routers balance raw TCP packets across a fleet of stateless gateway instances without terminating connections.</li>
+  <li><b>Auto-scaling Fleet:</b> Gateway instances scale automatically based on CPU and network I/O. If two gateway nodes crash, ECMP immediately distributes packets across the surviving nodes in zero milliseconds.</li>
+</ol>
+
+<h2>faang interview defense & war stories</h2>
+<table>
+  <tr><th>Interview Question</th><th>Key Architectural Insight</th><th>The Winning Answer</th></tr>
+  <tr>
+    <td><b>"How do you implement distributed rate limiting without Redis becoming a bottleneck?"</b></td>
+    <td>Local caching + batch synchronization</td>
+    <td>Don't make an atomic Redis call on every single HTTP request. Allocate token blocks locally to each gateway pod (e.g. 50 tokens at a time). Pods consume from their local memory cache and sync back to Redis asynchronously every 100ms.</td>
+  </tr>
+  <tr>
+    <td><b>"What is Load Shedding and how does it differ from Rate Limiting?"</b></td>
+    <td>Rate limiting checks user identity; load shedding checks server survival.</td>
+    <td>Rate limiting protects against individual abusive users. Load shedding activates when internal CPU or queue latency exceeds safety limits (e.g. 85% CPU). The gateway drops non-critical requests (analytics, recommendations) returning 503 so checkout and payment traffic survive.</td>
+  </tr>
+  <tr>
+    <td><b>"What is 'The Fat Gateway' anti-pattern?"</b></td>
+    <td>Leaking domain logic into infrastructure.</td>
+    <td>Developers start writing business validation, database queries, and transformation code inside Lua or JavaScript gateway filters. Soon, the gateway becomes an unmaintainable monolithic bottleneck that is impossible to test and redeploy safely.</td>
+  </tr>
+</table>
+
+<h2>the 20-second summary</h2>
+<p>An API Gateway is your system’s <b>single ingress security guard</b>. It terminates TLS, validates <b>stateless JWTs against cached JWKS keys</b>, enforces <b>Token Bucket rate limits</b>, and aggregates microservices using the <b>BFF pattern</b>. Keep it thin, stateless, and scale it behind Layer 4 ECMP routers to eliminate Single Points of Failure.</p>
+
+<div style="margin-top:28px;padding:16px;background:var(--canvas);border:1.5px solid var(--border-dim);border-radius:10px;text-align:center">
+  <span style="font-size:12px;font-family:var(--font-mono);color:var(--ink-soft);text-transform:uppercase;letter-spacing:1px">Up Next in HLD</span><br/>
+  <a href="/courses/hld/caching" style="font-weight:800;font-size:16px;color:var(--ink);text-decoration:none;display:inline-block;margin-top:6px">Topic 04: Caching &amp; Distributed Caches →</a>
+</div>

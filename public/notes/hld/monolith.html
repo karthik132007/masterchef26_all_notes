@@ -1,0 +1,491 @@
+<style>
+/* monolith notes custom styles */
+.hl-widget{background:var(--paper);border:2px solid var(--ink);border-radius:12px;padding:20px;margin:20px 0;box-shadow:4px 4px 0 var(--ink)}
+.hl-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin:16px 0}
+.hl-card{background:var(--canvas);border:1.5px solid var(--border-dim);border-radius:10px;padding:16px}
+.hl-card h4{margin:0 0 8px;font-size:15px;display:flex;align-items:center;gap:8px}
+.hl-badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-family:var(--font-mono);font-weight:700;border:1px solid var(--ink)}
+.hl-badge.good{background:#dcf9e8;color:#0e623b}
+.hl-badge.warn{background:#fff3c4;color:#744210}
+.hl-badge.danger{background:#ffe3e3;color:#9b1c1c}
+.hl-diagram-svg{width:100%;height:auto;display:block;margin:12px 0}
+</style>
+
+<p class="kicker">one deployable binary, zero network hops, atomic ACID transactions — until Conway's Law strikes.</p>
+
+<h2>the 30-second elevator pitch</h2>
+<p>A <b>monolithic architecture</b> packages all business domains — authentication, billing, catalogue, notifications — into a <b>single executable process</b> reading from a single primary database.</p>
+<ul>
+  <li><b>How it runs:</b> Everything lives inside one repository. When you deploy, you build one container (or JAR/binary) and deploy it to a cluster of identical servers behind a load balancer.</li>
+  <li><b>The myth:</b> <i>"Monoliths don't scale."</i> False. <b>Shopify</b> handles $10B+ Black Friday GMV on a Rails monolith. <b>Stack Overflow</b> serves 1.3 billion page views a month on 9 on-prem monolithic web servers.</li>
+  <li><b>The real trade-off:</b> Monoliths don't fail because of traffic; they fail because of <b>human team scaling</b> (Conway's Law) and <b>heterogeneous compute contention</b>.</li>
+</ul>
+
+<div class="callout exam">
+  <b class="label">⭐ staff interview anchor</b><br />
+  Never walk into a system design interview and immediately say: <i>"We'll build 10 microservices."</i> Principal interviewers look for candidates who evaluate a <b>modular monolith first</b>. The default answer for any early-to-mid stage system is a modular monolith until specific scale or organizational bottlenecks force a decomposition.
+</div>
+
+<h2>the anatomy: spaghetti vs modular monolith</h2>
+<p>There are two radically different ways to build a monolith. Conflating them is the #1 mistake junior engineers make in system design interviews:</p>
+
+<div class="hl-grid">
+  <div class="hl-card">
+    <h4><span class="hl-badge danger">Bad</span> 1. The Spaghetti Monolith</h4>
+    <p>Controllers cross-call arbitrary database tables. Billing code directly modifies the <code>users</code> table without going through a User domain service. Everything is coupled. Changing one query breaks three unrelated features.</p>
+  </div>
+  <div class="hl-card">
+    <h4><span class="hl-badge good">Good</span> 2. The Modular Monolith</h4>
+    <p>Strict internal domain boundaries (Domain-Driven Design). The <code>Billing</code> module only talks to the <code>User</code> module via public interface contracts or an in-process event bus. Database tables are schema-isolated. Zero circular dependencies.</p>
+  </div>
+</div>
+
+<svg class="hl-diagram-svg" viewBox="0 0 720 250" role="img" aria-label="Spaghetti Monolith vs Modular Monolith comparison">
+  <rect x="15" y="15" width="330" height="220" rx="14" fill="#fff7f7" stroke="#e03131" stroke-width="2.5" stroke-dasharray="6 4"/>
+  <text x="180" y="42" text-anchor="middle" font-weight="800" font-size="14" fill="#c92a2a">Spaghetti Monolith (Tight Coupling)</text>
+  
+  <rect x="35" y="65" width="85" height="40" rx="8" fill="#ffe3e3" stroke="#e03131" stroke-width="1.5"/>
+  <text x="77" y="90" text-anchor="middle" font-size="12" font-weight="700">Auth</text>
+  <rect x="140" y="65" width="85" height="40" rx="8" fill="#ffe3e3" stroke="#e03131" stroke-width="1.5"/>
+  <text x="182" y="90" text-anchor="middle" font-size="12" font-weight="700">Orders</text>
+  <rect x="245" y="65" width="85" height="40" rx="8" fill="#ffe3e3" stroke="#e03131" stroke-width="1.5"/>
+  <text x="287" y="90" text-anchor="middle" font-size="12" font-weight="700">Billing</text>
+  
+  <!-- Spaghetti lines -->
+  <path d="M 77 105 Q 182 135 287 105" stroke="#e03131" stroke-width="2" fill="none"/>
+  <path d="M 120 85 L 140 85" stroke="#e03131" stroke-width="2" fill="none"/>
+  <path d="M 182 105 L 182 170" stroke="#e03131" stroke-width="2" fill="none"/>
+  <path d="M 77 105 L 150 170" stroke="#e03131" stroke-width="1.5" stroke-dasharray="3 3" fill="none"/>
+  <path d="M 287 105 L 210 170" stroke="#e03131" stroke-width="1.5" stroke-dasharray="3 3" fill="none"/>
+
+  <rect x="80" y="170" width="200" height="45" rx="8" fill="#ffd8a8" stroke="#1c1a15" stroke-width="2"/>
+  <text x="180" y="197" text-anchor="middle" font-size="12" font-weight="700">Shared Unpartitioned DB</text>
+
+  <!-- Modular Monolith -->
+  <rect x="375" y="15" width="330" height="220" rx="14" fill="#f4fbf7" stroke="#2b8a3e" stroke-width="2.5"/>
+  <text x="540" y="42" text-anchor="middle" font-weight="800" font-size="14" fill="#2b8a3e">Modular Monolith (Clean Bounded Contexts)</text>
+
+  <g transform="translate(390, 65)">
+    <rect width="90" height="90" rx="8" fill="#dcf9e8" stroke="#2b8a3e" stroke-width="1.5"/>
+    <text x="45" y="25" text-anchor="middle" font-size="12" font-weight="800">Auth Module</text>
+    <line x1="5" y1="40" x2="85" y2="40" stroke="#2b8a3e" stroke-width="1"/>
+    <text x="45" y="60" text-anchor="middle" font-size="10" fill="#555">Internal API</text>
+    <text x="45" y="78" text-anchor="middle" font-size="10" font-family="monospace">auth_schema</text>
+  </g>
+
+  <g transform="translate(495, 65)">
+    <rect width="90" height="90" rx="8" fill="#dcf9e8" stroke="#2b8a3e" stroke-width="1.5"/>
+    <text x="45" y="25" text-anchor="middle" font-size="12" font-weight="800">Order Module</text>
+    <line x1="5" y1="40" x2="85" y2="40" stroke="#2b8a3e" stroke-width="1"/>
+    <text x="45" y="60" text-anchor="middle" font-size="10" fill="#555">Internal API</text>
+    <text x="45" y="78" text-anchor="middle" font-size="10" font-family="monospace">order_schema</text>
+  </g>
+
+  <g transform="translate(600, 65)">
+    <rect width="90" height="90" rx="8" fill="#dcf9e8" stroke="#2b8a3e" stroke-width="1.5"/>
+    <text x="45" y="25" text-anchor="middle" font-size="12" font-weight="800">Billing Module</text>
+    <line x1="5" y1="40" x2="85" y2="40" stroke="#2b8a3e" stroke-width="1"/>
+    <text x="45" y="60" text-anchor="middle" font-size="10" fill="#555">Internal API</text>
+    <text x="45" y="78" text-anchor="middle" font-size="10" font-family="monospace">bill_schema</text>
+  </g>
+
+  <!-- In-process event bus -->
+  <rect x="400" y="175" width="280" height="35" rx="8" fill="#ffe14d" stroke="#1c1a15" stroke-width="2"/>
+  <text x="540" y="197" text-anchor="middle" font-size="11" font-weight="800">⚡ In-Memory Event Bus (Zero Network Latency)</text>
+</svg>
+
+<h2>the in-memory superpower: latency numbers</h2>
+<p>Why is a monolith so ridiculously fast? Because <b>memory access beats network sockets every single time</b>:</p>
+
+<table>
+  <tr><th>Operation</th><th>Latency</th><th>Relative Speed Comparison</th></tr>
+  <tr><td><b>In-memory function call</b> (Monolith)</td><td><code>~5 to 10 ns</code></td><td>Baseline (1x)</td></tr>
+  <tr><td><b>L1/L2 Cache hit</b></td><td><code>~1 to 4 ns</code></td><td>Instant</td></tr>
+  <tr><td><b>Localhost loopback TCP</b></td><td><code>~50 µs</code></td><td>5,000x slower</td></tr>
+  <tr><td><b>Same-DC gRPC call</b> (Microservices)</td><td><code>~1.5 to 3 ms</code></td><td><b>300,000x slower</b></td></tr>
+  <tr><td><b>Cross-AZ HTTP REST call</b> (Microservices)</td><td><code>~8 to 15 ms</code></td><td><b>1,500,000x slower</b></td></tr>
+</table>
+
+<p>If a single user request requires coordination between 8 modules, in a monolith that takes <b>40 nanoseconds</b>. In microservices, those 8 serialized network hops cost <b>25 to 80 milliseconds</b> of raw latency before executing a single line of business logic!</p>
+
+<div class="callout remember">
+  <b class="label">🧷 the acid transaction superpower</b><br />
+  In a monolith, transferring money from Alice to Bob is a 4-line SQL transaction:
+  <pre>BEGIN TRANSACTION;
+  UPDATE accounts SET balance = balance - 100 WHERE id = 'alice';
+  UPDATE accounts SET balance = balance + 100 WHERE id = 'bob';
+COMMIT;</pre>
+  If the server crashes mid-flight, the database engine rolls back automatically. In microservices, this requires distributed Sagas, compensating transactions, idempotent retries, and dead-letter queues.
+</div>
+
+<h2>scaling the monolith: the akf scale cube</h2>
+<p>How do you scale a monolith when traffic surges? System architects use the <b>AKF Scale Cube</b>:</p>
+<ul>
+  <li><b>X-Axis Scaling (Horizontal Cloning):</b> Run $N$ identical copies of the monolith behind an L4/L7 Load Balancer. Make the app server completely <b>stateless</b> by storing sessions in a shared Redis cluster. This easily scales to 100,000+ requests per second!</li>
+  <li><b>Z-Axis Scaling (Data Partitioning / Tenancy):</b> Run separate monolithic clusters routed by customer ID or geography. E.g., European customers hit <code>eu-monolith</code>, US customers hit <code>us-monolith</code>.</li>
+  <li><b>Y-Axis Scaling (Functional Decomposition):</b> Extracting distinct services — this is where microservices actually begin.</li>
+</ul>
+
+<h2>the real breaking points: when you must split</h2>
+<p>If monoliths scale so well, why does anyone ever leave? In production, you split when you hit these <b>three non-negotiable walls</b>:</p>
+
+<ol>
+  <li><b>Organizational Wall (Conway’s Law):</b> When you cross ~100-200 engineers, everyone collides on the same repository. Pull requests queue up, integration tests take 2 hours to run, and a bug in the marketing banner blocks a critical payment release.</li>
+  <li><b>Heterogeneous Compute Contention:</b> Suppose your app has an API that responds in 10ms, but also generates 200MB PDF financial reports. The PDF generator spikes CPU to 100% and exhausts heap memory, crashing the entire pod and dropping real-time customer checkouts.</li>
+  <li><b>Deployment Blast Radius:</b> In a monolith, a fatal NullPointerException or memory leak in a minor feature (like a referral banner) crashes the entire application process for all users globally.</li>
+</ol>
+
+<div class="hl-widget" id="monolith-lab">
+  <h3 style="margin-top:0">🔬 interactive lab: architecture request & blast-radius simulator</h3>
+  <p style="font-size:13px;color:var(--ink-soft);margin-bottom:14px">Directly experience the two core physical trade-offs in system design: <b>In-Memory Speed vs Network Hop Tax</b>, and <b>Resource Contention vs Blast Radius Isolation</b>.</p>
+
+  <!-- Controls -->
+  <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+    <div style="display:inline-flex;background:var(--canvas);border:2px solid var(--ink);border-radius:8px;padding:2px">
+      <button id="btn-mode-mono" onclick="setArchMode('monolith')" style="padding:6px 14px;border:none;border-radius:6px;font-weight:800;cursor:pointer;background:var(--ink);color:var(--paper)">Modular Monolith</button>
+      <button id="btn-mode-ms" onclick="setArchMode('microservices')" style="padding:6px 14px;border:none;border-radius:6px;font-weight:800;cursor:pointer;background:transparent;color:var(--ink)">Microservices Fleet</button>
+    </div>
+
+    <button onclick="runCheckoutSim()" style="padding:8px 16px;background:var(--paper);border:2px solid var(--ink);border-radius:8px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:6px">
+      <span>⚡ Send Checkout Request</span>
+    </button>
+
+    <button onclick="injectCpuSpike()" style="padding:8px 14px;background:#ffe3e3;border:2px solid var(--ink);border-radius:8px;font-weight:700;color:#9b1c1c;cursor:pointer">
+      ⚠️ Trigger CPU/OOM Spike
+    </button>
+
+    <button onclick="resetArchSim()" style="padding:8px 12px;background:var(--canvas);border:1.5px solid var(--border-dim);border-radius:8px;font-size:12px;cursor:pointer">
+      Reset
+    </button>
+  </div>
+
+  <!-- Live Stats Bar -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px">
+    <div style="background:var(--canvas);border:1.5px solid var(--border-dim);border-radius:8px;padding:8px 12px;font-family:var(--font-mono)">
+      <span style="font-size:11px;color:var(--ink-soft);display:block">Internal Comm</span>
+      <b id="sim-comm-type" style="font-size:13px;color:#2b8a3e">In-Memory Bus (~10ns)</b>
+    </div>
+    <div style="background:var(--canvas);border:1.5px solid var(--border-dim);border-radius:8px;padding:8px 12px;font-family:var(--font-mono)">
+      <span style="font-size:11px;color:var(--ink-soft);display:block">Network Serialization</span>
+      <b id="sim-net-hops" style="font-size:13px">0 hops (Zero overhead)</b>
+    </div>
+    <div style="background:var(--canvas);border:1.5px solid var(--border-dim);border-radius:8px;padding:8px 12px;font-family:var(--font-mono)">
+      <span style="font-size:11px;color:var(--ink-soft);display:block">Total End-to-End Latency</span>
+      <b id="sim-latency" style="font-size:14px;color:#2b8a3e">1.2 ms</b>
+    </div>
+    <div style="background:var(--canvas);border:1.5px solid var(--border-dim);border-radius:8px;padding:8px 12px;font-family:var(--font-mono)">
+      <span style="font-size:11px;color:var(--ink-soft);display:block">Checkout Flow Health</span>
+      <b id="sim-health" style="font-size:13px;color:#2b8a3e">100% OPERATIONAL</b>
+    </div>
+  </div>
+
+  <!-- Interactive SVG Canvas -->
+  <div style="background:#fffdf6;border:2px solid var(--ink);border-radius:10px;padding:12px;position:relative;overflow:hidden">
+    <svg id="sim-canvas-svg" viewBox="0 0 700 240" style="width:100%;height:auto;display:block">
+      <!-- Defined in JS dynamically -->
+    </svg>
+  </div>
+
+  <!-- Realtime Narrative Log -->
+  <div id="sim-narrative-log" style="margin-top:12px;background:var(--canvas);border:1.5px solid var(--border-dim);border-radius:8px;padding:12px;font-family:var(--font-mono);font-size:12px;min-height:50px;line-height:1.5">
+    > Architecture: Modular Monolith. Press "Send Checkout Request" to trace internal execution flow.
+  </div>
+</div>
+
+<script>
+let currentArch = 'monolith';
+let isAnimating = false;
+let isCpuSpiked = false;
+
+function setArchMode(mode) {
+  currentArch = mode;
+  isCpuSpiked = false;
+  document.getElementById('btn-mode-mono').style.background = mode === 'monolith' ? 'var(--ink)' : 'transparent';
+  document.getElementById('btn-mode-mono').style.color = mode === 'monolith' ? 'var(--paper)' : 'var(--ink)';
+  document.getElementById('btn-mode-ms').style.background = mode === 'microservices' ? 'var(--ink)' : 'transparent';
+  document.getElementById('btn-mode-ms').style.color = mode === 'microservices' ? 'var(--paper)' : 'var(--ink)';
+
+  if (mode === 'monolith') {
+    document.getElementById('sim-comm-type').innerText = 'In-Memory (~10ns)';
+    document.getElementById('sim-comm-type').style.color = '#2b8a3e';
+    document.getElementById('sim-net-hops').innerText = '0 hops (Direct heap)';
+    document.getElementById('sim-latency').innerText = '1.2 ms';
+    document.getElementById('sim-latency').style.color = '#2b8a3e';
+    document.getElementById('sim-health').innerText = '100% OPERATIONAL';
+    document.getElementById('sim-health').style.color = '#2b8a3e';
+    document.getElementById('sim-narrative-log').innerHTML = '> Switched to <b>Modular Monolith</b>. 4 business modules share 1 JVM/OS process. Zero network serialization between domains.';
+  } else {
+    document.getElementById('sim-comm-type').innerText = 'Network gRPC / HTTP';
+    document.getElementById('sim-comm-type').style.color = '#d97706';
+    document.getElementById('sim-net-hops').innerText = '4 network hops (VPC)';
+    document.getElementById('sim-latency').innerText = '48.5 ms';
+    document.getElementById('sim-latency').style.color = '#d9480f';
+    document.getElementById('sim-health').innerText = '100% OPERATIONAL';
+    document.getElementById('sim-health').style.color = '#2b8a3e';
+    document.getElementById('sim-narrative-log').innerHTML = '> Switched to <b>Microservices Fleet</b>. Each domain runs in an independent container with its own private database.';
+  }
+  drawArchTopology();
+}
+
+function drawArchTopology(activeHop = -1) {
+  const svg = document.getElementById('sim-canvas-svg');
+  if (currentArch === 'monolith') {
+    const boxColor = isCpuSpiked ? '#ffe3e3' : '#f4fbf7';
+    const strokeColor = isCpuSpiked ? '#e03131' : '#2b8a3e';
+    svg.innerHTML = `
+      <!-- Client -->
+      <g transform="translate(20, 95)">
+        <rect width="70" height="50" rx="8" fill="#fff" stroke="#1c1a15" stroke-width="2"/>
+        <text x="35" y="24" text-anchor="middle" font-size="16">📱</text>
+        <text x="35" y="42" text-anchor="middle" font-size="10" font-weight="800">Client</text>
+      </g>
+      
+      <!-- Arrow to LB -->
+      <line x1="90" y1="120" x2="135" y2="120" stroke="#1c1a15" stroke-width="2" marker-end="url(#marr)"/>
+
+      <!-- LB -->
+      <g transform="translate(135, 95)">
+        <rect width="60" height="50" rx="8" fill="#fff3bf" stroke="#1c1a15" stroke-width="2"/>
+        <text x="30" y="24" text-anchor="middle" font-size="14">⚖️</text>
+        <text x="30" y="42" text-anchor="middle" font-size="10" font-weight="800">LB</text>
+      </g>
+
+      <!-- Arrow to Monolith -->
+      <line x1="195" y1="120" x2="245" y2="120" stroke="#1c1a15" stroke-width="2.5"/>
+
+      <!-- Big Monolith Process Box -->
+      <rect x="245" y="25" width="435" height="190" rx="14" fill="${boxColor}" stroke="${strokeColor}" stroke-width="${isCpuSpiked ? '3' : '2.5'}"/>
+      <text x="462" y="48" text-anchor="middle" font-weight="800" font-size="13" fill="${strokeColor}">
+        ${isCpuSpiked ? '🔥 MONOLITH PROCESS: OOM CRASH (CPU 100%)' : '📦 SINGLE PROCESS CONTAINER (SHARED HEAP / CPU)'}
+      </text>
+
+      <!-- Internal Modules -->
+      <g transform="translate(265, 65)">
+        <rect width="85" height="60" rx="8" fill="${activeHop === 0 ? '#ffe066' : '#fff'}" stroke="#1c1a15" stroke-width="2"/>
+        <text x="42" y="26" text-anchor="middle" font-size="11" font-weight="800">Auth</text>
+        <text x="42" y="45" text-anchor="middle" font-size="9" fill="#666">12ns call</text>
+      </g>
+
+      <g transform="translate(365, 65)">
+        <rect width="85" height="60" rx="8" fill="${activeHop === 1 ? '#ffe066' : '#fff'}" stroke="#1c1a15" stroke-width="2"/>
+        <text x="42" y="26" text-anchor="middle" font-size="11" font-weight="800">Orders</text>
+        <text x="42" y="45" text-anchor="middle" font-size="9" fill="#666">18ns call</text>
+      </g>
+
+      <g transform="translate(465, 65)">
+        <rect width="85" height="60" rx="8" fill="${activeHop === 2 ? '#ffe066' : '#fff'}" stroke="#1c1a15" stroke-width="2"/>
+        <text x="42" y="26" text-anchor="middle" font-size="11" font-weight="800">Inventory</text>
+        <text x="42" y="45" text-anchor="middle" font-size="9" fill="#666">15ns call</text>
+      </g>
+
+      <g transform="translate(565, 65)">
+        <rect width="85" height="60" rx="8" fill="${activeHop === 3 ? '#ffe066' : '#fff'}" stroke="#1c1a15" stroke-width="2"/>
+        <text x="42" y="26" text-anchor="middle" font-size="11" font-weight="800">Billing</text>
+        <text x="42" y="45" text-anchor="middle" font-size="9" fill="#666">20ns call</text>
+      </g>
+
+      <!-- Video encoder module inside monolith -->
+      <g transform="translate(365, 140)">
+        <rect width="185" height="55" rx="8" fill="${isCpuSpiked ? '#ffc9c9' : '#f1f3f5'}" stroke="${isCpuSpiked ? '#e03131' : '#adb5bd'}" stroke-width="1.5"/>
+        <text x="92" y="24" text-anchor="middle" font-size="11" font-weight="800" fill="${isCpuSpiked ? '#c92a2a' : '#495057'}">
+          ${isCpuSpiked ? '⚠️ Background Video Transcoder' : 'Background Video Transcoder'}
+        </text>
+        <text x="92" y="42" text-anchor="middle" font-size="9" fill="${isCpuSpiked ? '#c92a2a' : '#868e96'}">
+          ${isCpuSpiked ? 'Spiking 100% CPU, starving API threads!' : 'Runs on same shared memory space'}
+        </text>
+      </g>
+
+      <!-- In-memory bus indicator -->
+      <line x1="350" y1="95" x2="365" y2="95" stroke="#2b8a3e" stroke-width="3" stroke-dasharray="3 3"/>
+      <line x1="450" y1="95" x2="465" y2="95" stroke="#2b8a3e" stroke-width="3" stroke-dasharray="3 3"/>
+      <line x1="550" y1="95" x2="565" y2="95" stroke="#2b8a3e" stroke-width="3" stroke-dasharray="3 3"/>
+    `;
+  } else {
+    // Microservices
+    svg.innerHTML = `
+      <!-- Client -->
+      <g transform="translate(15, 95)">
+        <rect width="60" height="50" rx="8" fill="#fff" stroke="#1c1a15" stroke-width="2"/>
+        <text x="30" y="24" text-anchor="middle" font-size="16">📱</text>
+        <text x="30" y="42" text-anchor="middle" font-size="10" font-weight="800">Client</text>
+      </g>
+      <line x1="75" y1="120" x2="110" y2="120" stroke="#1c1a15" stroke-width="2"/>
+
+      <!-- Gateway -->
+      <g transform="translate(110, 85)">
+        <rect width="65" height="70" rx="8" fill="#fff3bf" stroke="#1c1a15" stroke-width="2"/>
+        <text x="32" y="30" text-anchor="middle" font-size="13" font-weight="800">API</text>
+        <text x="32" y="48" text-anchor="middle" font-size="11" font-weight="800">Gateway</text>
+      </g>
+
+      <!-- Microservices Pods with Network Pipes -->
+      <!-- Order Pod -->
+      <g transform="translate(230, 40)">
+        <rect width="105" height="65" rx="8" fill="${activeHop === 0 ? '#ffe066' : '#dcf9e8'}" stroke="#1c1a15" stroke-width="2"/>
+        <text x="52" y="25" text-anchor="middle" font-size="11" font-weight="800">Order Pod</text>
+        <text x="52" y="42" text-anchor="middle" font-size="9" fill="#555">Port :50051 (gRPC)</text>
+        <text x="52" y="56" text-anchor="middle" font-size="9" font-family="monospace">Orders DB</text>
+      </g>
+      <path d="M 175 110 L 230 75" stroke="#1c1a15" stroke-width="2" stroke-dasharray="4 4"/>
+      <text x="195" y="85" font-size="9" font-family="monospace">+8ms</text>
+
+      <!-- Auth Pod -->
+      <g transform="translate(230, 140)">
+        <rect width="105" height="65" rx="8" fill="${activeHop === 1 ? '#ffe066' : '#dcf9e8'}" stroke="#1c1a15" stroke-width="2"/>
+        <text x="52" y="25" text-anchor="middle" font-size="11" font-weight="800">Auth Pod</text>
+        <text x="52" y="42" text-anchor="middle" font-size="9" fill="#555">Port :50052</text>
+        <text x="52" y="56" text-anchor="middle" font-size="9" font-family="monospace">Auth DB</text>
+      </g>
+      <path d="M 175 130 L 230 165" stroke="#1c1a15" stroke-width="2" stroke-dasharray="4 4"/>
+      <text x="195" y="155" font-size="9" font-family="monospace">+6ms</text>
+
+      <!-- Inventory Pod -->
+      <g transform="translate(390, 40)">
+        <rect width="115" height="65" rx="8" fill="${activeHop === 2 ? '#ffe066' : '#dcf9e8'}" stroke="#1c1a15" stroke-width="2"/>
+        <text x="57" y="25" text-anchor="middle" font-size="11" font-weight="800">Inventory Pod</text>
+        <text x="57" y="42" text-anchor="middle" font-size="9" fill="#555">Port :50053</text>
+        <text x="57" y="56" text-anchor="middle" font-size="9" font-family="monospace">Inv DB (Redis)</text>
+      </g>
+      <line x1="335" y1="72" x2="390" y2="72" stroke="#1c1a15" stroke-width="2" stroke-dasharray="4 4"/>
+      <text x="355" y="66" font-size="9" font-family="monospace">+14ms</text>
+
+      <!-- Payment Pod -->
+      <g transform="translate(560, 40)">
+        <rect width="115" height="65" rx="8" fill="${activeHop === 3 ? '#ffe066' : '#dcf9e8'}" stroke="#1c1a15" stroke-width="2"/>
+        <text x="57" y="25" text-anchor="middle" font-size="11" font-weight="800">Payment Pod</text>
+        <text x="57" y="42" text-anchor="middle" font-size="9" fill="#555">Stripe Gateway</text>
+        <text x="57" y="56" text-anchor="middle" font-size="9" font-family="monospace">Payments DB</text>
+      </g>
+      <line x1="505" y1="72" x2="560" y2="72" stroke="#1c1a15" stroke-width="2" stroke-dasharray="4 4"/>
+      <text x="525" y="66" font-size="9" font-family="monospace">+18ms</text>
+
+      <!-- Isolated Video Worker Pod -->
+      <g transform="translate(450, 140)">
+        <rect width="180" height="65" rx="8" fill="${isCpuSpiked ? '#ffe3e3' : '#f8f9fa'}" stroke="${isCpuSpiked ? '#e03131' : '#1c1a15'}" stroke-width="2"/>
+        <text x="90" y="25" text-anchor="middle" font-size="11" font-weight="800" fill="${isCpuSpiked ? '#c92a2a' : '#1c1a15'}">
+          ${isCpuSpiked ? '🔥 Video Pod (CRASHED)' : 'Video Transcode Pod'}
+        </text>
+        <text x="90" y="42" text-anchor="middle" font-size="9" fill="${isCpuSpiked ? '#c92a2a' : '#666'}">
+          ${isCpuSpiked ? 'OOM Killed by Kubernetes!' : 'Isolated K8s Deployment'}
+        </text>
+        <text x="90" y="56" text-anchor="middle" font-size="9" font-weight="700" fill="${isCpuSpiked ? '#2b8a3e' : '#666'}">
+          ${isCpuSpiked ? '✓ Zero impact on Checkout!' : 'Zero cross-pod interference'}
+        </text>
+      </g>
+    `;
+  }
+}
+
+function runCheckoutSim() {
+  if (isAnimating) return;
+  isAnimating = true;
+  const log = document.getElementById('sim-narrative-log');
+
+  if (currentArch === 'monolith') {
+    if (isCpuSpiked) {
+      log.innerHTML = `<span style="color:#c92a2a;font-weight:800">[503 SERVICE UNAVAILABLE]</span> Monolith process is unresponsive! All thread pools starved by video encoder. Request timed out.<br/>` + log.innerHTML;
+      isAnimating = false;
+      return;
+    }
+    log.innerHTML = `<span style="color:#2b8a3e;font-weight:700">[START]</span> Request arrived at Load Balancer. Forwarded to Monolith process.<br/>` + log.innerHTML;
+    let step = 0;
+    const timer = setInterval(() => {
+      drawArchTopology(step);
+      if (step === 0) log.innerHTML = `&nbsp;&nbsp;↳ <b>Auth check:</b> In-memory method call (12ns) ✓<br/>` + log.innerHTML;
+      if (step === 1) log.innerHTML = `&nbsp;&nbsp;↳ <b>Order creation:</b> In-memory method call (18ns) ✓<br/>` + log.innerHTML;
+      if (step === 2) log.innerHTML = `&nbsp;&nbsp;↳ <b>Inventory lock:</b> In-memory method call (15ns) ✓<br/>` + log.innerHTML;
+      if (step === 3) {
+        log.innerHTML = `&nbsp;&nbsp;↳ <b>Billing charge:</b> In-memory method call (20ns) ✓<br/>` + log.innerHTML;
+        log.innerHTML = `<span style="color:#2b8a3e;font-weight:800">[COMPLETE]</span> 4 domain calls completed in <b>65 nanoseconds</b>! Total HTTP response: <b>1.2 ms</b>.<br/>` + log.innerHTML;
+        clearInterval(timer);
+        isAnimating = false;
+        setTimeout(() => drawArchTopology(-1), 1000);
+      }
+      step++;
+    }, 250);
+  } else {
+    log.innerHTML = `<span style="color:#1864ab;font-weight:700">[START]</span> Request arrived at API Gateway. Inspecting route and issuing internal RPCs...<br/>` + log.innerHTML;
+    let step = 0;
+    const timer = setInterval(() => {
+      drawArchTopology(step);
+      if (step === 0) log.innerHTML = `&nbsp;&nbsp;↳ <b>Hop 1:</b> Gateway $\to$ Order Pod via gRPC (+8ms network hop + serialization) ✓<br/>` + log.innerHTML;
+      if (step === 1) log.innerHTML = `&nbsp;&nbsp;↳ <b>Hop 2:</b> Order Pod $\to$ Auth Pod over VPC (+6ms network hop) ✓<br/>` + log.innerHTML;
+      if (step === 2) log.innerHTML = `&nbsp;&nbsp;↳ <b>Hop 3:</b> Order Pod $\to$ Inventory Pod (+14ms cross-AZ network hop) ✓<br/>` + log.innerHTML;
+      if (step === 3) {
+        log.innerHTML = `&nbsp;&nbsp;↳ <b>Hop 4:</b> Order Pod $\to$ Payment Pod (+18ms external TLS hop) ✓<br/>` + log.innerHTML;
+        log.innerHTML = `<span style="color:#d9480f;font-weight:800">[COMPLETE]</span> 4 remote network hops completed in <b>46.0 ms</b> (Network Tax: 38x slower than monolith).<br/>` + log.innerHTML;
+        clearInterval(timer);
+        isAnimating = false;
+        setTimeout(() => drawArchTopology(-1), 1200);
+      }
+      step++;
+    }, 400);
+  }
+}
+
+function injectCpuSpike() {
+  isCpuSpiked = true;
+  drawArchTopology();
+  const log = document.getElementById('sim-narrative-log');
+
+  if (currentArch === 'monolith') {
+    document.getElementById('sim-health').innerText = '0% (CRASHED)';
+    document.getElementById('sim-health').style.color = '#c92a2a';
+    log.innerHTML = `<span style="color:#c92a2a;font-weight:800">[CATASTROPHIC BLAST RADIUS]</span> Background video encoding spiked CPU to 100% and exhausted heap memory! Because everything runs in a single process, the entire Monolith pod crashed! Checkout flow is DOWN globally.<br/>` + log.innerHTML;
+  } else {
+    document.getElementById('sim-health').innerText = '100% (ISOLATED)';
+    document.getElementById('sim-health').style.color = '#2b8a3e';
+    log.innerHTML = `<span style="color:#2b8a3e;font-weight:800">[BLAST RADIUS CONTAINED]</span> Video Transcoder Pod crashed with Out-Of-Memory (OOM). However, because of microservice container isolation, Order, Auth, and Payment pods are 100% unaffected! Users continue checking out seamlessly.<br/>` + log.innerHTML;
+  }
+}
+
+function resetArchSim() {
+  isCpuSpiked = false;
+  isAnimating = false;
+  document.getElementById('sim-health').innerText = '100% OPERATIONAL';
+  document.getElementById('sim-health').style.color = '#2b8a3e';
+  drawArchTopology();
+  document.getElementById('sim-narrative-log').innerText = '> Reset complete. System healthy.';
+}
+
+drawArchTopology();
+</script>
+
+<h2>how to migrate: the strangler fig pattern</h2>
+<p>Never do a "Big Bang" rewrite. A complete rewrite of a 10-year-old monolith almost always fails because edge cases documented only in code get lost. Instead, use Martin Fowler’s <b>Strangler Fig Pattern</b>:</p>
+
+<ol>
+  <li><b>Place an API Gateway / Reverse Proxy</b> in front of the monolith. All client requests pass through this proxy.</li>
+  <li><b>Build the new microservice</b> (e.g., <code>Notification Service</code>) completely outside the monolith.</li>
+  <li><b>Shadow Traffic / Canary Routing:</b> The Gateway intercepts calls to <code>/api/v1/notifications</code> and forwards them to the new service while routing everything else to the monolith.</li>
+  <li><b>Replicate Data via CDC (Change Data Capture):</b> Use tools like Debezium reading the monolith’s write-ahead log (WAL) to sync state into the new service’s database.</li>
+  <li><b>Decommission:</b> Once verified under production traffic, delete the notification code from the monolith. Repeat for the next domain until the monolith shrinks.</li>
+</ol>
+
+<h2>interview cheat sheet & questions</h2>
+<table>
+  <tr><th>Question</th><th>What the Interviewer is Testing</th><th>The Winning Answer</th></tr>
+  <tr>
+    <td><b>"How would you scale a monolith to 1M daily active users?"</b></td>
+    <td>Do you understand stateless horizontal scaling?</td>
+    <td>Put an L7 Load Balancer in front. Make app servers stateless (offload user sessions to Redis). Add read replicas to the primary database. Cache expensive queries in Redis. Monolith app servers scale horizontally with zero code changes.</td>
+  </tr>
+  <tr>
+    <td><b>"When is choosing microservices an anti-pattern?"</b></td>
+    <td>Engineering pragmatism vs hype-driven development.</td>
+    <td>When domain boundaries are still shifting (early-stage startup) or when the engineering team is under 30 people. You spend 70% of your time debugging network timeouts, service discovery, and distributed transactions instead of shipping product.</td>
+  </tr>
+  <tr>
+    <td><b>"What is a Modular Monolith?"</b></td>
+    <td>Do you know modern software architecture patterns?</td>
+    <td>A single deployment artifact where domains are enforced through code encapsulation (e.g. Java modules or internal Go packages). Domains can only communicate via public interfaces or in-memory event buses, completely banning direct cross-domain DB queries.</td>
+  </tr>
+</table>
+
+<h2>the 20-second summary</h2>
+<p>A monolith packages your entire application into one process and single database. It gives you <b>nanosecond in-memory speed</b>, <b>free ACID transactions</b>, and <b>frictionless local debugging</b>. Scale it horizontally on the X-axis behind a load balancer with stateless servers. Only migrate to microservices when <b>organizational scale</b> (100+ devs) or <b>conflicting hardware requirements</b> make a single deployable artifact impossible.</p>
+
+<div style="margin-top:28px;padding:16px;background:var(--canvas);border:1.5px solid var(--border-dim);border-radius:10px;text-align:center">
+  <span style="font-size:12px;font-family:var(--font-mono);color:var(--ink-soft);text-transform:uppercase;letter-spacing:1px">Up Next in HLD</span><br/>
+  <a href="/courses/hld/load-balancer" style="font-weight:800;font-size:16px;color:var(--ink);text-decoration:none;display:inline-block;margin-top:6px">Topic 02: Load Balancer →</a>
+</div>

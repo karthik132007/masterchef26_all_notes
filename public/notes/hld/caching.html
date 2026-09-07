@@ -1,0 +1,150 @@
+<style>
+/* caching notes custom styles */
+.ca-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin:16px 0}
+.ca-card{background:var(--canvas);border:1.5px solid var(--border-dim);border-radius:10px;padding:16px}
+.ca-card h4{margin:0 0 8px;font-size:15px;display:flex;align-items:center;gap:8px}
+</style>
+
+<p class="kicker">sub-millisecond reads from ram, cache invalidation math, and surviving the big three production disasters.</p>
+
+<h2>the 30-second elevator pitch</h2>
+<p><i>"There are only two hard things in Computer Science: cache invalidation and naming things."</i> — Phil Karlton.</p>
+<p>A <b>cache</b> is a high-speed, volatile storage layer (almost always RAM) that holds copies of data so future read requests are served in <b>sub-milliseconds</b> rather than hitting slow disks, complex SQL joins, or external APIs.</p>
+<ul>
+  <li><b>The Speed Multiplier:</b> Reading from RAM takes <code>~100 nanoseconds</code>. Reading from an NVMe SSD takes <code>~50 microseconds</code> (500x slower). Reading from a spinning hard disk takes <code>~10 milliseconds</code> (100,000x slower).</li>
+  <li><b>The Golden Formula:</b> <b>Average Latency</b> = $(H \times \text{Cache Latency}) + ((1 - H) \times \text{DB Latency})$, where $H$ is the Cache Hit Ratio. A 98% hit ratio drops average query latency from 25ms down to 0.9ms!</li>
+  <li><b>The Cardinal Rule:</b> Cache is temporary. If your cache cluster burns down, your primary database <b>must</b> still be able to reconstruct the truth without permanent data loss.</li>
+</ul>
+
+<h2>the hardware latency pyramid</h2>
+<p>In a Staff system design interview, knowing your numbers separates seniors from juniors. Here is the physical reality of data access:</p>
+
+<table>
+  <tr><th>Operation</th><th>Physical Time</th><th>Scaled to Human Time (1 sec = 1 ns)</th></tr>
+  <tr><td><b>CPU L1 Cache Reference</b></td><td><code>0.5 - 1 ns</code></td><td>1 second</td></tr>
+  <tr><td><b>Main Memory (RAM) Reference</b></td><td><code>100 ns</code></td><td>1.6 minutes</td></tr>
+  <tr><td><b>Redis In-Memory Read (over local network)</b></td><td><code>0.5 ms</code></td><td><b>5.8 days</b></td></tr>
+  <tr><td><b>NVMe SSD Random I/O Read</b></td><td><code>50 µs</code></td><td>14 hours</td></tr>
+  <tr><td><b>PostgreSQL Disk Read (Cold cache)</b></td><td><code>10 - 25 ms</code></td><td><b>3.8 months</b></td></tr>
+  <tr><td><b>Cross-Atlantic Network Packet (NYC $\to$ London)</b></td><td><code>150 ms</code></td><td><b>4.7 years</b></td></tr>
+</table>
+
+<h2>multi-tier caching architecture</h2>
+<p>In production, you never have just "one cache." You have a multi-layered defensive hierarchy:</p>
+
+<ol>
+  <li><b>Browser / Client Cache:</b> Assets and HTTP API responses cached via headers (<code>Cache-Control: public, max-age=3600</code>, <code>ETag</code>, <code>304 Not Modified</code>). Zero network calls leave the device.</li>
+  <li><b>CDN / Edge Cache (Cloudflare, CloudFront):</b> Geographically distributed PoPs caching static images, videos, and dynamic edge-rendered HTML within 15ms of the user.</li>
+  <li><b>Reverse Proxy Cache (Nginx):</b> Micro-caching popular anonymous public endpoints for 1-2 seconds. Absorbs sudden viral traffic spikes.</li>
+  <li><b>Application L1 In-Memory Cache (Caffeine / Guava):</b> Stored directly inside the application's JVM/Go process heap. <code>~10 nanoseconds</code> access. Zero network serialization overhead.</li>
+  <li><b>Distributed L2 Cache (Redis Cluster):</b> Shared memory layer across all 200 application pods. Highly available, partitioned via consistent hashing, persistence via RDB/AOF.</li>
+</ol>
+
+<h2>cache write strategies: the 4 core patterns</h2>
+<p>Every system design interview requires picking a caching strategy. Choosing the wrong one causes silent data corruption or DB meltdowns:</p>
+
+<div class="ca-grid">
+  <div class="ca-card">
+    <h4>1. Cache-Aside (Lazy Loading)</h4>
+    <p><b>The Industry Standard.</b> Application code coordinates both cache and DB.</p>
+    <ul>
+      <li><b>Read:</b> Check Cache. If Hit $\to$ return. If Miss $\to$ read DB, write result to Cache, return.</li>
+      <li><b>Write:</b> Update DB, then <b>evict (delete)</b> the key from Cache.</li>
+      <li><b>Why evict instead of update?</b> Prevents race conditions where two concurrent writes overwrite cache in reverse order!</li>
+    </ul>
+  </div>
+  <div class="ca-card">
+    <h4>2. Write-Through</h4>
+    <p>Application writes strictly to the cache. The cache synchronously writes to the database before returning success.</p>
+    <ul>
+      <li><b>Pros:</b> Data in cache is never stale; immediate read consistency.</li>
+      <li><b>Cons:</b> High write latency (waits for both cache and DB writes to complete).</li>
+    </ul>
+  </div>
+  <div class="ca-card">
+    <h4>3. Write-Back (Write-Behind)</h4>
+    <p>Application writes to cache; cache acknowledges <b>immediately</b> in 0.5ms. The cache batches dirty writes and flushes them to the database asynchronously.</p>
+    <ul>
+      <li><b>Pros:</b> Blazing write speeds. Ideal for write-heavy counters, gaming leaderboards, and telemetry.</li>
+      <li><b>Cons:</b> High risk! If the Redis node crashes before flushing to disk, recent writes are permanently lost.</li>
+    </ul>
+  </div>
+  <div class="ca-card">
+    <h4>4. Write-Around</h4>
+    <p>Writes bypass the cache completely and write directly to the database. Cache is only populated on subsequent read misses.</p>
+    <ul>
+      <li><b>Best for:</b> Data that is written once and rarely read again (e.g. archived audit logs, legal compliance records). Prevents cache pollution.</li>
+    </ul>
+  </div>
+</div>
+
+<h2>cache eviction: how memory is reclaimed</h2>
+<p>Caches have finite RAM. When memory is full, an eviction policy decides who gets thrown out:</p>
+<ul>
+  <li><b>LRU (Least Recently Used):</b> Evicts the item that hasn't been accessed for the longest time. Implemented via a <b>Doubly-Linked List + Hash Map</b> for $O(1)$ lookup and $O(1)$ head re-ordering.</li>
+  <li><b>LFU (Least Frequently Used):</b> Evicts the item with the lowest historical access frequency. Great when certain items are evergreen hits, but slow to adapt to sudden new trending items.</li>
+  <li><b>TTL (Time-To-Live):</b> Explicit expiration time (e.g. 15 minutes). Essential to prevent stale ghost data from lingering forever.</li>
+</ul>
+
+<h2>the big 3 cache disasters & production defenses</h2>
+<p>This is the most heavily tested topic in senior system design interviews. Every candidate must know these three catastrophic failure modes and their exact engineering solutions:</p>
+
+<table>
+  <tr><th>Disaster</th><th>What Happens</th><th>How to Defend (Interview Answer)</th></tr>
+  <tr>
+    <td><b>1. Cache Penetration</b></td>
+    <td>Malicious or rogue traffic requests keys that <b>do not exist in the DB</b> (e.g. <code>user_id = -99999</code>). The cache misses every time, forwarding 100% of queries directly to the DB, causing database CPU starvation.</td>
+    <td>
+      1. <b>Bloom Filter:</b> Place a space-efficient Bloom Filter in front of the cache. If the filter says the key does not exist, reject it immediately ($O(1)$ bit check).<br/>
+      2. <b>Cache Null Objects:</b> On a DB miss, store <code>key $\to$ null</code> in Redis with a short TTL (e.g. 30 seconds).
+    </td>
+  </tr>
+  <tr>
+    <td><b>2. Cache Avalanche</b></td>
+    <td>Thousands of cache keys are loaded at midnight with the exact same 24-hour TTL. At 00:00:00 tomorrow, all 100,000 keys expire simultaneously. Traffic surges directly into the database, causing immediate collapse.</td>
+    <td>
+      1. <b>TTL Jitter:</b> Never use fixed expiration. Add random jitter: <code>TTL = base_ttl + rand(0, 300)</code> seconds so keys expire gradually over time.<br/>
+      2. <b>Redis High Availability:</b> Multi-AZ master-replica clusters with Redis Sentinel or AWS ElastiCache auto-failover.
+    </td>
+  </tr>
+  <tr>
+    <td><b>3. Cache Stampede (Thundering Herd)</b></td>
+    <td>A single <b>super-hot key</b> (e.g. World Cup final score, viral tweet) expires. 50,000 concurrent requests miss the cache at the exact same millisecond. All 50,000 threads execute the expensive SQL query simultaneously.</td>
+    <td>
+      1. <b>Distributed Mutex (Redlock):</b> Use Redis <code>SETNX</code> (Set if Not Exists) lock. Only the 1 thread that acquires the lock queries the DB; the other 49,999 wait or return the stale cache value.<br/>
+      2. <b>Probabilistic Early Expiration (XFetch):</b> Background threads recompute the value before it actually expires based on request frequency.
+    </td>
+  </tr>
+</table>
+
+<h2>redis vs memcached: the architectural showdown</h2>
+<table>
+  <tr><th>Dimension</th><th>Redis</th><th>Memcached</th></tr>
+  <tr><td><b>Concurrency Model</b></td><td>Single-threaded event loop (epoll) — zero thread context switching or lock contention</td><td>Multi-threaded event loop — scales across multiple CPU cores on a single box</td></tr>
+  <tr><td><b>Data Structures</b></td><td>Strings, Hashes, Lists, Sets, Sorted Sets (ZSET), Bitmaps, HyperLogLog, Geospatial, Streams</td><td>Plain raw byte string blobs only (key-value)</td></tr>
+  <tr><td><b>Persistence to Disk</b></td><td><b>Yes</b> (RDB Point-in-time snapshots + AOF Append-Only write logs)</td><td><b>No</b> (Purely in-memory; restart wipes everything)</td></tr>
+  <tr><td><b>Clustering &amp; HA</b></td><td>Native Redis Cluster with hash slots (16,384 slots), Redis Sentinel auto-failover</td><td>Client-side consistent hashing across nodes; no native master-replica replication</td></tr>
+</table>
+
+<h2>faang interview defense & war stories</h2>
+<table>
+  <tr><th>Interview Question</th><th>Key Architectural Insight</th><th>The Winning Answer</th></tr>
+  <tr>
+    <td><b>"How do you handle the celebrity / hot-key problem in Redis (e.g. Cristiano Ronaldo has 600M followers)?"</b></td>
+    <td>Sharding hot keys &amp; local L1 caching</td>
+    <td>A single Redis shard can saturate its 100k ops/sec limit on a single key. Two defenses: 1) <b>Key Salting:</b> Replicate the key across $N$ shards as <code>user:ronaldo:1</code>, <code>user:ronaldo:2</code> and randomly query one. 2) <b>L1 Near-Cache:</b> Cache the celebrity profile directly in the JVM/Go heap (Caffeine) for 5 seconds.</td>
+  </tr>
+  <tr>
+    <td><b>"Why is deleting a cache key safer than updating it on DB writes?"</b></td>
+    <td>Race condition prevention</td>
+    <td>If Client A updates DB to $V_1$, then Client B updates DB to $V_2$. If network latency causes Client B to write cache first and Client A second, the cache permanently holds stale $V_1$ while DB holds $V_2$. Deleting the key forces the next read to fetch the true DB value.</td>
+  </tr>
+</table>
+
+<h2>the 20-second summary</h2>
+<p>Caching leverages RAM to drop latency from 25ms to sub-milliseconds. Use <b>Cache-Aside with eviction on write</b> to prevent race conditions. Protect your systems against <b>Penetration (Bloom Filters)</b>, <b>Avalanche (TTL Jitter)</b>, and <b>Stampede (Distributed Mutex)</b>. Pick Redis for rich data structures and clustering, and Memcached for simple multi-threaded key-value scaling.</p>
+
+<div style="margin-top:28px;padding:16px;background:var(--canvas);border:1.5px solid var(--border-dim);border-radius:10px;text-align:center">
+  <span style="font-size:12px;font-family:var(--font-mono);color:var(--ink-soft);text-transform:uppercase;letter-spacing:1px">Up Next in HLD</span><br/>
+  <a href="/courses/hld/db" style="font-weight:800;font-size:16px;color:var(--ink);text-decoration:none;display:inline-block;margin-top:6px">Topic 05: Databases — SQL vs NoSQL, Replication &amp; Sharding →</a>
+</div>
