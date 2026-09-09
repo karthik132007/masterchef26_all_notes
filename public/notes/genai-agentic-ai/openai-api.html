@@ -1,0 +1,587 @@
+<style>
+/* ── GenAI Topic 05: OpenAI API Styling ── */
+.api-fig { margin: 18px auto 12px; max-width: 660px; text-align: center; }
+.api-fig svg { width: 100%; height: auto; display: block; }
+.api-fig figcaption { font-family: var(--font-mono); font-size: 12px; color: var(--ink-soft); margin-top: 6px; line-height: 1.5; }
+.note-body figure.api-fig { animation: api-rise .55s ease both; }
+@keyframes api-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+.pulse-line { stroke-dasharray: 6 6; animation: dash-move 1.4s linear infinite; }
+@keyframes dash-move { to { stroke-dashoffset: -12; } }
+@media (prefers-reduced-motion: reduce) { .pulse-line { animation: none; } .note-body figure.api-fig { animation: none; } }
+
+/* Calculator Lab Card */
+.lab-card {
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: var(--card-shadow);
+  padding: 16px 18px;
+  margin: 22px 0;
+}
+.lab-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-bottom: 1.5px dashed #d5cdbd;
+  padding-bottom: 10px;
+  margin-bottom: 14px;
+}
+.lab-title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+.lab-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 9px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: var(--yellow);
+}
+
+/* Calculator Grid */
+.calc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.calc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.calc-field label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+}
+.calc-field select, .calc-field input {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  padding: 8px 10px;
+  border: 1.5px solid var(--ink);
+  border-radius: 8px;
+  background: var(--paper);
+  outline: none;
+}
+.calc-field select:focus, .calc-field input:focus {
+  background: #fff;
+  border-color: #000;
+}
+
+.calc-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+  padding: 12px;
+  background: var(--paper);
+  border: 1.5px solid var(--ink);
+  border-radius: 10px;
+}
+.calc-stat-box {
+  text-align: center;
+  padding: 6px;
+}
+.calc-stat-val {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--ink);
+}
+.calc-stat-lbl {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+/* Status Code Pill */
+.status-pill {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1.2px solid var(--ink);
+  margin-right: 6px;
+}
+.status-pill.red { background: var(--pink); }
+.status-pill.yellow { background: var(--yellow); }
+.status-pill.green { background: var(--mint); }
+</style>
+
+<p class="kicker">openai api · sdk architecture, completions, streaming, token economics &amp; resilience</p>
+
+<h2>the 30-second idea</h2>
+<p><b>The OpenAI API is the universal HTTP contract of the Generative AI era.</b></p>
+<p>Almost every modern model provider — whether proprietary like OpenAI and Anthropic, or open-source inference servers like vLLM, Ollama, Groq, Together, and DeepSeek — implements the exact same Chat Completions JSON schema. If you learn how to configure, stream, cost-optimize, and harden this API, you know how to talk to 95% of all LLMs on earth.</p>
+<p>Building production applications with LLM APIs requires mastering four key components:</p>
+<ul>
+  <li><b>The Request Envelope:</b> Navigating <code>model</code>, <code>messages</code>, <code>temperature</code>, <code>top_p</code>, and <code>response_format</code> (Structured Outputs).</li>
+  <li><b>Streaming &amp; Latency:</b> Eliminating multi-second freezes by streaming token chunks via Server-Sent Events (SSE).</li>
+  <li><b>API Economics:</b> Understanding the 3x–4x price asymmetry between input and output tokens, leveraging prompt caching discounts, and avoiding budget bleed.</li>
+  <li><b>Production Resilience:</b> Handling rate limits (HTTP 429 RPM/TPM), exponential backoff with jitter, and context overflow errors.</li>
+</ul>
+
+<div class="callout remember">
+  <b class="label">🧷 the lingua franca rule</b><br />
+  You rarely need to rewrite client code when switching providers! You can switch from OpenAI to DeepSeek, Groq, or a local vLLM cluster simply by changing the <code>base_url</code> and <code>api_key</code> in your <code>OpenAI()</code> client.
+</div>
+
+<!-- ============================================================ -->
+<!-- 1. SDK SETUP & THE COMPLETIONS SCHEMA -->
+<!-- ============================================================ -->
+<h2>the openai sdk: python architecture</h2>
+<p>The official <code>openai</code> SDK provides synchronous and asynchronous clients, typed response models, and automatic retries:</p>
+
+<div class="code-wrap">
+  <div class="code-head"><span class="dots">•••</span><span class="lang">Python</span></div>
+  <pre><code><span class="tok-kw">from</span> openai <span class="tok-kw">import</span> OpenAI
+<span class="tok-kw">import</span> os
+
+<span class="tok-com"># Client automatically reads OPENAI_API_KEY from os.environ</span>
+client = OpenAI()
+
+<span class="tok-com"># Execute standard completion</span>
+response = client.chat.completions.create(
+    model=<span class="tok-str">"gpt-4o"</span>,
+    messages=[
+        {<span class="tok-str">"role"</span>: <span class="tok-str">"system"</span>, <span class="tok-str">"content"</span>: <span class="tok-str">"You are an expert systems engineer. Respond concisely."</span>},
+        {<span class="tok-str">"role"</span>: <span class="tok-str">"user"</span>, <span class="tok-str">"content"</span>: <span class="tok-str">"Explain how Linux handles page faults in two sentences."</span>}
+    ],
+    temperature=<span class="tok-num">0.2</span>,          <span class="tok-com"># Low temperature = deterministic/factual</span>
+    max_tokens=<span class="tok-num">150</span>,           <span class="tok-com"># Hard cutoff on output completion tokens</span>
+    top_p=<span class="tok-num">0.95</span>,               <span class="tok-com"># Nucleus sampling cut-off</span>
+    presence_penalty=<span class="tok-num">0.0</span>,     <span class="tok-com"># Encourages topic diversification</span>
+    frequency_penalty=<span class="tok-num">0.0</span>     <span class="tok-com"># Penalizes literal word sequence repetition</span>
+)
+
+<span class="tok-com"># Extract content and token metadata</span>
+message_text = response.choices[<span class="tok-num">0</span>].message.content
+usage = response.usage
+
+<span class="tok-fn">print</span>(message_text)
+<span class="tok-fn">print</span>(<span class="tok-str">f"Prompt tokens: {usage.prompt_tokens} | Completion tokens: {usage.completion_tokens}"</span>)</code></pre>
+</div>
+
+<h3>Parameter Reference: The Levers of Generation</h3>
+<table>
+  <thead>
+    <tr>
+      <th>Parameter</th>
+      <th>Type</th>
+      <th>Default</th>
+      <th>Engineering Function</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>model</code></td>
+      <td>String</td>
+      <td>Required</td>
+      <td>Which model checkpoint to run (e.g. <code>gpt-4o</code>, <code>gpt-4o-mini</code>, <code>deepseek-chat</code>).</td>
+    </tr>
+    <tr>
+      <td><code>temperature</code></td>
+      <td>Float [0.0 - 2.0]</td>
+      <td>1.0</td>
+      <td>Divides logits before softmax. <code>0.0</code> is greedy decoding (best for code/JSON); <code>0.7</code> is standard chat; <code>&gt;1.2</code> increases randomness.</td>
+    </tr>
+    <tr>
+      <td><code>top_p</code></td>
+      <td>Float [0.0 - 1.0]</td>
+      <td>1.0</td>
+      <td>Nucleus sampling. The model considers only the smallest set of tokens whose cumulative probability exceeds <code>top_p</code>. Prefer altering <i>either</i> temperature or top_p, not both.</td>
+    </tr>
+    <tr>
+      <td><code>max_tokens</code></td>
+      <td>Integer</td>
+      <td>Model max</td>
+      <td>Hard budget ceiling on generated output tokens. Generation halts when this count is reached even if the thought is incomplete.</td>
+    </tr>
+    <tr>
+      <td><code>response_format</code></td>
+      <td>Object</td>
+      <td><code>{"type": "text"}</code></td>
+      <td>Set to <code>{"type": "json_object"}</code> or supply a Pydantic / JSON Schema for guaranteed valid structured parsing.</td>
+    </tr>
+    <tr>
+      <td><code>seed</code></td>
+      <td>Integer</td>
+      <td>None</td>
+      <td>Setting a fixed seed best-effort guides the sampling engine to output deterministic results across identical prompts.</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ============================================================ -->
+<!-- 2. STRUCTURED OUTPUTS -->
+<!-- ============================================================ -->
+<h2>structured outputs: json schemas with zero hallucinations</h2>
+<p>Prior to Structured Outputs, engineers begged the model: <i>"Output only valid JSON!"</i>. Models would inevitably hallucinate markdown ticks like <code>```json ... ```</code> or prepend conversational text like <i>"Sure, here is your JSON:"</i>, breaking backend parsers.</p>
+<p>Modern APIs offer <b>Constrained Decoding (Grammar Masking)</b>: During inference, tokens that would violate the supplied JSON schema have their logits set to $-\infty$, mathematically guaranteeing 100% compliant JSON output!</p>
+
+<div class="code-wrap">
+  <div class="code-head"><span class="dots">•••</span><span class="lang">Python (Pydantic Structured Output)</span></div>
+  <pre><code><span class="tok-kw">from</span> pydantic <span class="tok-kw">import</span> BaseModel, Field
+<span class="tok-kw">from</span> openai <span class="tok-kw">import</span> OpenAI
+
+<span class="tok-kw">class</span> <span class="tok-fn">UserInfo</span>(BaseModel):
+    name: <span class="tok-kw">str</span>
+    age: <span class="tok-kw">int</span>
+    skills: <span class="tok-kw">list</span>[<span class="tok-kw">str</span>] = Field(description=<span class="tok-str">"Core technical proficiencies"</span>)
+
+client = OpenAI()
+
+completion = client.beta.chat.completions.parse(
+    model=<span class="tok-str">"gpt-4o-mini"</span>,
+    messages=[
+        {<span class="tok-str">"role"</span>: <span class="tok-str">"user"</span>, <span class="tok-str">"content"</span>: <span class="tok-str">"Alex is a 28 year old engineer skilled in Python, Docker, and Kubernetes."</span>}
+    ],
+    response_format=UserInfo
+)
+
+user: UserInfo = completion.choices[<span class="tok-num">0</span>].message.parsed
+<span class="tok-fn">print</span>(user.name)    <span class="tok-com"># "Alex"</span>
+<span class="tok-fn">print</span>(user.skills)  <span class="tok-com"># ['Python', 'Docker', 'Kubernetes']</span></code></pre>
+</div>
+
+<!-- ============================================================ -->
+<!-- 3. STREAMING & TTFT -->
+<!-- ============================================================ -->
+<h2>streaming: conquering latency (ttft)</h2>
+<p>Generating a 400-token paragraph at 40 tokens/second takes <b>10 full seconds</b>. If your backend waits for the complete response before returning HTTP 200, users will stare at a spinner and abandon the application.</p>
+
+<figure class="api-fig">
+<svg viewBox="0 0 650 190" role="img" aria-label="Buffered vs Streaming Timeline">
+  <!-- Buffered Timeline -->
+  <text x="20" y="30" font-size="12" font-weight="800">BUFFERED (NO STREAMING)</text>
+  <rect x="20" y="42" width="400" height="24" rx="6" fill="#ffe3ef" stroke="#1c1a15" stroke-width="1.5"></rect>
+  <text x="220" y="58" text-anchor="middle" font-size="11" font-weight="700" fill="#d1345b">Waiting 8.5 seconds... User sees empty screen</text>
+  <rect x="425" y="42" width="120" height="24" rx="6" fill="#dcf9e8" stroke="#1c1a15" stroke-width="1.5"></rect>
+  <text x="485" y="58" text-anchor="middle" font-size="10" font-weight="700" fill="#2e9e5b">All text renders</text>
+
+  <!-- Streaming Timeline -->
+  <text x="20" y="115" font-size="12" font-weight="800">STREAMING (SSE text/event-stream)</text>
+  <rect x="20" y="127" width="35" height="24" rx="6" fill="#ffe14d" stroke="#1c1a15" stroke-width="1.5"></rect>
+  <text x="37" y="143" text-anchor="middle" font-size="10" font-weight="800">TTFT</text>
+  
+  <rect x="60" y="127" width="485" height="24" rx="6" fill="#dcf9e8" stroke="#1c1a15" stroke-width="1.5"></rect>
+  <text x="300" y="143" text-anchor="middle" font-size="11" font-weight="700" fill="#184728">Tokens streamed live one by one... User reads immediately! (280ms start)</text>
+</svg>
+<figcaption>time-to-first-token (ttft): streaming starts delivering value in ~250ms, transforming perceived latency</figcaption>
+</figure>
+
+<h3>How Streaming Works Under the Hood (SSE)</h3>
+<p>When you set <code>stream=True</code>, the API does not close the HTTP connection. It responds with header <code>Content-Type: text/event-stream</code> and pushes chunks formatted as Server-Sent Events:</p>
+<pre>data: {"choices":[{"delta":{"content":"Linux"}}]}
+data: {"choices":[{"delta":{"content":" handles"}}]}
+data: {"choices":[{"delta":{"content":" page"}}]}
+data: [DONE]</pre>
+
+<h3>Python Streaming Implementation</h3>
+<div class="code-wrap">
+  <div class="code-head"><span class="dots">•••</span><span class="lang">Python (Streaming Generator)</span></div>
+  <pre><code><span class="tok-kw">from</span> openai <span class="tok-kw">import</span> OpenAI
+<span class="tok-kw">import</span> sys
+
+client = OpenAI()
+
+stream = client.chat.completions.create(
+    model=<span class="tok-str">"gpt-4o-mini"</span>,
+    messages=[{<span class="tok-str">"role"</span>: <span class="tok-str">"user"</span>, <span class="tok-str">"content"</span>: <span class="tok-str">"Write a short haiku about Linux daemons."</span>}],
+    stream=<span class="tok-kw">True</span>
+)
+
+<span class="tok-kw">for</span> chunk <span class="tok-kw">in</span> stream:
+    token = chunk.choices[<span class="tok-num">0</span>].delta.content
+    <span class="tok-kw">if</span> token <span class="tok-kw">is not</span> <span class="tok-kw">None</span>:
+        sys.stdout.write(token)
+        sys.stdout.flush()
+<span class="tok-fn">print</span>()</code></pre>
+</div>
+
+<!-- ============================================================ -->
+<!-- 4. API COSTS & ECONOMICS -->
+<!-- ============================================================ -->
+<h2>api costs &amp; token economics</h2>
+<p>Cloud providers bill for LLM calls based on <b>tokens consumed</b>, standardized per 1,000,000 tokens ($/1M tokens).</p>
+
+<h3>The Asymmetry: Why Output Tokens Cost 3x–4x More</h3>
+<p>Input tokens and output tokens are not computationally equal on modern hardware:</p>
+<table>
+  <thead>
+    <tr>
+      <th>Model</th>
+      <th>Input Price / 1M</th>
+      <th>Cached Input / 1M</th>
+      <th>Output Price / 1M</th>
+      <th>Cost Ratio (Out : In)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>GPT-4o</b></td>
+      <td>$2.50</td>
+      <td>$1.25</td>
+      <td>$10.00</td>
+      <td><b>4x</b></td>
+    </tr>
+    <tr>
+      <td><b>GPT-4o-mini</b></td>
+      <td>$0.15</td>
+      <td>$0.075</td>
+      <td>$0.60</td>
+      <td><b>4x</b></td>
+    </tr>
+    <tr>
+      <td><b>Claude 3.5 Sonnet</b></td>
+      <td>$3.00</td>
+      <td>$0.30</td>
+      <td>$15.00</td>
+      <td><b>5x</b></td>
+    </tr>
+    <tr>
+      <td><b>DeepSeek-V3 (MoE)</b></td>
+      <td>$0.14</td>
+      <td>$0.014</td>
+      <td>$0.28</td>
+      <td><b>2x</b></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout exam">
+  <b class="label">⭐ why do output tokens cost so much more?</b><br />
+  <b>Input tokens are processed in parallel; output tokens are generated sequentially.</b><br />
+  When processing 2,000 prompt tokens, the GPU runs self-attention across all 2,000 tokens concurrently in a single high-efficiency matrix multiplication pass. In contrast, generating 500 output tokens requires 500 sequential autoregressive steps — the entire model parameter weight matrix must be loaded into memory bandwidth registers 500 consecutive times!
+</div>
+
+<h3>Prompt Caching Discounts</h3>
+<p>When multiple API requests share the identical prompt prefix (such as a 4,000-token system prompt, API documentation, or reference code), the provider stores the KV-cache of those tokens in GPU memory. Subsequent calls matching that prefix qualify for <b>automatic 50% to 90% prompt discounts</b> and lower initial latency.</p>
+
+<h3>The Cost Formula</h3>
+<div class="formula-box">
+  $$\text{Cost} = \left(\frac{N_{\text{uncached\_in}}}{10^6} \times P_{\text{in}}\right) + \left(\frac{N_{\text{cached\_in}}}{10^6} \times P_{\text{cache}}\right) + \left(\frac{N_{\text{out}}}{10^6} \times P_{\text{out}}\right)$$
+</div>
+
+<!-- PRACTICAL LAB: Live API Cost Calculator -->
+<div class="lab-card" id="cost-lab">
+  <div class="lab-head">
+    <h3 class="lab-title"><span>💰</span> Practical Lab: Live API Cost &amp; Token Budget Calculator</h3>
+    <span class="lab-badge">interactive tool</span>
+  </div>
+  <p style="margin-top:0; font-size:13px; color:var(--ink-soft);">
+    Simulate real-world token pricing and budget your application before deploying to production:
+  </p>
+
+  <div class="calc-grid">
+    <div class="calc-field">
+      <label for="calc-model">Select Model</label>
+      <select id="calc-model" onchange="calcApiCost()">
+        <option value="gpt-4o">GPT-4o (Frontier · $2.50 / $10.00)</option>
+        <option value="gpt-4o-mini" selected>GPT-4o-mini (Lightweight · $0.15 / $0.60)</option>
+        <option value="claude-3-5-sonnet">Claude 3.5 Sonnet (Frontier · $3.00 / $15.00)</option>
+        <option value="deepseek-v3">DeepSeek-V3 (Sparse MoE · $0.14 / $0.28)</option>
+      </select>
+    </div>
+    <div class="calc-field">
+      <label for="calc-in-tokens">Prompt / Input Tokens</label>
+      <input type="number" id="calc-in-tokens" value="2500" step="100" min="0" oninput="calcApiCost()">
+    </div>
+    <div class="calc-field">
+      <label for="calc-cached-pct">% Cached Input (Prefix)</label>
+      <input type="number" id="calc-cached-pct" value="50" step="10" min="0" max="100" oninput="calcApiCost()">
+    </div>
+    <div class="calc-field">
+      <label for="calc-out-tokens">Output / Generated Tokens</label>
+      <input type="number" id="calc-out-tokens" value="450" step="50" min="0" oninput="calcApiCost()">
+    </div>
+  </div>
+
+  <div class="calc-stats">
+    <div class="calc-stat-box">
+      <div class="calc-stat-val" id="stat-single-cost">$0.0005</div>
+      <div class="calc-stat-lbl">Cost Per Request</div>
+    </div>
+    <div class="calc-stat-box">
+      <div class="calc-stat-val" id="stat-10k-cost">$5.04</div>
+      <div class="calc-stat-lbl">Cost per 10,000 Req</div>
+    </div>
+    <div class="calc-stat-box">
+      <div class="calc-stat-val" id="stat-savings">50.0%</div>
+      <div class="calc-stat-lbl">Prompt Cache Savings</div>
+    </div>
+  </div>
+</div>
+
+<h3>5 Proven Production Cost Reduction Strategies</h3>
+<ol>
+  <li><b>Model Cascading &amp; Routing:</b> Route high-volume, simple tasks (intent detection, entity extraction) to efficient models like GPT-4o-mini or DeepSeek-V3 ($0.15/1M). Escalate only complex reasoning to GPT-4o.</li>
+  <li><b>Cache-Optimized Prompt Structuring:</b> Place static content (system prompt, few-shot examples) at the start of the prompt so prefixes remain identical across calls and hit prompt caches.</li>
+  <li><b>Force Output Concision:</b> Output tokens cost 4x more than inputs. Instruct the model: <i>"Be succinct. Output only the requested code or JSON without conversational filler."</i></li>
+  <li><b>Bound Output Tokens:</b> Always configure <code>max_tokens</code> to prevent runaway generation when handling unexpected inputs.</li>
+  <li><b>Async Batch API:</b> For non-interactive workloads (evaluations, document ingestion, data labeling), submit queries via the Batch API for an automatic 50% discount.</li>
+</ol>
+
+<!-- ============================================================ -->
+<!-- 5. PRODUCTION RESILIENCE -->
+<!-- ============================================================ -->
+<h2>production resilience: rate limits &amp; retries</h2>
+<p>In production, API calls will fail. Network glitches, provider outages, and traffic spikes will trigger errors that your system must gracefully handle:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Status Code</th>
+      <th>Error Meaning</th>
+      <th>Root Cause &amp; Remediation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="status-pill red">429</span></td>
+      <td>Rate Limit Exceeded</td>
+      <td>You exceeded <b>RPM</b> (Requests Per Minute) or <b>TPM</b> (Tokens Per Minute). Implement exponential backoff with random jitter.</td>
+    </tr>
+    <tr>
+      <td><span class="status-pill yellow">400</span></td>
+      <td>Context Length Exceeded</td>
+      <td>The combined input prompt plus requested <code>max_tokens</code> exceeds the model context window. Implement FIFO eviction or summarization.</td>
+    </tr>
+    <tr>
+      <td><span class="status-pill red">401</span></td>
+      <td>Authentication Error</td>
+      <td>Invalid API key, expired token, or incorrect organization header.</td>
+    </tr>
+    <tr>
+      <td><span class="status-pill red">500 / 503</span></td>
+      <td>Server Overloaded</td>
+      <td>OpenAI infrastructure experiencing high traffic. Retry after a backoff pause.</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="code-wrap">
+  <div class="code-head"><span class="dots">•••</span><span class="lang">Python (Resilient Retry Loop)</span></div>
+  <pre><code><span class="tok-kw">import</span> time
+<span class="tok-kw">import</span> random
+<span class="tok-kw">from</span> openai <span class="tok-kw">import</span> OpenAI, RateLimitError, APIConnectionError
+
+client = OpenAI()
+
+<span class="tok-kw">def</span> <span class="tok-fn">call_with_retry</span>(messages, retries=<span class="tok-num">3</span>, base_delay=<span class="tok-num">1.0</span>):
+    <span class="tok-kw">for</span> attempt <span class="tok-kw">in</span> <span class="tok-fn">range</span>(retries):
+        <span class="tok-kw">try</span>:
+            <span class="tok-kw">return</span> client.chat.completions.create(
+                model=<span class="tok-str">"gpt-4o-mini"</span>,
+                messages=messages,
+                timeout=<span class="tok-num">15.0</span>
+            )
+        <span class="tok-kw">except</span> (RateLimitError, APIConnectionError) <span class="tok-kw">as</span> e:
+            <span class="tok-kw">if</span> attempt == retries - <span class="tok-num">1</span>:
+                <span class="tok-kw">raise</span> e
+            <span class="tok-com"># Full jitter backoff formula</span>
+            sleep_time = (base_delay * (<span class="tok-num">2</span> ** attempt)) + random.uniform(<span class="tok-num">0</span>, <span class="tok-num">1</span>)
+            time.sleep(sleep_time)</code></pre>
+</div>
+
+<!-- ============================================================ -->
+<!-- 6. CHEAT SHEET & EXAM RECAP -->
+<!-- ============================================================ -->
+<h2>developer cheat sheet &amp; exam tips</h2>
+<div class="callout exam">
+  <b class="label">⭐ exam recap: what you must remember</b>
+  <ul>
+    <li><b>OpenAI Schema Universality:</b> The <code>messages=[{"role": ..., "content": ...}]</code> structure is the universal standard adopted across closed and open-source inference servers alike.</li>
+    <li><b>Temperature vs. Top_P:</b> Temperature adjusts the sharpness of logit distributions (use 0.0 for code/JSON); top_p applies nucleus probability filtering. Tune one, not both.</li>
+    <li><b>Structured Outputs:</b> Constrained grammar decoding enforces valid JSON schemas directly at the token generation layer, preventing parsing failures.</li>
+    <li><b>Streaming (SSE):</b> Reduces Time-To-First-Token (TTFT) from multi-second waits down to ~250 milliseconds by streaming delta chunks.</li>
+    <li><b>Cost Asymmetry:</b> Output tokens cost 3x to 4x more than input tokens because outputs are memory-bandwidth bound and generated sequentially one token at a time.</li>
+    <li><b>Rate Limits:</b> Always account for both Requests Per Minute (RPM) and Tokens Per Minute (TPM); handle HTTP 429 with exponential backoff and jitter.</li>
+  </ul>
+</div>
+
+<!-- Next topic banner -->
+<div style="margin:28px 0 14px; padding:16px 18px; border:2px solid var(--ink); border-radius:12px; background:var(--paper); box-shadow:var(--card-shadow); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+  <div>
+    <div style="font-size:12px; font-family:var(--font-mono); font-weight:700; color:var(--ink-soft);">UP NEXT · TOPIC 06</div>
+    <div style="font-size:17px; font-weight:800; font-family:var(--font-display); margin-top:2px;">Building a Small Chatbot: Knowledge Cutoffs &amp; Grounding</div>
+  </div>
+  <a class="btn yellow" href="/courses/genai-agentic-ai/building-a-chatbot">Go to Topic 6 Notes →</a>
+</div>
+
+<!-- ============================================================ -->
+<!-- INTERACTIVE SCRIPT FOR COST CALCULATOR -->
+<!-- ============================================================ -->
+<script>
+(function() {
+  var pricing = {
+    "gpt-4o": { input: 2.50, cached: 1.25, output: 10.00 },
+    "gpt-4o-mini": { input: 0.15, cached: 0.075, output: 0.60 },
+    "claude-3-5-sonnet": { input: 3.00, cached: 0.30, output: 15.00 },
+    "deepseek-v3": { input: 0.14, cached: 0.014, output: 0.28 }
+  };
+
+  window.calcApiCost = function() {
+    var modelEl = document.getElementById("calc-model");
+    var inTokensEl = document.getElementById("calc-in-tokens");
+    var cachedPctEl = document.getElementById("calc-cached-pct");
+    var outTokensEl = document.getElementById("calc-out-tokens");
+
+    var statSingle = document.getElementById("stat-single-cost");
+    var stat10k = document.getElementById("stat-10k-cost");
+    var statSavings = document.getElementById("stat-savings");
+
+    if (!modelEl || !inTokensEl || !cachedPctEl || !outTokensEl) return;
+
+    var model = modelEl.value;
+    var inTokens = Math.max(0, parseFloat(inTokensEl.value) || 0);
+    var cachedPct = Math.min(100, Math.max(0, parseFloat(cachedPctEl.value) || 0));
+    var outTokens = Math.max(0, parseFloat(outTokensEl.value) || 0);
+
+    var rates = pricing[model] || pricing["gpt-4o-mini"];
+
+    var cachedTokens = inTokens * (cachedPct / 100);
+    var uncachedTokens = inTokens - cachedTokens;
+
+    var costInput = (uncachedTokens / 1000000) * rates.input;
+    var costCached = (cachedTokens / 1000000) * rates.cached;
+    var costOutput = (outTokens / 1000000) * rates.output;
+
+    var totalPerReq = costInput + costCached + costOutput;
+    var total10k = totalPerReq * 10000;
+
+    var fullInputCost = (inTokens / 1000000) * rates.input + costOutput;
+    var savingsPct = fullInputCost > 0 ? ((fullInputCost - totalPerReq) / fullInputCost) * 100 : 0;
+
+    if (statSingle) {
+      if (totalPerReq < 0.01) {
+        statSingle.textContent = "$" + totalPerReq.toFixed(5);
+      } else {
+        statSingle.textContent = "$" + totalPerReq.toFixed(4);
+      }
+    }
+    if (stat10k) {
+      stat10k.textContent = "$" + total10k.toFixed(2);
+    }
+    if (statSavings) {
+      statSavings.textContent = savingsPct.toFixed(1) + "%";
+    }
+  };
+
+  setTimeout(window.calcApiCost, 50);
+})();
+</script>

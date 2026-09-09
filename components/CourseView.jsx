@@ -190,6 +190,8 @@ export default function CourseView({ course, day, hasPlan }) {
       const el =
         document.querySelector(".note-body") ||
         document.querySelector(".plan-body");
+      if (!el) return;
+
       // Execute any script tags inside the note HTML so interactive widgets work
       el.querySelectorAll("script").forEach((oldScript) => {
         const newScript = document.createElement("script");
@@ -200,8 +202,14 @@ export default function CourseView({ course, day, hasPlan }) {
         oldScript.parentNode?.replaceChild(newScript, oldScript);
       });
 
-      import("katex/dist/contrib/auto-render").then((mod) => {
-        const render = mod.default;
+      import("katex/contrib/auto-render").then((mod) => {
+        const render =
+          typeof mod.default === "function"
+            ? mod.default
+            : typeof mod === "function"
+              ? mod
+              : mod.renderMathInElement;
+        if (!render) return;
         try {
           render(el, {
             delimiters: [
@@ -209,6 +217,16 @@ export default function CourseView({ course, day, hasPlan }) {
               { left: "\\[", right: "\\]", display: true },
               { left: "\\(", right: "\\)", display: false },
               { left: "$", right: "$", display: false },
+            ],
+            ignoredTags: [
+              "script",
+              "noscript",
+              "style",
+              "textarea",
+              "pre",
+              "code",
+              "option",
+              "svg",
             ],
             throwOnError: false,
             trust: false,
