@@ -1,4 +1,4 @@
-# masterchef26 — class notes 📓
+# Nexora — engineering notes & rapid revision 📓
 
 Day-wise + concept-wise class notes. **Next.js** site, **plain HTML** notes, no backend. Deploys on Vercel as-is.
 

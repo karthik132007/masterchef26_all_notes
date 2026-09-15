@@ -1,0 +1,226 @@
+<style>
+.net-fig { margin: 18px auto 10px; max-width: 580px; text-align: center; }
+.net-fig.wide { max-width: 640px; }
+.net-fig svg { width: 100%; height: auto; display: block; }
+.net-fig figcaption { font-family: var(--font-mono); font-size: 12px; color: var(--ink-soft); margin-top: 4px; line-height: 1.55; }
+.note-body figure.net-fig { animation: net-rise .7s ease both; animation-timeline: view(); animation-range: entry 0% cover 25%; }
+@keyframes net-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .note-body figure.net-fig { animation: none; } }
+.pill-tag { display: inline-block; font-family: var(--font-mono); font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--ink); background: #fff; margin-right: 4px; }
+.analogy-box { background: #fffdf6; border: 2.5px solid var(--ink); border-radius: 14px; padding: 18px 20px; margin: 20px 0; box-shadow: 4px 4px 0 var(--ink); }
+.analogy-box h3 { margin: 0 0 8px; font-size: 16px; font-weight: 800; }
+</style>
+
+<p class="kicker">IP gets the packet to the building. Ports and sockets deliver it to the exact room, desk, and human ear inside.</p>
+
+<h2>the 30-second idea</h2>
+<p><b>An IP address identifies a machine on the global network; a port number identifies which specific program on that machine should receive the data. A socket is the operating system's software handle (a file descriptor) that your application creates to read from and write to that port.</b></p>
+
+<div class="analogy-box">
+  <h3>🏢 The Corporate Switchboard Analogy</h3>
+  <p>Imagine a giant skyscraper with 5,000 employees:</p>
+  <ul>
+    <li><b>The Building Street Address:</b> <code>192.168.1.100</code> (The IP address). A postal truck only drives to the building.</li>
+    <li><b>The Phone Extensions:</b> <code>Ext. 443</code> for Customer Support, <code>Ext. 22</code> for Security, <code>Ext. 5432</code> for Archives (The Port numbers).</li>
+    <li><b>The Telephone Handset:</b> The physical plastic phone sitting on Bob's desk plugged into the wall with a wire (The <b>Socket</b>). Bob can lift the receiver, speak into it, listen to responses, or hang up.</li>
+  </ul>
+</div>
+
+<div class="callout remember"><b class="label">🧷 remember</b><br /><b>IP = Host address. Port = 16-bit process channel (0–65535). Socket = The living OS handle (File Descriptor) binding an IP and Port to application memory buffers.</b></div>
+
+<h2>how the kernel demultiplexes incoming packets</h2>
+<p>Your computer has only <b>one single physical Wi-Fi or Ethernet card</b>. Every second, a chaotic flood of raw electrical pulses and radio waves arrives at that card. How does the kernel sort Spotify music packets from Chrome tabs and Slack notifications?</p>
+
+<figure class="net-fig wide">
+<svg viewBox="0 0 600 320" role="img" aria-label="Animated packet demultiplexing: one network card sorting packets by port number to different processes">
+  <defs>
+    <marker id="ps-arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1c1a15"/></marker>
+  </defs>
+
+  <!-- NIC Box -->
+  <rect x="10" y="90" width="130" height="140" rx="12" fill="#fff" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="75" y="125" text-anchor="middle" font-size="30">🌐</text>
+  <text x="75" y="155" text-anchor="middle" font-size="12" font-weight="800">Network Card</text>
+  <text x="75" y="172" text-anchor="middle" font-size="10" font-family="monospace">eth0 (Single IP)</text>
+  <text x="75" y="195" text-anchor="middle" font-size="9.5" fill="#575046">192.168.1.50</text>
+
+  <!-- Kernel Switchboard -->
+  <rect x="200" y="50" width="160" height="220" rx="12" fill="#e3f1ff" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="280" y="80" text-anchor="middle" font-size="13" font-weight="800">Linux Kernel</text>
+  <text x="280" y="98" text-anchor="middle" font-size="10" font-weight="700" fill="#2f6fed">TCP/IP Stack Demux</text>
+  <text x="280" y="130" text-anchor="middle" font-size="10" fill="#575046">Inspects Destination</text>
+  <text x="280" y="146" text-anchor="middle" font-size="10" font-weight="800">Port in Header</text>
+  <text x="280" y="180" text-anchor="middle" font-size="9.5" font-family="monospace">:22 → SSH</text>
+  <text x="280" y="198" text-anchor="middle" font-size="9.5" font-family="monospace">:443 → Nginx</text>
+  <text x="280" y="216" text-anchor="middle" font-size="9.5" font-family="monospace">:5432 → Postgres</text>
+
+  <!-- Applications -->
+  <!-- App 1: SSH -->
+  <rect x="420" y="30" width="165" height="65" rx="10" fill="#fff" stroke="#1c1a15" stroke-width="2"/>
+  <text x="502" y="55" text-anchor="middle" font-size="11" font-weight="800">SSH Daemon (sshd)</text>
+  <text x="502" y="75" text-anchor="middle" font-size="10.5" font-family="monospace" font-weight="700" fill="#6842c2">Socket on Port 22</text>
+
+  <!-- App 2: Nginx -->
+  <rect x="420" y="125" width="165" height="70" rx="10" fill="#e9f9ef" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="502" y="152" text-anchor="middle" font-size="11" font-weight="800">Web Server (Nginx)</text>
+  <text x="502" y="172" text-anchor="middle" font-size="10.5" font-family="monospace" font-weight="700" fill="#2e9e5b">Socket on Port 443</text>
+
+  <!-- App 3: Postgres -->
+  <rect x="420" y="225" width="165" height="65" rx="10" fill="#fff" stroke="#1c1a15" stroke-width="2"/>
+  <text x="502" y="250" text-anchor="middle" font-size="11" font-weight="800">Database (Postgres)</text>
+  <text x="502" y="270" text-anchor="middle" font-size="10.5" font-family="monospace" font-weight="700" fill="#d97706">Socket on Port 5432</text>
+
+  <!-- Animated packet tracks -->
+  <line id="track-main" x1="140" y1="160" x2="200" y2="160" stroke="#1c1a15" stroke-width="2.5"/>
+  <line id="track-ssh" x1="360" y1="130" x2="420" y2="65" stroke="#6842c2" stroke-width="2.5" marker-end="url(#ps-arr)"/>
+  <line id="track-web" x1="360" y1="160" x2="420" y2="160" stroke="#2e9e5b" stroke-width="3" marker-end="url(#ps-arr)"/>
+  <line id="track-db" x1="360" y1="190" x2="420" y2="255" stroke="#d97706" stroke-width="2.5" marker-end="url(#ps-arr)"/>
+
+  <!-- Animated Flying Packets -->
+  <circle r="6" fill="#2e9e5b" stroke="#1c1a15" stroke-width="2"><animateMotion dur="3s" repeatCount="indefinite" keyPoints="0;0.5;1" keyTimes="0;0.4;1"><mpath href="#track-web"/></animateMotion></circle>
+  <circle r="6" fill="#6842c2" stroke="#1c1a15" stroke-width="2"><animateMotion dur="3s" begin="1s" repeatCount="indefinite" keyPoints="0;0.5;1" keyTimes="0;0.4;1"><mpath href="#track-ssh"/></animateMotion></circle>
+  <circle r="6" fill="#d97706" stroke="#1c1a15" stroke-width="2"><animateMotion dur="3s" begin="2s" repeatCount="indefinite" keyPoints="0;0.5;1" keyTimes="0;0.4;1"><mpath href="#track-db"/></animateMotion></circle>
+</svg>
+<figcaption>The kernel reads the TCP header's 16-bit port field and routes the payload directly to the socket owned by that process.</figcaption>
+</figure>
+
+<h2>the 16-bit port hierarchy: 0 to 65535</h2>
+<p>A port number is represented as an unsigned 16-bit integer ($2^{16} = 65,536$ possibilities). The Internet Assigned Numbers Authority (IANA) partitions them into three distinct zones:</p>
+
+<table>
+  <thead>
+    <tr><th>Range</th><th>Category</th><th>Privilege Required</th><th>Why Does This Distinction Exist?</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>0 – 1023</b></td>
+      <td><b>Well-Known Ports</b></td>
+      <td><b>Root / Administrator only</b> (on Linux / macOS)</td>
+      <td>Security: Prevents unprivileged rogue users from spinning up fake servers on standard ports (e.g. <code>22</code> SSH, <code>53</code> DNS, <code>80</code> HTTP, <code>443</code> HTTPS).</td>
+    </tr>
+    <tr>
+      <td><b>1024 – 49151</b></td>
+      <td><b>Registered Ports</b></td>
+      <td>Normal user processes</td>
+      <td>Assigned to specific database and messaging engines to avoid collisions (e.g. <code>3306</code> MySQL, <code>5432</code> Postgres, <code>6379</code> Redis, <code>8080</code> Dev HTTP).</td>
+    </tr>
+    <tr>
+      <td><b>49152 – 65535</b></td>
+      <td><b>Dynamic / Ephemeral Ports</b></td>
+      <td>Kernel assigned automatically</td>
+      <td>Short-lived ports assigned by the OS when your browser tab or backend HTTP client initiates an outbound connection.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>the 4-tuple: how 1 web server port handles 500,000 users</h2>
+<p>One of the most persistent beginner traps is thinking: <i>"If Nginx listens on port 443, does that mean only one person can connect to it at a time?"</i></p>
+<p><b>No!</b> An incoming connection is <b>never</b> identified by the destination port alone. The Linux kernel identifies every single TCP stream on earth by a unique <b>4-tuple</b> (or <b>5-tuple</b> when including the protocol):</p>
+
+<p style="text-align:center; font-family:var(--font-mono); font-size:14px; font-weight:800; color:#6842c2; background:#f7f3ff; padding:12px; border:2px solid var(--ink); border-radius:10px;">
+  [ Source IP, Source Port, Destination IP, Destination Port ]
+</p>
+
+<figure class="net-fig wide">
+<svg viewBox="0 0 600 280" role="img" aria-label="4-tuple multiplexing diagram showing how unique 4-tuples allow multiple clients on the same server port">
+  <rect x="15" y="25" width="160" height="95" rx="10" fill="#fff" stroke="#1c1a15" stroke-width="2"/>
+  <text x="95" y="50" text-anchor="middle" font-size="11" font-weight="800">Client A (London)</text>
+  <text x="95" y="70" text-anchor="middle" font-size="10" font-family="monospace">IP: 82.165.197.1</text>
+  <text x="95" y="88" text-anchor="middle" font-size="10" font-family="monospace" fill="#2f6fed">Ephemeral: :51234</text>
+  <text x="95" y="106" text-anchor="middle" font-size="9" fill="#575046">Chrome Tab</text>
+
+  <rect x="15" y="155" width="160" height="95" rx="10" fill="#fff" stroke="#1c1a15" stroke-width="2"/>
+  <text x="95" y="180" text-anchor="middle" font-size="11" font-weight="800">Client B (Tokyo)</text>
+  <text x="95" y="200" text-anchor="middle" font-size="10" font-family="monospace">IP: 133.242.18.5</text>
+  <text x="95" y="218" text-anchor="middle" font-size="10" font-family="monospace" fill="#2f6fed">Ephemeral: :51234</text>
+  <text x="95" y="236" text-anchor="middle" font-size="9" fill="#575046">Safari Tab</text>
+
+  <rect x="360" y="55" width="225" height="170" rx="12" fill="#e9f9ef" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="472" y="85" text-anchor="middle" font-size="13" font-weight="800">Web Server (Nginx)</text>
+  <text x="472" y="105" text-anchor="middle" font-size="10.5" font-family="monospace">IP: 142.250.190.46</text>
+  <text x="472" y="125" text-anchor="middle" font-size="12" font-family="monospace" font-weight="800" fill="#2e9e5b">PORT 443</text>
+  <line x1="375" y1="140" x2="570" y2="140" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="472" y="160" text-anchor="middle" font-size="9.5" font-weight="700">Kernel Socket Table:</text>
+  <text x="472" y="180" text-anchor="middle" font-size="8.5" font-family="monospace">FD 12: 82.165.197.1:51234 ↔ :443</text>
+  <text x="472" y="200" text-anchor="middle" font-size="8.5" font-family="monospace">FD 15: 133.242.18.5:51234 ↔ :443</text>
+
+  <path d="M 175 72 C 260 72, 280 115, 360 120" stroke="#2f6fed" stroke-width="2.5"/>
+  <path d="M 175 202 C 260 202, 280 145, 360 135" stroke="#6842c2" stroke-width="2.5"/>
+</svg>
+<figcaption>Notice both clients happen to use the exact same ephemeral port (51234). The kernel distinguishes them effortlessly because their Source IPs differ!</figcaption>
+</figure>
+
+<p>As long as <b>any one of the four parameters differs</b>, the operating system creates an independent, isolated socket file descriptor. A single server port can easily maintain hundreds of thousands of concurrent connections as long as it has enough RAM!</p>
+
+<h2>inside the kernel: socket memory buffers & queues</h2>
+<p>When you create a socket in code, the Linux kernel allocates dedicated memory buffers and two internal FIFO queues:</p>
+
+<figure class="net-fig wide">
+<svg viewBox="0 0 600 240" role="img" aria-label="Kernel socket buffer diagram showing send buffer, receive buffer, SYN queue, and Accept queue">
+  <rect x="15" y="20" width="570" height="200" rx="14" fill="#fffdf6" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="300" y="44" text-anchor="middle" font-size="13" font-weight="800">Linux Kernel Socket Control Block (struct sock)</text>
+
+  <!-- Send Buffer -->
+  <rect x="35" y="65" width="240" height="65" rx="8" fill="#eaf3ff" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="155" y="90" text-anchor="middle" font-size="11" font-weight="800">Send Buffer (SO_SNDBUF)</text>
+  <text x="155" y="110" text-anchor="middle" font-size="9.5" fill="#575046">Holds outgoing bytes until peer sends ACK</text>
+
+  <!-- Receive Buffer -->
+  <rect x="325" y="65" width="240" height="65" rx="8" fill="#dcf9e8" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="445" y="90" text-anchor="middle" font-size="11" font-weight="800">Receive Buffer (SO_RCVBUF)</text>
+  <text x="445" y="110" text-anchor="middle" font-size="9.5" fill="#575046">Holds arrived bytes until app calls read()</text>
+
+  <!-- SYN Queue -->
+  <rect x="35" y="145" width="240" height="60" rx="8" fill="#fde8e8" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="155" y="170" text-anchor="middle" font-size="11" font-weight="800">SYN Queue (Half-Open)</text>
+  <text x="155" y="188" text-anchor="middle" font-size="9" fill="#c92a2a">SYN received, waiting for client ACK</text>
+
+  <!-- Accept Queue -->
+  <rect x="325" y="145" width="240" height="60" rx="8" fill="#fdf6e2" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="445" y="170" text-anchor="middle" font-size="11" font-weight="800">Accept Queue (ESTABLISHED)</text>
+  <text x="445" y="188" text-anchor="middle" font-size="9" fill="#d97706">3-Way handshake done! App calls accept()</text>
+</svg>
+<figcaption>Every socket has dedicated kernel memory buffers. If your app stops reading, the receive buffer fills up and TCP Flow Control throttles the sender.</figcaption>
+</figure>
+
+<h2>the posix socket syscall sequence</h2>
+<p>Under UNIX, a socket is treated as a <b>File Descriptor (FD)</b>. Here is the exact system call handshake executed under the hood:</p>
+
+<pre><code class="language-c">// Server Socket Workflow
+int server_fd = socket(AF_INET, SOCK_STREAM, 0); // 1. Allocate endpoint
+bind(server_fd, &server_addr, sizeof(server_addr)); // 2. Claim IP & Port
+listen(server_fd, 512);                             // 3. Mark passive & set backlog queue size
+
+while (1) {
+    // 4. BLOCKING CALL: Pops the next completed 3-way handshake from the Accept Queue!
+    // Creates a BRAND NEW child socket FD dedicated solely to this client.
+    int client_fd = accept(server_fd, &client_addr, &addr_len);
+
+    // 5. Read and write over the dedicated child FD
+    read(client_fd, buffer, sizeof(buffer));
+    write(client_fd, "HTTP/1.1 200 OK\r\n\r\nHello", 24);
+    close(client_fd); // 6. Teardown
+}</code></pre>
+
+<div class="callout gotcha"><b class="label">⚠️ the listening socket vs connected socket trap</b><br />
+Notice that <code>server_fd</code> never reads or writes client payload data! It only listens for handshakes. When <code>accept()</code> succeeds, the kernel allocates a <b>new child socket file descriptor</b> (<code>client_fd</code>). The listening socket continues listening on port 8080 uninterrupted!
+</div>
+
+<h2>practical terminal commands for socket inspection</h2>
+<pre><code class="language-bash"># 1. View all listening TCP and UDP sockets with Process Name and PID
+sudo ss -tulpn
+
+# 2. Inspect active connections to port 443 with buffer memory sizes
+ss -t -i 'sport = :443'
+
+# 3. Find which process owns port 8080
+sudo lsof -i :8080
+
+# 4. Check Linux ephemeral port range
+cat /proc/sys/net/ipv4/ip_local_port_range
+# Output: 32768  60999 (28,231 ports)</code></pre>
+
+<div class="callout exam"><b class="label">⭐ viva & interview question</b><br />
+<b>Q: What happens when a packet arrives at a port where no process is listening?</b><br />
+<b>A:</b> If the packet is TCP, the kernel immediately sends a <b>TCP RST (Reset)</b> packet back to the sender, abruptly refusing the connection (resulting in <code>ECONNREFUSED: Connection refused</code> in client code). If the packet is UDP, the kernel generates an <b>ICMP Port Unreachable</b> message.
+</div>

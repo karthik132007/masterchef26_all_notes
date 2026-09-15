@@ -1,0 +1,118 @@
+<style>
+.net-fig { margin: 18px auto 10px; max-width: 580px; text-align: center; }
+.net-fig.wide { max-width: 640px; }
+.net-fig svg { width: 100%; height: auto; display: block; }
+.net-fig figcaption { font-family: var(--font-mono); font-size: 12px; color: var(--ink-soft); margin-top: 4px; line-height: 1.55; }
+.note-body figure.net-fig { animation: net-rise .7s ease both; animation-timeline: view(); animation-range: entry 0% cover 25%; }
+@keyframes net-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .note-body figure.net-fig { animation: none; } }
+.pill-tag { display: inline-block; font-family: var(--font-mono); font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--ink); background: #fff; margin-right: 4px; }
+.analogy-box { background: #fffdf6; border: 2.5px solid var(--ink); border-radius: 14px; padding: 18px 20px; margin: 20px 0; box-shadow: 4px 4px 0 var(--ink); }
+.analogy-box h3 { margin: 0 0 8px; font-size: 16px; font-weight: 800; }
+</style>
+
+<p class="kicker">a proxy is an intermediary that speaks on someone else's behalf. But who is it protecting: the client who asks, or the server that answers?</p>
+
+<h2>the 30-second idea</h2>
+<p><b>A Forward Proxy protects and represents the client. A Reverse Proxy protects and represents the web server.</b></p>
+
+<div class="analogy-box">
+  <h3>🕶️ The Secret Agent vs The Celebrity Bodyguard</h3>
+  <ul>
+    <li><b>Forward Proxy (The Secret Agent):</b> You want to buy sensitive documents from an arms dealer without revealing your identity. You hire a secret agent (Forward Proxy) to do the transaction. The seller only sees the agent's trenchcoat and briefcase; they have zero idea you exist.</li>
+    <li><b>Reverse Proxy (The Celebrity Bouncer & Receptionist):</b> A movie star lives in a secure compound with 20 chefs and assistants. Fans knock on the front gate. The bouncer (Reverse Proxy) checks their ID, inspects their bags, terminates security threats, and hands them an autographed photo from the gift shop. Fans never enter the house or see the private staff.</li>
+  </ul>
+</div>
+
+<div class="callout remember"><b class="label">🧷 remember</b><br /><b>Forward Proxy = Hides clients from the internet.</b> (Client configures it; Server is oblivious).<br /><b>Reverse Proxy = Hides servers from the internet.</b> (Client is oblivious; Server sits safely behind it).</div>
+
+<h2>side-by-side architectural topology</h2>
+<figure class="net-fig wide">
+<svg viewBox="0 0 620 360" role="img" aria-label="Animated comparison of Forward Proxy versus Reverse Proxy topologies">
+  <!-- Top: Forward Proxy -->
+  <rect x="10" y="15" width="600" height="155" rx="12" fill="#fffdf6" stroke="#1c1a15" stroke-width="2"/>
+  <text x="310" y="36" text-anchor="middle" font-size="12" font-weight="800" fill="#2f6fed">FORWARD PROXY (Client-Side Gatekeeper)</text>
+
+  <rect x="25" y="55" width="130" height="95" rx="8" fill="#eaf3ff" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="90" y="80" text-anchor="middle" font-size="11" font-weight="700">Internal Clients</text>
+  <text x="90" y="100" text-anchor="middle" font-size="9.5" fill="#575046">Corporate Office</text>
+  <text x="90" y="125" text-anchor="middle" font-size="9" font-family="monospace">10.0.0.10, .11</text>
+
+  <rect x="235" y="55" width="150" height="95" rx="8" fill="#fff" stroke="#1c1a15" stroke-width="2"/>
+  <text x="310" y="80" text-anchor="middle" font-size="11" font-weight="800" fill="#2f6fed">Forward Proxy</text>
+  <text x="310" y="98" text-anchor="middle" font-size="9.5" fill="#575046">Squid / Corporate VPN</text>
+  <text x="310" y="120" text-anchor="middle" font-size="9" font-family="monospace">Public IP: 198.51.100.1</text>
+  <text x="310" y="138" text-anchor="middle" font-size="8.5" fill="#2f6fed">Filters outbound porn/malware</text>
+
+  <rect x="465" y="55" width="130" height="95" rx="8" fill="#e9f9ef" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="530" y="80" text-anchor="middle" font-size="11" font-weight="700">Internet Server</text>
+  <text x="530" y="100" text-anchor="middle" font-size="9.5" fill="#575046">google.com</text>
+  <text x="530" y="125" text-anchor="middle" font-size="9" fill="#2e9e5b">Sees ONLY Proxy IP!</text>
+
+  <path d="M 155 102 L 235 102" stroke="#1c1a15" stroke-width="2"/>
+  <path d="M 385 102 L 465 102" stroke="#2f6fed" stroke-width="2.5"/>
+
+  <!-- Bottom: Reverse Proxy -->
+  <rect x="10" y="185" width="600" height="160" rx="12" fill="#fffdf6" stroke="#1c1a15" stroke-width="2"/>
+  <text x="310" y="206" text-anchor="middle" font-size="12" font-weight="800" fill="#6842c2">REVERSE PROXY (Server-Side Gatekeeper)</text>
+
+  <rect x="25" y="225" width="130" height="100" rx="8" fill="#eaf3ff" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="90" y="250" text-anchor="middle" font-size="11" font-weight="700">Public Internet</text>
+  <text x="90" y="270" text-anchor="middle" font-size="9.5" fill="#575046">Millions of users</text>
+  <text x="90" y="295" text-anchor="middle" font-size="9" fill="#2f6fed">Connects to stripe.com</text>
+
+  <rect x="235" y="225" width="150" height="100" rx="8" fill="#fff" stroke="#1c1a15" stroke-width="2"/>
+  <text x="310" y="250" text-anchor="middle" font-size="11" font-weight="800" fill="#6842c2">Reverse Proxy</text>
+  <text x="310" y="268" text-anchor="middle" font-size="9.5" fill="#575046">Nginx / Cloudflare / Envoy</text>
+  <text x="310" y="290" text-anchor="middle" font-size="9" font-family="monospace">TLS Offload, Rate Limit</text>
+  <text x="310" y="308" text-anchor="middle" font-size="8.5" fill="#6842c2">Caches & balances load</text>
+
+  <rect x="465" y="225" width="130" height="100" rx="8" fill="#dcf9e8" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="530" y="248" text-anchor="middle" font-size="11" font-weight="700">Private VPC Fleet</text>
+  <text x="530" y="268" text-anchor="middle" font-size="9" font-family="monospace">10.0.1.5 (Pod A)</text>
+  <text x="530" y="286" text-anchor="middle" font-size="9" font-family="monospace">10.0.1.6 (Pod B)</text>
+  <text x="530" y="306" text-anchor="middle" font-size="8.5" fill="#575046">Hidden from world!</text>
+
+  <path d="M 155 275 L 235 275" stroke="#1c1a15" stroke-width="2"/>
+  <path d="M 385 275 L 465 275" stroke="#6842c2" stroke-width="2.5"/>
+</svg>
+<figcaption>Forward proxy sits in front of users; reverse proxy sits in front of backends.</figcaption>
+</figure>
+
+<h2>layer 4 vs layer 7 reverse proxies</h2>
+<figure class="net-fig wide">
+<svg viewBox="0 0 600 180" role="img" aria-label="Layer 4 versus Layer 7 proxy capabilities">
+  <rect x="15" y="15" width="280" height="150" rx="12" fill="#fffdf6" stroke="#1c1a15" stroke-width="2"/>
+  <text x="155" y="40" text-anchor="middle" font-size="12" font-weight="800" fill="#2f6fed">Layer 4 Proxy (Transport / TCP)</text>
+  <text x="155" y="65" text-anchor="middle" font-size="9.5" fill="#575046">Routes raw bytes based purely on</text>
+  <text x="155" y="82" text-anchor="middle" font-size="10" font-weight="700" font-family="monospace">IP Address + TCP/UDP Port</text>
+  <text x="155" y="110" text-anchor="middle" font-size="9.5" fill="#2e9e5b"><b>Blazing Speed:</b> Zero packet inspection</text>
+  <text x="155" y="130" text-anchor="middle" font-size="9" fill="#575046">Cannot read HTTP headers or URLs</text>
+  <rect x="35" y="140" width="240" height="20" rx="4" fill="#eaf3ff"/>
+  <text x="155" y="154" text-anchor="middle" font-size="8.5" font-family="monospace">HAProxy TCP Mode / AWS NLB</text>
+
+  <rect x="315" y="15" width="280" height="150" rx="12" fill="#fffdf6" stroke="#1c1a15" stroke-width="2"/>
+  <text x="455" y="40" text-anchor="middle" font-size="12" font-weight="800" fill="#6842c2">Layer 7 Proxy (Application / HTTP)</text>
+  <text x="455" y="65" text-anchor="middle" font-size="9.5" fill="#575046">Unwraps TLS, parses HTTP headers,</text>
+  <text x="455" y="82" text-anchor="middle" font-size="10" font-weight="700" font-family="monospace">Cookies, JSON bodies & URI paths</text>
+  <text x="455" y="110" text-anchor="middle" font-size="9.5" fill="#6842c2"><b>Smart Routing:</b> /api → Go, /static → CDN</text>
+  <text x="455" y="130" text-anchor="middle" font-size="9" fill="#575046">Requires CPU for TLS decryption</text>
+  <rect x="335" y="140" width="240" height="20" rx="4" fill="#f7f3ff"/>
+  <text x="455" y="154" text-anchor="middle" font-size="8.5" font-family="monospace">Nginx / Envoy / AWS ALB / Traefik</text>
+</svg>
+<figcaption>Layer 4 moves raw streams without peeking inside; Layer 7 decrypts and understands HTTP semantics.</figcaption>
+</figure>
+
+<h2>the proxy headers: preserving real client identity</h2>
+<p>When a reverse proxy forwards an HTTP request, the backend application sees the <b>proxy's private IP</b> as the remote address. The proxy appends forwarding headers to preserve reality:</p>
+
+<pre><code class="language-http">GET /v1/checkout HTTP/1.1
+Host: shop.com
+X-Forwarded-For: 203.0.113.195, 10.0.0.1
+X-Forwarded-Proto: https
+X-Forwarded-Port: 443
+Forwarded: for=203.0.113.195;proto=https;by=203.0.113.1</code></pre>
+
+<div class="callout gotcha"><b class="label">⚠️ the x-forwarded-for spoofing vulnerability</b><br />
+Never blindly trust <code>request.headers["x-forwarded-for"]</code> for rate limiting or security access control! A malicious client can send <code>X-Forwarded-For: 127.0.0.1</code> in their initial request. If your proxy appends to it, the backend might believe the request originated from localhost! <b>Only trust the leftmost IP if your reverse proxy is configured to strip incoming untrusted client headers.</b>
+</div>

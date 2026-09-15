@@ -1,0 +1,154 @@
+<style>
+.net-fig { margin: 18px auto 10px; max-width: 580px; text-align: center; }
+.net-fig.wide { max-width: 640px; }
+.net-fig svg { width: 100%; height: auto; display: block; }
+.net-fig figcaption { font-family: var(--font-mono); font-size: 12px; color: var(--ink-soft); margin-top: 4px; line-height: 1.55; }
+.note-body figure.net-fig { animation: net-rise .7s ease both; animation-timeline: view(); animation-range: entry 0% cover 25%; }
+@keyframes net-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .note-body figure.net-fig { animation: none; } }
+.pill-tag { display: inline-block; font-family: var(--font-mono); font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--ink); background: #fff; margin-right: 4px; }
+.analogy-box { background: #fffdf6; border: 2.5px solid var(--ink); border-radius: 14px; padding: 18px 20px; margin: 20px 0; box-shadow: 4px 4px 0 var(--ink); }
+.analogy-box h3 { margin: 0 0 8px; font-size: 16px; font-weight: 800; }
+</style>
+
+<p class="kicker">establishing a TCP connection is expensive. Keep-Alive keeps the phone line open so you can ask five questions in a row without hanging up and redialing.</p>
+
+<h2>the 30-second idea</h2>
+<p><b>Keep-Alive is a mechanism to keep an established TCP connection open for multiple sequential HTTP requests and responses, eliminating the round-trip latency of handshakes for every asset.</b></p>
+
+<div class="analogy-box">
+  <h3>📞 The Customer Support Redial Analogy</h3>
+  <ul>
+    <li><b>HTTP/1.0 (Without Keep-Alive):</b> You dial the bank (SYN → SYN-ACK → ACK), wait 5 seconds for the agent, ask <i>"What is my balance?"</i>, they reply <i>"$100"</i>, and you <b>immediately slam the phone down and hang up (FIN)</b>. Five seconds later you want your recent transactions: you redial the number, wait 5 seconds again for an agent, ask your question, and hang up again!</li>
+    <li><b>HTTP/1.1 (With Keep-Alive):</b> You dial once. After getting your balance, you say: <i>"Stay on the line for 5 seconds while I look at my notebook."</i> The agent stays on the line. You ask your next question instantly with <b>zero redial delay</b>!</li>
+  </ul>
+</div>
+
+<div class="callout remember"><b class="label">🧷 remember</b><br /><b>HTTP Keep-Alive = Application-layer connection reuse.</b><br /><b>TCP Keepalive = Kernel-layer dead-peer heartbeat detection.</b> They operate on completely different layers for completely different reasons!</div>
+
+<h2>the latency showdown: 1.0 vs 1.1 keep-alive</h2>
+<figure class="net-fig wide">
+<svg viewBox="0 0 620 340" role="img" aria-label="Animated comparison between HTTP/1.0 non-persistent connections and HTTP/1.1 Keep-Alive persistent connection">
+  <!-- Left Side: HTTP/1.0 -->
+  <rect x="10" y="15" width="285" height="310" rx="12" fill="#fffdf6" stroke="#1c1a15" stroke-width="2"/>
+  <text x="152" y="38" text-anchor="middle" font-size="12" font-weight="800" fill="#c92a2a">HTTP/1.0 (Non-Persistent)</text>
+  <text x="152" y="54" text-anchor="middle" font-size="9.5" fill="#575046">Every asset pays full handshake tax</text>
+
+  <rect x="25" y="70" width="255" height="42" rx="6" fill="#fde8e8" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="152" y="88" text-anchor="middle" font-size="10" font-weight="700">TCP Handshake (SYN → SYN-ACK → ACK)</text>
+  <text x="152" y="103" text-anchor="middle" font-size="9" fill="#c92a2a">1 RTT Latency Wasted</text>
+
+  <rect x="25" y="118" width="255" height="28" rx="6" fill="#eaf3ff" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="152" y="136" text-anchor="middle" font-size="10" font-weight="700">GET /index.html → 200 OK</text>
+
+  <rect x="25" y="152" width="255" height="22" rx="6" fill="#f1f3f5" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="152" y="167" text-anchor="middle" font-size="9">Connection Closed (FIN)</text>
+
+  <rect x="25" y="180" width="255" height="42" rx="6" fill="#fde8e8" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="152" y="198" text-anchor="middle" font-size="10" font-weight="700">TCP Handshake Again! (SYN...)</text>
+  <text x="152" y="213" text-anchor="middle" font-size="9" fill="#c92a2a">Another 1 RTT Wasted!</text>
+
+  <rect x="25" y="228" width="255" height="28" rx="6" fill="#eaf3ff" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="152" y="246" text-anchor="middle" font-size="10" font-weight="700">GET /style.css → 200 OK</text>
+
+  <rect x="25" y="262" width="255" height="22" rx="6" fill="#f1f3f5" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="152" y="277" text-anchor="middle" font-size="9">Connection Closed (FIN)</text>
+
+  <!-- Right Side: HTTP/1.1 Keep-Alive -->
+  <rect x="320" y="15" width="290" height="310" rx="12" fill="#fffdf6" stroke="#1c1a15" stroke-width="2"/>
+  <text x="465" y="38" text-anchor="middle" font-size="12" font-weight="800" fill="#2e9e5b">HTTP/1.1 Keep-Alive</text>
+  <text x="465" y="54" text-anchor="middle" font-size="9.5" fill="#575046">Single persistent socket reused</text>
+
+  <rect x="335" y="70" width="260" height="42" rx="6" fill="#dcf9e8" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="465" y="88" text-anchor="middle" font-size="10" font-weight="700">Single Handshake (Only Once!)</text>
+  <text x="465" y="103" text-anchor="middle" font-size="9" fill="#2e9e5b">1 RTT Paid Upfront</text>
+
+  <rect x="335" y="118" width="260" height="28" rx="6" fill="#eaf3ff" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="465" y="136" text-anchor="middle" font-size="10" font-weight="700">GET /index.html → 200 OK</text>
+
+  <rect x="335" y="152" width="260" height="28" rx="6" fill="#eaf3ff" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="465" y="170" text-anchor="middle" font-size="10" font-weight="700">GET /style.css → 200 OK (Instant!)</text>
+
+  <rect x="335" y="186" width="260" height="28" rx="6" fill="#eaf3ff" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="465" y="204" text-anchor="middle" font-size="10" font-weight="700">GET /app.js → 200 OK (Instant!)</text>
+
+  <rect x="335" y="220" width="260" height="28" rx="6" fill="#eaf3ff" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="465" y="238" text-anchor="middle" font-size="10" font-weight="700">GET /logo.png → 200 OK (Instant!)</text>
+
+  <rect x="335" y="255" width="260" height="30" rx="6" fill="#fdf6e2" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="465" y="274" text-anchor="middle" font-size="9.5" font-family="monospace">Socket stays warm in idle pool</text>
+</svg>
+<figcaption>Keep-Alive eliminates repeated 3-way handshakes and slow-start restart for every resource on a web page.</figcaption>
+</figure>
+
+<h2>the head-of-line (hol) blocking flaw in http/1.1</h2>
+<p>While Keep-Alive was a massive breakthrough, it introduced its own architectural headache: <b>Sequential FIFO Processing</b>.</p>
+
+<figure class="net-fig wide">
+<svg viewBox="0 0 600 200" role="img" aria-label="Head of Line blocking in HTTP/1.1: Request 1 blocks Request 2 and 3">
+  <rect x="15" y="20" width="570" height="160" rx="12" fill="#fffdf6" stroke="#1c1a15" stroke-width="2"/>
+  <text x="300" y="44" text-anchor="middle" font-size="12" font-weight="800" fill="#c92a2a">HTTP/1.1 Head-of-Line (HoL) Blocking</text>
+  <text x="300" y="60" text-anchor="middle" font-size="9.5" fill="#575046">A single slow response jams the entire socket pipe</text>
+
+  <!-- Giant Request 1 -->
+  <rect x="35" y="75" width="240" height="55" rx="8" fill="#fde8e8" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="155" y="100" text-anchor="middle" font-size="10.5" font-weight="800" fill="#c92a2a">Request 1: /huge-video.mp4</text>
+  <text x="155" y="118" text-anchor="middle" font-size="9" fill="#575046">Takes 4.5 seconds to download...</text>
+
+  <!-- Blocked Request 2 -->
+  <rect x="290" y="75" width="135" height="55" rx="8" fill="#f1f3f5" stroke="#1c1a15" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <text x="357" y="100" text-anchor="middle" font-size="10" font-weight="700" fill="#575046">Request 2: /style.css</text>
+  <text x="357" y="118" text-anchor="middle" font-size="8.5" fill="#c92a2a">⛔ BLOCKED in queue</text>
+
+  <!-- Blocked Request 3 -->
+  <rect x="440" y="75" width="130" height="55" rx="8" fill="#f1f3f5" stroke="#1c1a15" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <text x="505" y="100" text-anchor="middle" font-size="10" font-weight="700" fill="#575046">Request 3: /app.js</text>
+  <text x="505" y="118" text-anchor="middle" font-size="8.5" fill="#c92a2a">⛔ BLOCKED in queue</text>
+
+  <text x="300" y="160" text-anchor="middle" font-size="9.5" fill="#575046">Browser workaround: Open up to 6 parallel TCP connections per domain (multiplied socket overhead!)</text>
+</svg>
+<figcaption>In HTTP/1.1, responses cannot be interleaved. If request 1 takes 5 seconds, requests 2 and 3 sit stalled behind it.</figcaption>
+</figure>
+
+<h2>http keep-alive vs tcp keepalive: the deep technical contrast</h2>
+<table>
+  <thead>
+    <tr><th>Feature</th><th>HTTP Keep-Alive</th><th>TCP Keepalive (<code>SO_KEEPALIVE</code>)</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>OSI Layer</b></td>
+      <td><b>Application Layer (L7)</b></td>
+      <td><b>Transport Layer (L4)</b> inside the OS Kernel</td>
+    </tr>
+    <tr>
+      <td><b>Primary Goal</b></td>
+      <td><b>Performance:</b> Reuse the existing connection across multiple HTTP requests.</td>
+      <td><b>Liveness / Dead-Peer Detection:</b> Detect if the remote host crashed or router rebooted.</td>
+    </tr>
+    <tr>
+      <td><b>How It Works</b></td>
+      <td>HTTP Headers (<code>Connection: keep-alive</code>, <code>Keep-Alive: timeout=5</code>).</td>
+      <td>Kernel periodically transmits an empty <code>ACK</code> probe packet with sequence number $Seq - 1$.</td>
+    </tr>
+    <tr>
+      <td><b>Default Interval</b></td>
+      <td>5 to 60 seconds of client inactivity.</td>
+      <td><b>2 Hours (7200 seconds)</b> in standard Linux kernel!</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>server configuration examples (nginx & node.js)</h2>
+<pre><code class="language-nginx"># Nginx keep-alive tuning
+http {
+    # Keep idle socket open for 65 seconds waiting for next request
+    keepalive_timeout 65s;
+
+    # Allow up to 1,000 sequential requests per socket before forcing close
+    keepalive_requests 1000;
+}</code></pre>
+
+<div class="callout gotcha"><b class="label">⚠️ the missing delimiter trap</b><br />
+When multiple HTTP messages travel down the exact same TCP stream, how does the client know where Response 1 stops and Response 2 starts? <b>The server MUST send either an accurate <code>Content-Length: 1420</code> header or use <code>Transfer-Encoding: chunked</code></b>. If both are omitted, the client will hang indefinitely waiting for a connection close to signal end-of-file!
+</div>

@@ -108,6 +108,18 @@
 
 <div class="callout gotcha"><b class="label">⚠️ gotcha</b><br /><b>Local-to-local packets never touch the gateway.</b> And on the way back, the response <b>must return through the same gateway</b> — it is the only one that knows which device asked. A reply arriving anywhere else gets lost.</div>
 
+<h2>how the os finds the gateway: routing table (0.0.0.0/0)</h2>
+<p>How does your computer know where to send packets destined for the internet? It inspects the local kernel <b>routing table</b>. If a destination IP does not match any local subnet, it matches the <b>Default Route (<code>0.0.0.0/0</code>)</b>, which points directly to the Gateway IP:</p>
+
+<pre><code class="language-bash"># View Linux IP routing table
+ip route show
+# Output:
+# default via 192.168.1.1 dev wlan0 proto dhcp metric 600
+# 192.168.1.0/24 dev wlan0 proto kernel scope link src 192.168.1.10
+
+# Windows / macOS equivalent:
+netstat -rn</code></pre>
+
 <h2>quick check</h2>
 <ul>
   <li><b>Your phone (.11) opens a website. What is the very first stop?</b> The gateway. Nothing leaves the LAN on its own.</li>

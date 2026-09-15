@@ -253,7 +253,7 @@ export default function Home() {
       <footer>
         <div className="wrap">
           <span>
-            <b>masterchef26 notes</b> · high-velocity engineering revision · {year}
+            <b>Nexora</b> · high-velocity engineering revision · {year}
           </span>
           <span>
             <a href="#courses">tracks</a> ·{" "}

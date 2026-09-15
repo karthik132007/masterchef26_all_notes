@@ -1,0 +1,189 @@
+<style>
+.net-fig { margin: 16px auto 8px; max-width: 640px; text-align: center; }
+.net-fig svg { width: 100%; height: auto; display: block; }
+.net-fig figcaption { font-family: var(--font-mono); font-size: 12px; color: var(--ink-soft); margin-top: 4px; line-height: 1.55; }
+.note-body figure.net-fig { animation: net-rise .7s ease both; animation-timeline: view(); animation-range: entry 0% cover 25%; }
+@keyframes net-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .note-body figure.net-fig { animation: none; } }
+.pill-tag { display: inline-block; font-family: var(--font-mono); font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--ink); background: #fff; margin-right: 4px; }
+.analogy-box { border: 2px dashed #d97706; background: #fffdf5; border-radius: 12px; padding: 14px 18px; margin: 14px 0 20px; }
+.analogy-box b.analogy-title { display: inline-block; font-size: 13.5px; font-weight: 800; color: #b45309; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+</style>
+
+<p class="kicker">TLS 1.3 stripped away 25 years of cryptographic bloat to give the web what it always needed: unbreakable forward secrecy in exactly one round trip.</p>
+
+<h2>the 30-second idea</h2>
+<p><b>TLS (Transport Layer Security) is the modern, standardized cryptographic protocol governed by the IETF that encrypts all modern internet communications — including HTTPS, secure email (STARTTLS), and zero-trust microservice meshes (mTLS).</b></p>
+<ul>
+  <li><b>The Leap from TLS 1.2 to TLS 1.3 (RFC 8446):</b> Standardized in 2018 after 28 working drafts, TLS 1.3 is the greatest architectural upgrade in internet security history. It slashed connection setup latency from <b>2 RTT down to 1 RTT</b>, introduced <b>0-RTT session resumption</b>, and banned every deprecated, crackable cipher (static RSA, CBC-mode, MD5, SHA-1).</li>
+  <li><b>Mandatory Perfect Forward Secrecy (PFS):</b> In TLS 1.3, every session computes temporary, one-time keys via <b>Ephemeral Diffie-Hellman (ECDHE)</b>. If an adversary taps internet fiber cables today and steals the company's private server key 10 years from now, <b>they still cannot decrypt past recordings</b>!</li>
+</ul>
+
+<div class="analogy-box">
+  <b class="analogy-title">🎨 The Diffie-Hellman Paint-Mixing Analogy & The Ephemeral Key</b><br />
+  How do two people create an identical shared secret key over a public room filled with spies, without ever saying the key out loud?
+  <ul>
+    <li><b>Public Base Color:</b> Alice and Bob publicly agree on a starting paint color: <b>Yellow</b>. Everyone in the room sees this.</li>
+    <li><b>Private Secret Colors:</b> Alice secretly picks <b>Red</b>. Bob secretly picks <b>Blue</b>. Neither reveals their color.</li>
+    <li><b>The Mix:</b> Alice mixes Yellow + Red = <b>Orange</b>. Bob mixes Yellow + Blue = <b>Cyan</b>.</li>
+    <li><b>The Public Swap:</b> Alice hands Orange to Bob across the room. Bob hands Cyan to Alice. Spies see Orange and Cyan passing by. But separating mixed paint back into its pure ingredients is computationally impossible (the Discrete Logarithm problem)!</li>
+    <li><b>The Magic Secret:</b> Alice adds her secret Red to Bob's Cyan &rarr; <b>Brown</b>. Bob adds his secret Blue to Alice's Orange &rarr; <b>Brown</b>! Both arrived at the identical secret color, while spies only have useless mixed samples.</li>
+    <li><b>Forward Secrecy:</b> In TLS 1.3, both Alice and Bob immediately dump the paint down the drain after the conversation. Next connection, they start with fresh random colors!</li>
+  </ul>
+</div>
+
+<div class="callout remember"><b class="label">🧷 remember</b><br />
+<b>TLS 1.2 Handshake = 2 RTT</b> (RTT 1: Negotiate algorithms &rarr; RTT 2: Exchange keys & certificates).<br />
+<b>TLS 1.3 Handshake = 1 RTT</b> (Client speculatively bundles its Diffie-Hellman <code>KeyShare</code> directly inside the very first <code>ClientHello</code> packet!).
+</div>
+
+<h2>animated handshake ladder: tls 1.2 vs tls 1.3</h2>
+<figure class="net-fig">
+<svg viewBox="0 0 620 420" role="img" aria-label="Animated comparison ladder diagram between TLS 1.2 (2 RTT) and TLS 1.3 (1 RTT)">
+  <!-- Left Box: TLS 1.2 -->
+  <rect x="10" y="15" width="285" height="390" rx="12" fill="#fffdf6" stroke="#1c1a15" stroke-width="2"/>
+  <text x="152" y="38" text-anchor="middle" font-size="12" font-weight="800" fill="#c92a2a">TLS 1.2 (2 Round Trips)</text>
+
+  <!-- TLS 1.2 Timelines -->
+  <text x="50" y="65" text-anchor="middle" font-size="10" font-weight="700">Client</text>
+  <text x="250" y="65" text-anchor="middle" font-size="10" font-weight="700">Server</text>
+  <line x1="50" y1="75" x2="50" y2="380" stroke="#b9b09a" stroke-width="1.5"/>
+  <line x1="250" y1="75" x2="250" y2="380" stroke="#b9b09a" stroke-width="1.5"/>
+
+  <!-- RTT 1 -->
+  <path d="M 50 95 L 250 125" stroke="#1c1a15" stroke-width="2"/>
+  <text x="150" y="103" text-anchor="middle" font-size="8.5" font-family="monospace">ClientHello (ciphers, SNI)</text>
+
+  <path d="M 250 135 L 50 165" stroke="#1c1a15" stroke-width="2"/>
+  <text x="150" y="143" text-anchor="middle" font-size="8.5" font-family="monospace">ServerHello + Certificate</text>
+
+  <rect x="20" y="172" width="265" height="20" rx="4" fill="#fde8e8"/>
+  <text x="152" y="186" text-anchor="middle" font-size="9" font-weight="700" fill="#c92a2a">RTT 1: Parameters Agreed</text>
+
+  <!-- RTT 2 -->
+  <path d="M 50 205 L 250 235" stroke="#1c1a15" stroke-width="2"/>
+  <text x="150" y="213" text-anchor="middle" font-size="8.5" font-family="monospace">ClientKeyExchange + Finished</text>
+
+  <path d="M 250 245 L 50 275" stroke="#1c1a15" stroke-width="2"/>
+  <text x="150" y="253" text-anchor="middle" font-size="8.5" font-family="monospace">NewSessionTicket + Finished</text>
+
+  <rect x="20" y="282" width="265" height="20" rx="4" fill="#fde8e8"/>
+  <text x="152" y="296" text-anchor="middle" font-size="9" font-weight="700" fill="#c92a2a">RTT 2: Keys Derived & Ready</text>
+
+  <!-- App Data -->
+  <path d="M 50 325 L 250 355" stroke="#2e9e5b" stroke-width="2.5"/>
+  <text x="150" y="333" text-anchor="middle" font-size="9" font-weight="800" fill="#2e9e5b">HTTP GET Request (Delayed!)</text>
+
+  <!-- Right Box: TLS 1.3 -->
+  <rect x="320" y="15" width="290" height="390" rx="12" fill="#fffdf6" stroke="#1c1a15" stroke-width="2"/>
+  <text x="465" y="38" text-anchor="middle" font-size="12" font-weight="800" fill="#2e9e5b">TLS 1.3 (1 Round Trip!)</text>
+
+  <!-- TLS 1.3 Timelines -->
+  <text x="360" y="65" text-anchor="middle" font-size="10" font-weight="700">Client</text>
+  <text x="570" y="65" text-anchor="middle" font-size="10" font-weight="700">Server</text>
+  <line x1="360" y1="75" x2="360" y2="380" stroke="#b9b09a" stroke-width="1.5"/>
+  <line x1="570" y1="75" x2="570" y2="380" stroke="#b9b09a" stroke-width="1.5"/>
+
+  <!-- RTT 1 with KeyShare -->
+  <path id="tls13-c-hello" d="M 360 105 L 570 145" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="465" y="113" text-anchor="middle" font-size="8.5" font-family="monospace" font-weight="700">ClientHello + KeyShare (ECDHE!)</text>
+
+  <!-- Animated dot for ClientHello -->
+  <circle r="4.5" fill="#d97706">
+    <animateMotion dur="2.4s" repeatCount="indefinite" path="M 360 105 L 570 145"/>
+  </circle>
+
+  <path id="tls13-s-hello" d="M 570 160 L 360 200" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="465" y="168" text-anchor="middle" font-size="8.5" font-family="monospace" font-weight="700">ServerHello + KeyShare + Cert</text>
+
+  <!-- Animated dot for ServerHello -->
+  <circle r="4.5" fill="#2f6fed">
+    <animateMotion dur="2.4s" repeatCount="indefinite" path="M 570 160 L 360 200"/>
+  </circle>
+
+  <rect x="330" y="215" width="270" height="24" rx="4" fill="#dcf9e8"/>
+  <text x="465" y="231" text-anchor="middle" font-size="9.5" font-weight="800" fill="#2e9e5b">1 RTT Finished! Symmetric Keys Generated!</text>
+
+  <!-- App Data Instant -->
+  <path id="tls13-data1" d="M 360 260 L 570 290" stroke="#2e9e5b" stroke-width="2.5"/>
+  <text x="465" y="268" text-anchor="middle" font-size="9" font-weight="800" fill="#2e9e5b">Encrypted HTTP Request (Instant!)</text>
+
+  <path id="tls13-data2" d="M 570 305 L 360 335" stroke="#2f6fed" stroke-width="2.5"/>
+  <text x="465" y="313" text-anchor="middle" font-size="9" font-weight="800" fill="#2f6fed">Encrypted HTTP Response</text>
+
+  <!-- Animated data stream dots -->
+  <circle r="4" fill="#2e9e5b">
+    <animateMotion dur="1.8s" repeatCount="indefinite" path="M 360 260 L 570 290"/>
+  </circle>
+  <circle r="4" fill="#2f6fed">
+    <animateMotion dur="1.8s" repeatCount="indefinite" path="M 570 305 L 360 335"/>
+  </circle>
+</svg>
+<figcaption>TLS 1.3 speculatively sends its Elliptic Curve Diffie-Hellman (ECDHE) public key share in the very first message, eliminating an entire network round trip.</figcaption>
+</figure>
+
+<h2>the 3 essential extensions: sni, alpn & mtls</h2>
+
+<figure class="net-fig">
+<svg viewBox="0 0 620 220" role="img" aria-label="Server Name Indication (SNI) solving the virtual hosting SSL certificate dilemma">
+  <!-- Client -->
+  <rect x="15" y="70" width="130" height="80" rx="8" fill="#fff" stroke="#1c1a15" stroke-width="2"/>
+  <text x="80" y="102" text-anchor="middle" font-size="11" font-weight="800">Client Browser</text>
+  <text x="80" y="122" text-anchor="middle" font-size="9.5" fill="#575046">Wants: shop.com</text>
+
+  <!-- Arrow with SNI -->
+  <path d="M 145 110 L 290 110" stroke="#1c1a15" stroke-width="2"/>
+  <rect x="160" y="78" width="115" height="24" rx="4" fill="#fdf6e2" stroke="#1c1a15" stroke-width="1.2"/>
+  <text x="217" y="94" text-anchor="middle" font-size="8.5" font-weight="700">SNI: "shop.com"</text>
+
+  <!-- Single Web Server -->
+  <rect x="290" y="25" width="315" height="170" rx="10" fill="#fffdf6" stroke="#1c1a15" stroke-width="2"/>
+  <text x="447" y="48" text-anchor="middle" font-size="11" font-weight="800">Single Server IP (e.g. Cloudflare Edge)</text>
+
+  <!-- Virtual Host 1 Cert -->
+  <rect x="310" y="65" width="275" height="38" rx="6" fill="#e9f9ef" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="447" y="82" text-anchor="middle" font-size="9.5" font-weight="700" fill="#2e9e5b">Cert A: *.shop.com (Selected by SNI!)</text>
+  <text x="447" y="96" text-anchor="middle" font-size="8" fill="#575046">Matches requested hostname before decrypting HTTP</text>
+
+  <!-- Virtual Host 2 Cert -->
+  <rect x="310" y="115" width="275" height="38" rx="6" fill="#fff" stroke="#b9b09a" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <text x="447" y="132" text-anchor="middle" font-size="9.5" font-weight="700" fill="#888">Cert B: *.blog.io (Ignored)</text>
+  <text x="447" y="146" text-anchor="middle" font-size="8" fill="#888">Belongs to another customer on same server</text>
+</svg>
+<figcaption>SNI sends the requested hostname in cleartext inside the TLS ClientHello so the multi-tenant reverse proxy knows which SSL certificate to present.</figcaption>
+</figure>
+
+<ul>
+  <li><b>SNI (Server Name Indication - RFC 6066):</b> A modern web server or reverse proxy (like Cloudflare or Nginx) hosts tens of thousands of domains behind a single public IP address. Because the HTTP <code>Host: shop.com</code> header is encrypted, the server wouldn't know which certificate to present! <b>SNI solves this chicken-and-egg dilemma by transmitting the hostname inside the cleartext TLS ClientHello extension.</b></li>
+  <li><b>ALPN (Application-Layer Protocol Negotiation):</b> Instead of establishing a TLS tunnel and then negotiating HTTP/2 vs HTTP/1.1 in an extra round trip, the client and server negotiate the application protocol (e.g. <code>h2</code>, <code>http/1.1</code>, <code>h3</code>) directly inside the TLS handshake!</li>
+  <li><b>mTLS (Mutual TLS):</b> In standard HTTPS, only the server proves its identity with a certificate. In <b>mTLS</b>, the server also requests the client's certificate. Both parties cryptographically authenticate each other. Standard in zero-trust service meshes (Istio, Envoy) and banking microservices.</li>
+</ul>
+
+<h2>how tls 1.3 enforces perfect forward secrecy (pfs)</h2>
+<p>In older TLS 1.2 configurations, servers used <b>Static RSA Key Exchange</b>: the client encrypted a pre-master secret using the server's public RSA key. The server decrypted it with its private key.</p>
+<p><b>The Disaster:</b> If an intelligence agency recorded millions of encrypted packets from a datacenter fiber link in 2020, and in 2030 they breached the datacenter and stole the server's private key, <b>they could decrypt all 10 years of archived historical traffic!</b></p>
+<p><b>TLS 1.3 completely banned static RSA key exchange.</b> Every TLS 1.3 handshake <b>must use Ephemeral Diffie-Hellman (ECDHE)</b>. A new temporary keypair is generated for every single session and instantly destroyed. Even if the server's master long-term certificate private key is leaked, past conversations remain mathematically impossible to decrypt.</p>
+
+<h2>how to inspect tls from your terminal</h2>
+<pre><code class="language-bash"># Connect via TLS 1.3 and inspect negotiated cipher suite, protocol, and key share
+openssl s_client -connect google.com:443 -tls1_3 -servername google.com
+
+# Verify ALPN negotiation for HTTP/2
+openssl s_client -connect cloudflare.com:443 -alpn h2 -servername cloudflare.com
+
+# View which modern TLS 1.3 cipher suites your local OpenSSL supports
+openssl ciphers -v 'TLSv1.3'
+
+# Test detailed TLS handshake timing using curl
+curl -Iv https://www.google.com --tlsv1.3</code></pre>
+
+<div class="callout gotcha"><b class="label">⚠️ the 0-rtt early data replay attack</b><br />
+TLS 1.3 introduced <b>0-RTT Resumption</b>: returning clients that previously negotiated a Pre-Shared Key (PSK) can bundle application data directly into the first <code>ClientHello</code>, achieving 0 ms handshake latency!<br />
+<b>The Fatal Trap:</b> 0-RTT Early Data has <b>no cryptographic replay protection</b>. If an attacker captures a 0-RTT packet for <code>POST /transfer-funds {"amount": 500}</code>, they can replay that exact binary packet 10 times to drain an account. <b>Rule: Only safe, idempotent GET requests must ever be accepted over 0-RTT!</b>
+</div>
+
+<div class="callout exam"><b class="label">⭐ viva & interview question</b><br />
+<b>Q: What is Perfect Forward Secrecy (PFS), and how does TLS 1.3 achieve 1-RTT handshake latency while guaranteeing PFS?</b><br />
+<b>A:</b> PFS guarantees that the compromise of a server's long-term private key does not compromise past encrypted session keys. TLS 1.3 enforces PFS by exclusively using Ephemeral Diffie-Hellman (ECDHE), where keypairs are generated per session and discarded.<br />
+TLS 1.3 achieves <b>1-RTT latency</b> by eliminating the round trip of cipher negotiation. In TLS 1.2, client and server had to negotiate supported curves first. In TLS 1.3, the client speculatively assumes standard modern curves (e.g. X25519) and bundles its public <code>KeyShare</code> directly in the initial <code>ClientHello</code>. The server replies with its own <code>KeyShare</code> in <code>ServerHello</code>, allowing both parties to derive the symmetric session key at RTT 1!
+</div>

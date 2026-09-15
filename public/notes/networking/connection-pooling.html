@@ -1,0 +1,135 @@
+<style>
+.net-fig { margin: 18px auto 10px; max-width: 580px; text-align: center; }
+.net-fig.wide { max-width: 640px; }
+.net-fig svg { width: 100%; height: auto; display: block; }
+.net-fig figcaption { font-family: var(--font-mono); font-size: 12px; color: var(--ink-soft); margin-top: 4px; line-height: 1.55; }
+.note-body figure.net-fig { animation: net-rise .7s ease both; animation-timeline: view(); animation-range: entry 0% cover 25%; }
+@keyframes net-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .note-body figure.net-fig { animation: none; } }
+.pill-tag { display: inline-block; font-family: var(--font-mono); font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--ink); background: #fff; margin-right: 4px; }
+.analogy-box { background: #fffdf6; border: 2.5px solid var(--ink); border-radius: 14px; padding: 18px 20px; margin: 20px 0; box-shadow: 4px 4px 0 var(--ink); }
+.analogy-box h3 { margin: 0 0 8px; font-size: 16px; font-weight: 800; }
+</style>
+
+<p class="kicker">building a connection takes 50 milliseconds; executing a query takes 2 milliseconds. Connection pooling keeps a fleet of warm sockets ready so your threads never wait.</p>
+
+<h2>the 30-second idea</h2>
+<p><b>A Connection Pool is a software cache of pre-established, authenticated network sockets maintained in memory.</b> Application threads borrow an existing connection from the pool, execute their work, and return it back for the next thread to use.</p>
+
+<div class="analogy-box">
+  <h3>🚕 The City Taxi Fleet Analogy</h3>
+  <ul>
+    <li><b>No Connection Pool (The Absurd Car Factory):</b> Every time you want to ride 2 blocks to the grocery store, a factory manufactures a brand new car from scratch (TCP handshake + TLS + Auth = 50ms). You drive 2 blocks (2ms). Upon arrival, you drive the car straight into an industrial metal crusher to destroy it (FIN teardown). <b>Massive waste of time, CPU, and metal!</b></li>
+    <li><b>With a Connection Pool (The Taxi Stand):</b> A taxi company maintains 20 fueled, running cabs at the curb. You hop in, ride 2 blocks, pay the fare, and step out. The driver immediately picks up the next passenger. Sockets stay warm and alive for hours.</li>
+  </ul>
+</div>
+
+<div class="callout remember"><b class="label">🧷 remember</b><br /><b>Borrow, Execute, Return.</b> When your application code calls <code>connection.close()</code> inside a pooled environment (like HikariCP or Go HTTP transport), it does <b>NOT</b> close the TCP socket! It simply returns the connection handle back to the idle queue.</div>
+
+<h2>connection pool mechanics: the lifecycle flow</h2>
+<figure class="net-fig wide">
+<svg viewBox="0 0 620 320" role="img" aria-label="Animated connection pool lifecycle diagram showing lease and return cycle">
+  <!-- Threads -->
+  <rect x="15" y="30" width="130" height="260" rx="10" fill="#fff" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="80" y="55" text-anchor="middle" font-size="12" font-weight="800">Worker Threads</text>
+
+  <rect x="25" y="70" width="110" height="34" rx="6" fill="#eaf3ff" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="80" y="92" text-anchor="middle" font-size="10" font-weight="700">Thread 1 (Borrowing)</text>
+
+  <rect x="25" y="120" width="110" height="34" rx="6" fill="#e9f9ef" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="80" y="142" text-anchor="middle" font-size="10" font-weight="700">Thread 2 (Active)</text>
+
+  <rect x="25" y="170" width="110" height="34" rx="6" fill="#fde8e8" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="80" y="192" text-anchor="middle" font-size="10" font-weight="700">Thread 3 (Waiting)</text>
+
+  <rect x="25" y="220" width="110" height="34" rx="6" fill="#fdf6e2" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="80" y="242" text-anchor="middle" font-size="10" font-weight="700">Thread 4 (Idle)</text>
+
+  <!-- Pool Container -->
+  <rect x="180" y="15" width="255" height="290" rx="12" fill="#fffdf6" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="307" y="40" text-anchor="middle" font-size="12" font-weight="800">Connection Pool (HikariCP)</text>
+
+  <!-- In-Use Partition -->
+  <rect x="195" y="65" width="225" height="95" rx="8" fill="#e9f9ef" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="307" y="85" text-anchor="middle" font-size="10.5" font-weight="800" fill="#2e9e5b">Leased / Active Sockets</text>
+  <rect x="210" y="98" width="95" height="45" rx="6" fill="#fff" stroke="#1c1a15" stroke-width="1"/>
+  <text x="257" y="118" text-anchor="middle" font-size="9" font-family="monospace">Socket #1</text>
+  <text x="257" y="132" text-anchor="middle" font-size="8.5" fill="#2e9e5b">Thread 2 (query)</text>
+  <rect x="315" y="98" width="95" height="45" rx="6" fill="#fff" stroke="#1c1a15" stroke-width="1"/>
+  <text x="362" y="118" text-anchor="middle" font-size="9" font-family="monospace">Socket #2</text>
+  <text x="362" y="132" text-anchor="middle" font-size="8.5" fill="#2e9e5b">Thread 1 (leased)</text>
+
+  <!-- Idle Partition -->
+  <rect x="195" y="175" width="225" height="95" rx="8" fill="#fdf6e2" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="307" y="195" text-anchor="middle" font-size="10.5" font-weight="800" fill="#d97706">Warm Idle Queue</text>
+  <rect x="210" y="208" width="95" height="45" rx="6" fill="#fff" stroke="#1c1a15" stroke-width="1"/>
+  <text x="257" y="228" text-anchor="middle" font-size="9" font-family="monospace">Socket #3</text>
+  <text x="257" y="242" text-anchor="middle" font-size="8.5" fill="#d97706">Warm & Ready</text>
+  <rect x="315" y="208" width="95" height="45" rx="6" fill="#fff" stroke="#1c1a15" stroke-width="1"/>
+  <text x="362" y="228" text-anchor="middle" font-size="9" font-family="monospace">Socket #4</text>
+  <text x="362" y="242" text-anchor="middle" font-size="8.5" fill="#d97706">Warm & Ready</text>
+
+  <!-- Database Box -->
+  <rect x="475" y="80" width="130" height="160" rx="10" fill="#eaf3ff" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="540" y="120" text-anchor="middle" font-size="32">🗄️</text>
+  <text x="540" y="155" text-anchor="middle" font-size="11" font-weight="800">Database Engine</text>
+  <text x="540" y="172" text-anchor="middle" font-size="9.5" font-family="monospace">Postgres / MySQL</text>
+  <text x="540" y="190" text-anchor="middle" font-size="9" fill="#575046">4 TCP connections</text>
+  <text x="540" y="205" text-anchor="middle" font-size="9" font-weight="700" fill="#2e9e5b">0 handshakes needed</text>
+
+  <path d="M 135 87 L 180 87" stroke="#2e9e5b" stroke-width="2"/>
+  <path d="M 420 120 L 475 120" stroke="#1c1a15" stroke-width="2.5"/>
+</svg>
+<figcaption>The pool keeps connections permanently established with the database server. Thread checkout time is sub-millisecond.</figcaption>
+</figure>
+
+<h2>the time_wait catastrophe: what happens without a pool</h2>
+<p>If your service processes 2,000 HTTP or database requests per second without connection pooling, your server will abruptly crash with:</p>
+<p style="text-align:center; font-family:var(--font-mono); font-size:13px; font-weight:800; color:#c92a2a; background:#fde8e8; padding:10px; border:2px solid var(--ink); border-radius:8px;">
+  java.net.NoRouteToHostException: Cannot assign requested address
+</p>
+
+<figure class="net-fig wide">
+<svg viewBox="0 0 600 190" role="img" aria-label="Visual of TIME_WAIT port exhaustion">
+  <rect x="15" y="20" width="570" height="150" rx="12" fill="#fffdf6" stroke="#1c1a15" stroke-width="2"/>
+  <text x="300" y="44" text-anchor="middle" font-size="12" font-weight="800" fill="#c92a2a">The TIME_WAIT Ephemeral Port Wall</text>
+  <text x="300" y="60" text-anchor="middle" font-size="9.5" fill="#575046">Every closed TCP socket is locked in the kernel for 60 seconds (2 × MSL)</text>
+
+  <rect x="35" y="75" width="530" height="40" rx="8" fill="#fde8e8" stroke="#1c1a15" stroke-width="1.5"/>
+  <rect x="35" y="75" width="510" height="40" rx="8" fill="#c92a2a"/>
+  <text x="290" y="100" text-anchor="middle" font-size="11" font-weight="800" fill="#fff">28,000 / 28,231 Ephemeral Ports Locked in TIME_WAIT! (99% Full)</text>
+
+  <text x="300" y="145" text-anchor="middle" font-size="9.5" fill="#c92a2a" font-weight="700">New outbound socket allocations FAIL instantly (EADDRNOTAVAIL)</text>
+</svg>
+<figcaption>Without a pool, closing sockets after each request floods the Linux kernel with TIME_WAIT states, exhausting all available client ports.</figcaption>
+</figure>
+
+<h2>pool sizing: the famous hikaricp formula</h2>
+<p>Beginners intuitively think: <i>"More traffic = I should configure a pool of 500 connections!"</i> <b>Wrong.</b> A massive pool creates devastating context-switching overhead on database disk and CPU.</p>
+<p>The PostgreSQL and HikariCP engineering teams established the gold-standard formula for optimal database pool sizing:</p>
+
+<p style="text-align:center; font-family:var(--font-mono); font-size:15px; font-weight:800; color:#2e9e5b; background:#e9f9ef; padding:12px; border:2px solid var(--ink); border-radius:10px;">
+  Pool Size = (Core Count × 2) + Effective Spindle Count
+</p>
+<p>For a database server with 4 CPU cores and SSD storage, a pool size of just <b>10 to 12 connections</b> will typically outperform a pool of 200 connections by a factor of four!</p>
+
+<h2>connection leaks: the silent production killer</h2>
+<p>A connection leak happens when an app thread borrows a connection from the pool, encounters an unhandled runtime error, and terminates without returning the socket:</p>
+
+<pre><code class="language-java">// ❌ DEADLY LEAK: If rs.getString() throws an exception, conn is never returned!
+Connection conn = pool.getConnection();
+ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM users");
+String name = rs.getString("name");
+conn.close(); // Never reached on error!
+
+// ✅ BULLETPROOF: Java try-with-resources guarantees return to pool
+try (Connection conn = pool.getConnection();
+     PreparedStatement ps = conn.prepareStatement("SELECT * FROM users")) {
+    ResultSet rs = ps.executeQuery();
+    // Socket automatically returned to pool when block exits!
+}</code></pre>
+
+<div class="callout exam"><b class="label">⭐ viva & interview question</b><br />
+<b>Q: What is the difference between an HTTP client connection pool and a database connection pool?</b><br />
+<b>A:</b> An <b>HTTP connection pool</b> (e.g. Apache HttpClient, Go <code>http.Transport</code>) routes connections to multiple different external hostnames (`api.stripe.com`, `google.com`) and manages per-host concurrency limits. A <b>Database connection pool</b> (e.g. HikariCP) targets a single cluster, handles state resets (clearing uncommitted transactions and temporary tables before re-leasing), and validates connection liveness via <code>SELECT 1</code> heartbeat checks.
+</div>

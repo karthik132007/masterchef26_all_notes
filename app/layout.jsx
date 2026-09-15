@@ -2,9 +2,9 @@ import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 
 export const metadata = {
-  title: "masterchef26 — class notes that actually make sense",
+  title: "Nexora — High-Velocity Notes & Rapid Revision",
   description:
-    "Shared class notes for masterchef26: GenAI & Agentic AI and Spring Boot. Written by students, for students.",
+    "Master core Computer Science, AI, Systems, and FAANG interview drills. Visual mental models first, exact math and code after.",
 };
 
 export default function RootLayout({ children }) {

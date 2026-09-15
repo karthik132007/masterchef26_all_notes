@@ -1,0 +1,149 @@
+<style>
+.net-fig { margin: 18px auto 10px; max-width: 580px; text-align: center; }
+.net-fig.wide { max-width: 640px; }
+.net-fig svg { width: 100%; height: auto; display: block; }
+.net-fig figcaption { font-family: var(--font-mono); font-size: 12px; color: var(--ink-soft); margin-top: 4px; line-height: 1.55; }
+.note-body figure.net-fig { animation: net-rise .7s ease both; animation-timeline: view(); animation-range: entry 0% cover 25%; }
+@keyframes net-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .note-body figure.net-fig { animation: none; } }
+.pill-tag { display: inline-block; font-family: var(--font-mono); font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--ink); background: #fff; margin-right: 4px; }
+.analogy-box { background: #fffdf6; border: 2.5px solid var(--ink); border-radius: 14px; padding: 18px 20px; margin: 20px 0; box-shadow: 4px 4px 0 var(--ink); }
+.analogy-box h3 { margin: 0 0 8px; font-size: 16px; font-weight: 800; }
+</style>
+
+<p class="kicker">the clever disguise that saved the internet: letting an entire household of devices speak to the world through a single public IP address.</p>
+
+<h2>the 30-second idea</h2>
+<p><b>NAT (Network Address Translation) is a routing technique that rewrites the source or destination IP addresses and ports inside packet headers while in flight.</b></p>
+
+<div class="analogy-box">
+  <h3>🏨 The Grand Hotel Mailroom Analogy</h3>
+  <p>Imagine a hotel with 500 guests staying in rooms 101 through 600:</p>
+  <ul>
+    <li><b>No guest has a public street address.</b> Amazon delivery drivers cannot drive directly to "Room 304".</li>
+    <li><b>The Hotel Front Desk:</b> Has one single public street address: <code>742 Evergreen Terrace</code> (The Public IP).</li>
+    <li><b>Ordering Mail:</b> When Alice in Room 304 sends a letter, the hotel mailroom clerk crosses out "Room 304", writes the hotel's public address, and stamps a private tracking ticket number on the envelope: <code>Ticket #61001</code>. The clerk records in the logbook: <code>Ticket 61001 ↔ Room 304</code>.</li>
+    <li><b>The Return Delivery:</b> When a reply arrives addressed to <code>742 Evergreen Terrace (Attn: Ticket 61001)</code>, the clerk looks up the logbook, crosses out the ticket number, writes "Room 304", and slides it under Alice's door.</li>
+  </ul>
+</div>
+
+<div class="callout remember"><b class="label">🧷 remember</b><br /><b>RFC 1918 Private IPs (192.168.x.x, 10.x.x.x, 172.16.x.x) are strictly non-routable on the public internet.</b> The moment a packet hits your router, NAT swaps the private IP for the router's public WAN IP!</div>
+
+<h2>pat (port address translation): how 1 ip handles 50 devices</h2>
+<p>In a typical home, you have laptops, phones, smart TVs, and gaming consoles all browsing simultaneously over <b>one single public IP</b> provided by your ISP. How does the router prevent packets from getting cross-wired?</p>
+<p>It uses <b>PAT (Port Address Translation / NAT Overload)</b>. The router rewrites both the <b>Source IP AND the Source Port</b>:</p>
+
+<figure class="net-fig wide">
+<svg viewBox="0 0 620 340" role="img" aria-label="Animated NAT PAT packet header rewriting diagram">
+  <!-- Internal LAN -->
+  <rect x="15" y="25" width="160" height="120" rx="10" fill="#fff" stroke="#1c1a15" stroke-width="2"/>
+  <text x="95" y="50" text-anchor="middle" font-size="11" font-weight="800">Mom's Laptop</text>
+  <text x="95" y="70" text-anchor="middle" font-size="10" font-family="monospace">192.168.1.10:52001</text>
+  <rect x="25" y="85" width="140" height="45" rx="6" fill="#fde8e8"/>
+  <text x="95" y="102" text-anchor="middle" font-size="9" font-weight="700">Packet Leaves Laptop:</text>
+  <text x="95" y="118" text-anchor="middle" font-size="8.5" font-family="monospace">Src: 192.168.1.10:52001</text>
+
+  <rect x="15" y="175" width="160" height="120" rx="10" fill="#fff" stroke="#1c1a15" stroke-width="2"/>
+  <text x="95" y="200" text-anchor="middle" font-size="11" font-weight="800">Dad's Phone</text>
+  <text x="95" y="220" text-anchor="middle" font-size="10" font-family="monospace">192.168.1.11:52001</text>
+  <rect x="25" y="235" width="140" height="45" rx="6" fill="#fde8e8"/>
+  <text x="95" y="252" text-anchor="middle" font-size="9" font-weight="700">Packet Leaves Phone:</text>
+  <text x="95" y="268" text-anchor="middle" font-size="8.5" font-family="monospace">Src: 192.168.1.11:52001</text>
+
+  <!-- NAT Router Box -->
+  <rect x="220" y="20" width="200" height="295" rx="12" fill="#fffdf6" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="320" y="45" text-anchor="middle" font-size="12" font-weight="800">Wi-Fi Router (NAT/PAT)</text>
+  <text x="320" y="62" text-anchor="middle" font-size="10" font-family="monospace" fill="#6842c2">Public: 203.0.113.1</text>
+
+  <!-- NAT Table inside router -->
+  <rect x="230" y="80" width="180" height="135" rx="8" fill="#fff" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="320" y="100" text-anchor="middle" font-size="10.5" font-weight="800">NAT Translation Table</text>
+  <line x1="230" y1="110" x2="410" y2="110" stroke="#ded7c6"/>
+  <text x="240" y="130" font-size="8.5" font-family="monospace">192.168.1.10:52001</text>
+  <text x="240" y="145" font-size="8.5" font-family="monospace" fill="#2e9e5b">↳ Rewritten to :61001</text>
+  <text x="240" y="170" font-size="8.5" font-family="monospace">192.168.1.11:52001</text>
+  <text x="240" y="185" font-size="8.5" font-family="monospace" fill="#2e9e5b">↳ Rewritten to :61002</text>
+
+  <!-- Public Internet -->
+  <rect x="465" y="45" width="140" height="95" rx="10" fill="#eaf3ff" stroke="#1c1a15" stroke-width="2"/>
+  <text x="535" y="75" text-anchor="middle" font-size="11" font-weight="800">Google Server</text>
+  <text x="535" y="95" text-anchor="middle" font-size="10" font-family="monospace">142.250.190.46:80</text>
+  <text x="535" y="120" text-anchor="middle" font-size="9" fill="#2e9e5b">Sees Src :61001</text>
+
+  <rect x="465" y="180" width="140" height="95" rx="10" fill="#eaf3ff" stroke="#1c1a15" stroke-width="2"/>
+  <text x="535" y="210" text-anchor="middle" font-size="11" font-weight="800">Netflix Server</text>
+  <text x="535" y="230" text-anchor="middle" font-size="10" font-family="monospace">198.51.100.55:443</text>
+  <text x="535" y="255" text-anchor="middle" font-size="9" fill="#2e9e5b">Sees Src :61002</text>
+
+  <!-- Connecting Lines -->
+  <path d="M 175 80 L 220 120" stroke="#1c1a15" stroke-width="2"/>
+  <path d="M 175 220 L 220 170" stroke="#1c1a15" stroke-width="2"/>
+  <path d="M 420 125 L 465 90" stroke="#2e9e5b" stroke-width="2.5"/>
+  <path d="M 420 175 L 465 215" stroke="#2e9e5b" stroke-width="2.5"/>
+</svg>
+<figcaption>Both devices started from internal port 52001. The router disambiguates them on the WAN side as ports 61001 and 61002.</figcaption>
+</figure>
+
+<h2>snat vs dnat: outbound vs inbound</h2>
+<figure class="net-fig wide">
+<svg viewBox="0 0 600 180" role="img" aria-label="Visual comparison between SNAT and DNAT">
+  <rect x="15" y="15" width="280" height="150" rx="12" fill="#fffdf6" stroke="#1c1a15" stroke-width="2"/>
+  <text x="155" y="40" text-anchor="middle" font-size="12" font-weight="800" fill="#2f6fed">SNAT (Source NAT)</text>
+  <text x="155" y="60" text-anchor="middle" font-size="10" font-weight="700">Outbound Client Traffic</text>
+  <text x="155" y="85" text-anchor="middle" font-size="9.5" fill="#575046">Rewrites <b>Source IP & Port</b></text>
+  <text x="155" y="105" text-anchor="middle" font-size="9.5" fill="#575046">Private LAN → Public Internet</text>
+  <rect x="35" y="120" width="240" height="30" rx="6" fill="#eaf3ff"/>
+  <text x="155" y="140" text-anchor="middle" font-size="9" font-family="monospace">AWS NAT Gateway / Home Browsing</text>
+
+  <rect x="315" y="15" width="280" height="150" rx="12" fill="#fffdf6" stroke="#1c1a15" stroke-width="2"/>
+  <text x="455" y="40" text-anchor="middle" font-size="12" font-weight="800" fill="#6842c2">DNAT (Destination NAT)</text>
+  <text x="455" y="60" text-anchor="middle" font-size="10" font-weight="700">Inbound Server Traffic</text>
+  <text x="455" y="85" text-anchor="middle" font-size="9.5" fill="#575046">Rewrites <b>Destination IP & Port</b></text>
+  <text x="455" y="105" text-anchor="middle" font-size="9.5" fill="#575046">Public Internet → Internal Private Server</text>
+  <rect x="335" y="120" width="240" height="30" rx="6" fill="#f7f3ff"/>
+  <text x="455" y="140" text-anchor="middle" font-size="9" font-family="monospace">Port Forwarding (Plex / Minecraft)</text>
+</svg>
+<figcaption>SNAT alters who is asking (outbound); DNAT alters who is answering (inbound port forwarding).</figcaption>
+</figure>
+
+<h2>the p2p problem: webrtc stun, turn & ice</h2>
+<p>Because NAT drops all incoming packets that don't match an existing outgoing session in its table, <b>two private devices behind different home routers cannot easily talk directly to each other</b>! This breaks direct video calls (Zoom, WebRTC) and gaming.</p>
+<p>To solve this, the networking industry built <b>NAT Traversal</b>:</p>
+
+<table>
+  <thead>
+    <tr><th>Protocol</th><th>Full Name</th><th>Role in Peer-to-Peer Connection</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>STUN</b></td>
+      <td>Session Traversal Utilities for NAT</td>
+      <td><b>The Mirror:</b> A lightweight public server that tells the client: <i>"Hey, your router translated your internal IP to public IP <code>203.0.113.1</code> on port <code>61001</code>!"</i> The client shares this reflexive address with its peer to attempt direct UDP hole-punching.</td>
+    </tr>
+    <tr>
+      <td><b>TURN</b></td>
+      <td>Traversal Using Relays around NAT</td>
+      <td><b>The Fallback Relay:</b> If routers use strict "Symmetric NAT" that blocks hole-punching, direct P2P is impossible. Both clients stream all encrypted audio/video through a cloud TURN relay. (Costs bandwidth, but 100% reliable).</td>
+    </tr>
+    <tr>
+      <td><b>ICE</b></td>
+      <td>Interactive Connectivity Establishment</td>
+      <td><b>The Framework:</b> Tries direct LAN connection first → attempts STUN hole-punching → falls back to TURN relay if all else fails.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>managing nat on linux with iptables & conntrack</h2>
+<pre><code class="language-bash"># 1. Inspect live NAT translation connections in the Linux kernel
+sudo conntrack -L
+
+# 2. Add an outbound SNAT masquerade rule on WAN interface (eth0)
+sudo iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+
+# 3. Add an inbound DNAT (Port Forwarding): Forward public port 80 to internal IP 192.168.1.50:8080
+sudo iptables -t nat -A PREROUTING -p tcp --dport 80 -j DNAT --to-destination 192.168.1.50:8080</code></pre>
+
+<div class="callout exam"><b class="label">⭐ viva & interview question</b><br />
+<b>Q: What is Carrier-Grade NAT (CGNAT) and why does it break home hosting?</b><br />
+<b>A:</b> Because ISPs also ran out of public IPv4 addresses, they place home routers behind <b>another layer of NAT</b> at the ISP data center (using the shared <code>100.64.0.0/10</code> IP range). Your router's WAN IP is not public! As a result, standard port forwarding on your home router will fail to expose services to the internet, forcing developers to use tunnels like Cloudflare Tunnels, Tailscale, or ngrok.
+</div>

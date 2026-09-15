@@ -5,9 +5,9 @@ export default function Navbar({ links }) {
     <nav className="nav">
       <div className="nav-inner">
         <Link className="logo" href="/">
-          <span className="logo-mark">m</span>
+          <span className="logo-mark">N</span>
           <span className="logo-text">
-            <b>masterchef26</b>
+            <b>Nexora</b>
             <span>field notes & rapid revision</span>
           </span>
         </Link>

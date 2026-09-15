@@ -1,0 +1,260 @@
+<style>
+.net-fig { margin: 16px auto 8px; max-width: 640px; text-align: center; }
+.net-fig svg { width: 100%; height: auto; display: block; }
+.net-fig figcaption { font-family: var(--font-mono); font-size: 12px; color: var(--ink-soft); margin-top: 4px; line-height: 1.55; }
+.note-body figure.net-fig { animation: net-rise .7s ease both; animation-timeline: view(); animation-range: entry 0% cover 25%; }
+@keyframes net-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .note-body figure.net-fig { animation: none; } }
+.pill-tag { display: inline-block; font-family: var(--font-mono); font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--ink); background: #fff; margin-right: 4px; }
+.analogy-box { border: 2px dashed #d97706; background: #fffdf5; border-radius: 12px; padding: 14px 18px; margin: 14px 0 20px; }
+.analogy-box b.analogy-title { display: inline-block; font-size: 13.5px; font-weight: 800; color: #b45309; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+</style>
+
+<p class="kicker">REST with JSON is built for human readability and public web browsers. gRPC with Protobuf is engineered for high-throughput microservices that need to squeeze every microsecond out of the CPU and wire.</p>
+
+<h2>the 30-second idea</h2>
+<p><b>gRPC is an open-source, high-performance Remote Procedure Call (RPC) framework created by Google. It allows a client application to directly invoke a method on a server application running on a completely different physical machine as if it were a local in-memory function call.</b></p>
+<ul>
+  <li><b>The Two Architectural Pillars:</b>
+    <ol>
+      <li><b>Protocol Buffers (Protobuf):</b> Replaces human-readable, repetitive text JSON with an ultra-compact, strongly-typed <b>binary serialization format</b>.</li>
+      <li><b>HTTP/2 Transport:</b> Replaces single-request HTTP/1.1 connections with <b>multiplexed, bidirectional binary streams</b> over a single persistent TCP connection.</li>
+    </ol>
+  </li>
+  <li><b>The Real-World Speedup:</b> In production microservice meshes, Protobuf payloads are <b>5x to 10x smaller on the wire</b> than JSON, and serialize/deserialize <b>7x to 10x faster on CPU</b> because Protobuf completely avoids string parsing!</li>
+</ul>
+
+<div class="analogy-box">
+  <b class="analogy-title">📜 The Formal Written Letter vs The Military Radio Codebook</b><br />
+  Imagine commanding a remote field unit to take action:
+  <ul>
+    <li><b>REST + JSON (The Formal Letter):</b> You mail a typed document: <code>{"action": "fire_artillery", "target_coordinates": {"latitude": 45.123, "longitude": -73.456}, "round_type": "smoke"}</code>. It is easy for any civilian to read, but printing, folding envelopes, licking stamps, and parsing every quotation mark and bracket character by character wastes enormous time and CPU cycles.</li>
+    <li><b>gRPC + Protobuf (The Pre-Shared Codebook):</b> Both units already hold an identical codebook (the compiled <code>.proto</code> contract). Over the radio, you simply transmit a tiny binary sequence: <code>Tag 1: 45.123 | Tag 2: -73.456 | Tag 3: 2</code>. The receiver maps numbers to offsets in nanoseconds. Zero repeated field names, zero string parsing, executed at line speed!</li>
+  </ul>
+</div>
+
+<div class="callout remember"><b class="label">🧷 remember</b><br />
+<b>gRPC = HTTP/2 (Multiplexed Streams) + Protocol Buffers (Binary Serialization) + Code Generation (Type-Safe Stubs in Go, Java, Python, Rust, C++).</b>
+</div>
+
+<h2>wire format comparison: json vs protocol buffers</h2>
+<figure class="net-fig">
+<svg viewBox="0 0 620 280" role="img" aria-label="Visual size and byte structure comparison between text JSON and compact binary Protocol Buffers">
+  <!-- Left Side: JSON -->
+  <rect x="15" y="20" width="280" height="240" rx="12" fill="#fffdf6" stroke="#1c1a15" stroke-width="2"/>
+  <text x="155" y="44" text-anchor="middle" font-size="12" font-weight="800" fill="#c92a2a">Text JSON Payload (~85 bytes)</text>
+  <rect x="25" y="60" width="260" height="180" rx="8" fill="#fff" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="35" y="85" font-size="10" font-family="monospace">{</text>
+  <text x="50" y="105" font-size="10" font-family="monospace">"user_id": 12345,</text>
+  <text x="50" y="125" font-size="10" font-family="monospace">"username": "alex",</text>
+  <text x="50" y="145" font-size="10" font-family="monospace">"email": "a@x.com",</text>
+  <text x="50" y="165" font-size="10" font-family="monospace">"is_verified": true</text>
+  <text x="35" y="185" font-size="10" font-family="monospace">}</text>
+  <text x="155" y="212" text-anchor="middle" font-size="9" fill="#c92a2a">Keys like "user_id" sent in every packet!</text>
+  <text x="155" y="228" text-anchor="middle" font-size="8.5" fill="#575046">CPU wastes cycles parsing strings & quotes</text>
+
+  <!-- Right Side: Protobuf -->
+  <rect x="325" y="20" width="280" height="240" rx="12" fill="#fffdf6" stroke="#1c1a15" stroke-width="2"/>
+  <text x="465" y="44" text-anchor="middle" font-size="12" font-weight="800" fill="#2e9e5b">Binary Protobuf Wire (~18 bytes!)</text>
+  <rect x="335" y="60" width="260" height="180" rx="8" fill="#e9f9ef" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="350" y="90" font-size="11" font-family="monospace" font-weight="700">08 B9 60 12 04 61 6C 65 78</text>
+  <text x="350" y="115" font-size="11" font-family="monospace" font-weight="700">1A 07 61 40 78 2E 63 6F 6D 20 01</text>
+  <text x="465" y="152" text-anchor="middle" font-size="9.5" font-weight="700" fill="#2e9e5b">Field tags are numeric Varints (1 byte!)</text>
+  <text x="465" y="168" text-anchor="middle" font-size="8.5" fill="#575046">Field names stripped completely from wire</text>
+  <text x="465" y="195" text-anchor="middle" font-size="11" font-weight="800" fill="#2e9e5b">~80% Smaller on the Wire!</text>
+  <text x="465" y="215" text-anchor="middle" font-size="8.5" fill="#575046">Direct memory deserialize (zero string scanning)</text>
+</svg>
+<figcaption>Protobuf strips field name strings entirely from the wire, representing fields as compact numeric tags (1, 2, 3) mapped to binary offsets.</figcaption>
+</figure>
+
+<h2>animated http/2 multiplexing in grpc</h2>
+<p>Unlike HTTP/1.1 where each request requires its own TCP connection or waits in line (Head-of-Line blocking), gRPC runs on <b>HTTP/2 multiplexed streams</b>:</p>
+
+<figure class="net-fig">
+<svg viewBox="0 0 620 220" role="img" aria-label="Animated HTTP/2 multiplexing showing multiple concurrent gRPC streams interleaved over a single TCP connection">
+  <!-- Client Box -->
+  <rect x="15" y="40" width="120" height="140" rx="10" fill="#fff" stroke="#1c1a15" stroke-width="2"/>
+  <text x="75" y="85" text-anchor="middle" font-size="11" font-weight="800">gRPC Client</text>
+  <text x="75" y="105" text-anchor="middle" font-size="9" fill="#575046">App Microservice</text>
+  <text x="75" y="130" text-anchor="middle" font-size="8.5" font-family="monospace">1 TCP Socket</text>
+
+  <!-- Server Box -->
+  <rect x="485" y="40" width="120" height="140" rx="10" fill="#fff" stroke="#1c1a15" stroke-width="2"/>
+  <text x="545" y="85" text-anchor="middle" font-size="11" font-weight="800">gRPC Server</text>
+  <text x="545" y="105" text-anchor="middle" font-size="9" fill="#575046">Payment Backend</text>
+  <text x="545" y="130" text-anchor="middle" font-size="8.5" font-family="monospace">1 TCP Socket</text>
+
+  <!-- Big Shared TCP Pipe -->
+  <rect x="145" y="65" width="330" height="90" rx="12" fill="#fffdf6" stroke="#1c1a15" stroke-width="2"/>
+  <text x="310" y="82" text-anchor="middle" font-size="9" font-weight="800" fill="#575046">Single Long-Lived Multiplexed TCP Connection</text>
+
+  <!-- Stream 1: Green -->
+  <line x1="145" y1="95" x2="475" y2="95" stroke="#2e9e5b" stroke-width="2" stroke-dasharray="6 4"/>
+  <rect x="160" y="88" width="80" height="15" rx="3" fill="#dcf9e8" stroke="#2e9e5b" stroke-width="1"/>
+  <text x="200" y="99" text-anchor="middle" font-size="7.5" font-weight="700" fill="#2e9e5b">Stream 1: Pay</text>
+
+  <!-- Stream 3: Blue -->
+  <line x1="145" y1="118" x2="475" y2="118" stroke="#2f6fed" stroke-width="2" stroke-dasharray="6 4"/>
+  <rect x="260" y="111" width="85" height="15" rx="3" fill="#eaf3ff" stroke="#2f6fed" stroke-width="1"/>
+  <text x="302" y="122" text-anchor="middle" font-size="7.5" font-weight="700" fill="#2f6fed">Stream 3: Ticker</text>
+
+  <!-- Stream 5: Purple -->
+  <line x1="145" y1="142" x2="475" y2="142" stroke="#6842c2" stroke-width="2" stroke-dasharray="6 4"/>
+  <rect x="360" y="135" width="80" height="15" rx="3" fill="#efe4ff" stroke="#6842c2" stroke-width="1"/>
+  <text x="400" y="146" text-anchor="middle" font-size="7.5" font-weight="700" fill="#6842c2">Stream 5: Chat</text>
+
+  <!-- Animated stream dots traveling in parallel -->
+  <circle r="4" fill="#2e9e5b">
+    <animateMotion dur="2.2s" repeatCount="indefinite" path="M 145 95 L 475 95"/>
+  </circle>
+  <circle r="4" fill="#2f6fed">
+    <animateMotion dur="1.7s" repeatCount="indefinite" path="M 475 118 L 145 118"/>
+  </circle>
+  <circle r="4" fill="#6842c2">
+    <animateMotion dur="2.5s" repeatCount="indefinite" path="M 145 142 L 475 142"/>
+  </circle>
+</svg>
+<figcaption>Multiple independent RPC streams flow simultaneously across a single shared TCP socket without blocking each other.</figcaption>
+</figure>
+
+<h2>the 4 rpc communication patterns</h2>
+<figure class="net-fig">
+<svg viewBox="0 0 620 230" role="img" aria-label="Diagram of the 4 gRPC communication patterns: Unary, Server Streaming, Client Streaming, and Bidirectional Streaming">
+  <!-- Unary -->
+  <rect x="10" y="15" width="140" height="200" rx="8" fill="#fff" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="80" y="38" text-anchor="middle" font-size="10.5" font-weight="800">1. Unary</text>
+  <line x1="30" y1="55" x2="30" y2="190" stroke="#b9b09a" stroke-width="1.2"/>
+  <line x1="130" y1="55" x2="130" y2="190" stroke="#b9b09a" stroke-width="1.2"/>
+  <path d="M 30 85 L 130 105" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="80" y="93" text-anchor="middle" font-size="7.5">1 Request</text>
+  <path d="M 130 135 L 30 155" stroke="#2e9e5b" stroke-width="1.5"/>
+  <text x="80" y="143" text-anchor="middle" font-size="7.5" fill="#2e9e5b">1 Response</text>
+
+  <!-- Server Streaming -->
+  <rect x="160" y="15" width="140" height="200" rx="8" fill="#fff" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="230" y="38" text-anchor="middle" font-size="10.5" font-weight="800">2. Server Stream</text>
+  <line x1="180" y1="55" x2="180" y2="190" stroke="#b9b09a" stroke-width="1.2"/>
+  <line x1="280" y1="55" x2="280" y2="190" stroke="#b9b09a" stroke-width="1.2"/>
+  <path d="M 180 75 L 280 90" stroke="#1c1a15" stroke-width="1.5"/>
+  <path d="M 280 110 L 180 125" stroke="#2f6fed" stroke-width="1.5"/>
+  <path d="M 280 135 L 180 150" stroke="#2f6fed" stroke-width="1.5"/>
+  <path d="M 280 160 L 180 175" stroke="#2f6fed" stroke-width="1.5"/>
+  <text x="230" y="188" text-anchor="middle" font-size="7" fill="#2f6fed">Stream of Updates</text>
+
+  <!-- Client Streaming -->
+  <rect x="310" y="15" width="140" height="200" rx="8" fill="#fff" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="380" y="38" text-anchor="middle" font-size="10.5" font-weight="800">3. Client Stream</text>
+  <line x1="330" y1="55" x2="330" y2="190" stroke="#b9b09a" stroke-width="1.2"/>
+  <line x1="430" y1="55" x2="430" y2="190" stroke="#b9b09a" stroke-width="1.2"/>
+  <path d="M 330 75 L 430 90" stroke="#d97706" stroke-width="1.5"/>
+  <path d="M 330 100 L 430 115" stroke="#d97706" stroke-width="1.5"/>
+  <path d="M 330 125 L 430 140" stroke="#d97706" stroke-width="1.5"/>
+  <path d="M 430 165 L 330 180" stroke="#2e9e5b" stroke-width="1.5"/>
+  <text x="380" y="189" text-anchor="middle" font-size="7" fill="#2e9e5b">1 Ack / Status</text>
+
+  <!-- Bidirectional Streaming -->
+  <rect x="460" y="15" width="150" height="200" rx="8" fill="#fff" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="535" y="38" text-anchor="middle" font-size="10.5" font-weight="800">4. Bidirectional</text>
+  <line x1="480" y1="55" x2="480" y2="190" stroke="#b9b09a" stroke-width="1.2"/>
+  <line x1="590" y1="55" x2="590" y2="190" stroke="#b9b09a" stroke-width="1.2"/>
+  <path d="M 480 80 L 590 95" stroke="#6842c2" stroke-width="1.5"/>
+  <path d="M 590 110 L 480 125" stroke="#2f6fed" stroke-width="1.5"/>
+  <path d="M 480 140 L 590 155" stroke="#6842c2" stroke-width="1.5"/>
+  <path d="M 590 170 L 480 185" stroke="#2f6fed" stroke-width="1.5"/>
+  <text x="535" y="196" text-anchor="middle" font-size="7" fill="#6842c2">Continuous Flow</text>
+</svg>
+<figcaption>gRPC natively supports 4 communication patterns, from simple request-response to full bidirectional duplex streaming.</figcaption>
+</figure>
+
+<h2>the protobuf schema contract (.proto)</h2>
+<p>In gRPC, everything starts with an Interface Definition Language (IDL) file. Both client and server compile this file to generate native, compile-time type-safe code in their respective programming languages:</p>
+
+<pre><code class="language-protobuf">syntax = "proto3";
+
+package payment;
+
+service PaymentService {
+    // 1. Unary RPC (Single request, single response)
+    rpc ProcessPayment (PaymentRequest) returns (PaymentResponse);
+
+    // 2. Server Streaming (Single request, continuous response stream)
+    rpc StreamTransactions (AccountRequest) returns (stream Transaction);
+
+    // 3. Client Streaming (Continuous upload stream, single confirmation)
+    rpc UploadMetrics (stream Metric) returns (UploadSummary);
+
+    // 4. Bidirectional Streaming (Both sides stream concurrently)
+    rpc ChatRoom (stream Message) returns (stream Message);
+}
+
+message PaymentRequest {
+    int64 user_id = 1;     // Tag 1 (1 byte wire header)
+    double amount = 2;     // Tag 2
+    string currency = 3;   // Tag 3
+}</code></pre>
+
+<h2>rest vs grpc architectural decision matrix</h2>
+<table>
+  <thead>
+    <tr><th>Feature</th><th>REST (HTTP/1.1 + JSON)</th><th>gRPC (HTTP/2 + Protobuf)</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>Primary Domain</b></td>
+      <td><b>Public APIs</b>, third-party developers, browser frontends.</td>
+      <td><b>Internal East-West microservices</b>, low-latency service meshes.</td>
+    </tr>
+    <tr>
+      <td><b>Browser Support</b></td>
+      <td><b>Native:</b> Every browser speaks <code>fetch()</code> out of the box.</td>
+      <td><b>Requires Proxy (gRPC-Web):</b> Browsers cannot access raw HTTP/2 frames.</td>
+    </tr>
+    <tr>
+      <td><b>Payload Efficiency</b></td>
+      <td>Bulky text format with repeated field keys and escape characters.</td>
+      <td><b>Ultra-Compact binary:</b> 5x to 10x smaller wire footprint.</td>
+    </tr>
+    <tr>
+      <td><b>CPU Overhead</b></td>
+      <td>Heavy string scanning, regex tokenization, UTF-8 parsing.</td>
+      <td><b>Minimal:</b> Direct byte-level memory mapping without string parsing.</td>
+    </tr>
+    <tr>
+      <td><b>Contract Rigidity</b></td>
+      <td>Loose: JSON schemas drift, optional fields often break runtimes.</td>
+      <td><b>Strict:</b> Code generated at compile time; impossible to mismatch types.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>how to inspect and test grpc from your terminal</h2>
+<pre><code class="language-bash"># List all available services on a gRPC server using grpcurl (like curl for gRPC)
+grpcurl -plaintext localhost:50051 list
+
+# Describe the methods and message types in a service
+grpcurl -plaintext localhost:50051 describe payment.PaymentService
+
+# Invoke a gRPC method directly from your command line with JSON input
+grpcurl -plaintext -d '{"user_id": 101, "amount": 99.50, "currency": "USD"}' \
+  localhost:50051 payment.PaymentService/ProcessPayment
+
+# Compile a .proto file into Go client/server stubs
+protoc --go_out=. --go-grpc_out=. payment.proto</code></pre>
+
+<div class="callout gotcha"><b class="label">⚠️ the layer 4 load balancing disaster in grpc</b><br />
+Because gRPC runs on persistent HTTP/2 connections, it creates <b>one single TCP socket</b> between the client and the server. If you place a standard Layer 4 (TCP) load balancer (like an AWS NLB or standard Kubernetes ClusterIP) in front of your service, <b>all traffic from that client will stick to ONE backend pod indefinitely</b>, leaving all other pods completely idle!<br />
+<b>The Solution:</b> You MUST use either:
+<ol>
+  <li><b>Layer 7 Reverse Proxy (Envoy, Traefik, AWS ALB):</b> Terminates HTTP/2 and balances individual RPC streams.</li>
+  <li><b>Client-Side Load Balancing:</b> The client resolves all pod IPs via DNS/k8s headless service and round-robins RPC calls internally across warm sockets.</li>
+</ol>
+</div>
+
+<div class="callout exam"><b class="label">⭐ viva & interview question</b><br />
+<b>Q: How does Protocol Buffers maintain backwards and forwards compatibility when schemas evolve? What are the cardinal rules of field tags?</b><br />
+<b>A:</b> Protobuf matches fields on the wire purely by their <b>integer tag numbers (1, 2, 3)</b>, never by field name.
+<ul>
+  <li><b>Rule 1: NEVER change or reuse a field tag number.</b> If you delete <code>int64 user_id = 1;</code>, tag <code>1</code> must be marked as <code>reserved 1;</code>. If a new developer later assigns tag <code>1</code> to a string field, older clients reading the message will experience silent, catastrophic data corruption!</li>
+  <li><b>Forward Compatibility:</b> When a newer client sends a message containing newly added tags to an older server, the older server simply preserves the unknown tags in an <code>unknownFields</code> buffer without throwing errors, passing them along intact.</li>
+</ul>
+</div>

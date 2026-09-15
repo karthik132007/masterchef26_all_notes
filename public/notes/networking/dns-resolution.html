@@ -1,0 +1,206 @@
+<style>
+.net-fig { margin: 18px auto 10px; max-width: 580px; text-align: center; }
+.net-fig.wide { max-width: 640px; }
+.net-fig svg { width: 100%; height: auto; display: block; }
+.net-fig figcaption { font-family: var(--font-mono); font-size: 12px; color: var(--ink-soft); margin-top: 4px; line-height: 1.55; }
+.note-body figure.net-fig { animation: net-rise .7s ease both; animation-timeline: view(); animation-range: entry 0% cover 25%; }
+@keyframes net-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .note-body figure.net-fig { animation: none; } }
+.pill-tag { display: inline-block; font-family: var(--font-mono); font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--ink); background: #fff; margin-right: 4px; }
+.analogy-box { background: #fffdf6; border: 2.5px solid var(--ink); border-radius: 14px; padding: 18px 20px; margin: 20px 0; box-shadow: 4px 4px 0 var(--ink); }
+.analogy-box h3 { margin: 0 0 8px; font-size: 16px; font-weight: 800; }
+</style>
+
+<p class="kicker">you type human names, machines route binary numbers. DNS is the global, distributed telephone directory that bridges the two in under 20 milliseconds.</p>
+
+<h2>the 30-second idea</h2>
+<p><b>DNS (Domain Name System) is a globally distributed, hierarchical key-value database running primarily over UDP port 53.</b> It translates human-friendly domain names like <code>api.stripe.com</code> into machine-routable IP addresses like <code>3.218.158.204</code>.</p>
+
+<div class="analogy-box">
+  <h3>📞 The Global Detective Agency Analogy</h3>
+  <p>Imagine you want to phone "Dr. Alice in France", but have no phonebook:</p>
+  <ul>
+    <li><b>You (The Browser):</b> You sit in your chair and tell your private investigator: <i>"Find me Dr. Alice's phone number."</i> You ask once and wait.</li>
+    <li><b>The Investigator (Recursive Resolver):</b> Runs out the door.</li>
+    <li><b>The Global Directory (Root Server <code>.</code>):</b> Says: <i>"I don't know Alice. But here is the address of the France Phone Registry."</i></li>
+    <li><b>The Country Registry (TLD Server <code>.com</code>):</b> Says: <i>"I don't know Alice's direct line. But here is the address of the Hospital where she works (Authoritative DNS)."</i></li>
+    <li><b>The Hospital Receptionist (Authoritative Server):</b> Looks at their internal ledger and says: <i>"Alice's direct desk number is 3.218.158.204!"</i></li>
+    <li>Your investigator brings you the number and caches it in his pocket for later.</li>
+  </ul>
+</div>
+
+<div class="callout remember"><b class="label">🧷 remember</b><br /><b>Recursive Query:</b> "Do all the legwork and give me the answer." (Client → Resolver)<br /><b>Iterative Query:</b> "I don't have the answer, but ask this next server down the chain." (Resolver → Root, TLD, Authoritative)</div>
+
+<h2>the 8-step iterative resolution flow</h2>
+<figure class="net-fig wide">
+<svg viewBox="0 0 620 380" role="img" aria-label="Animated 8-step iterative DNS walk with moving query and response packet animations">
+  <defs>
+    <marker id="dn-arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1c1a15"/></marker>
+    <marker id="dn-g" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2e9e5b"/></marker>
+    <marker id="dn-b" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f6fed"/></marker>
+  </defs>
+
+  <!-- Client Box -->
+  <rect x="15" y="40" width="130" height="95" rx="10" fill="#fff" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="80" y="70" text-anchor="middle" font-size="26">💻</text>
+  <text x="80" y="94" text-anchor="middle" font-size="11" font-weight="800">Browser / Client</text>
+  <text x="80" y="112" text-anchor="middle" font-size="9" fill="#575046">wants stripe.com</text>
+
+  <!-- Resolver Box -->
+  <rect x="220" y="40" width="155" height="95" rx="10" fill="#e3f1ff" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="297" y="70" text-anchor="middle" font-size="26">🔍</text>
+  <text x="297" y="94" text-anchor="middle" font-size="11" font-weight="800">Recursive Resolver</text>
+  <text x="297" y="112" text-anchor="middle" font-size="9.5" font-family="monospace">1.1.1.1 / 8.8.8.8</text>
+
+  <!-- Client to Resolver Line -->
+  <line id="q-rec" x1="145" y1="70" x2="220" y2="70" stroke="#2e9e5b" stroke-width="2.5" marker-end="url(#dn-g)"/>
+  <text x="182" y="60" text-anchor="middle" font-size="9" font-weight="800">1. Recursive</text>
+  <line id="a-rec" x1="220" y1="100" x2="145" y2="100" stroke="#2f6fed" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#dn-b)"/>
+  <text x="182" y="115" text-anchor="middle" font-size="9" font-weight="800" fill="#2f6fed">8. IP returned</text>
+
+  <!-- Root Server Tier -->
+  <rect x="440" y="15" width="165" height="70" rx="10" fill="#fffdf6" stroke="#1c1a15" stroke-width="2"/>
+  <text x="522" y="40" text-anchor="middle" font-size="11" font-weight="800">Root Server ( . )</text>
+  <text x="522" y="58" text-anchor="middle" font-size="9" fill="#575046">13 Root IP clusters globally</text>
+
+  <!-- TLD Server Tier -->
+  <rect x="440" y="105" width="165" height="70" rx="10" fill="#fffdf6" stroke="#1c1a15" stroke-width="2"/>
+  <text x="522" y="130" text-anchor="middle" font-size="11" font-weight="800">TLD Server ( .com )</text>
+  <text x="522" y="148" text-anchor="middle" font-size="9" fill="#575046">Managed by Verisign</text>
+
+  <!-- Authoritative Server Tier -->
+  <rect x="440" y="195" width="165" height="75" rx="10" fill="#e9f9ef" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="522" y="222" text-anchor="middle" font-size="11" font-weight="800">Authoritative DNS</text>
+  <text x="522" y="240" text-anchor="middle" font-size="9.5" font-family="monospace">ns1.stripe.com</text>
+  <text x="522" y="256" text-anchor="middle" font-size="9" font-weight="800" fill="#2e9e5b">Holds actual A Record!</text>
+
+  <!-- Iterative step curves -->
+  <path id="it-q1" d="M 375 60 Q 405 35, 440 45" fill="none" stroke="#6842c2" stroke-width="2" marker-end="url(#dn-arr)"/>
+  <text x="400" y="32" font-size="8.5" font-weight="700" fill="#6842c2">2. ask root</text>
+
+  <path id="it-q2" d="M 375 90 Q 405 115, 440 125" fill="none" stroke="#6842c2" stroke-width="2" marker-end="url(#dn-arr)"/>
+  <text x="395" y="110" font-size="8.5" font-weight="700" fill="#6842c2">4. ask .com</text>
+
+  <path id="it-q3" d="M 360 120 Q 380 205, 440 220" fill="none" stroke="#6842c2" stroke-width="2" marker-end="url(#dn-arr)"/>
+  <text x="370" y="190" font-size="8.5" font-weight="700" fill="#6842c2">6. ask ns1</text>
+
+  <!-- Return curve -->
+  <path id="it-ret" d="M 440 245 Q 360 255, 320 135" fill="none" stroke="#2e9e5b" stroke-width="2.5" marker-end="url(#dn-g)"/>
+  <text x="330" y="220" font-size="9" font-weight="800" fill="#2e9e5b">7. 3.218.158.204</text>
+
+  <!-- Animated query flow -->
+  <circle r="5" fill="#2e9e5b" stroke="#1c1a15" stroke-width="1.5"><animateMotion dur="4s" repeatCount="indefinite" keyPoints="0;0.3;0.3;1" keyTimes="0;0.2;0.8;1"><mpath href="#q-rec"/></animateMotion></circle>
+  <circle r="5" fill="#6842c2" stroke="#1c1a15" stroke-width="1.5"><animateMotion dur="4s" begin="0.8s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1"><mpath href="#it-q1"/></animateMotion></circle>
+  <circle r="5" fill="#6842c2" stroke="#1c1a15" stroke-width="1.5"><animateMotion dur="4s" begin="1.8s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1"><mpath href="#it-q2"/></animateMotion></circle>
+  <circle r="5" fill="#2e9e5b" stroke="#1c1a15" stroke-width="1.5"><animateMotion dur="4s" begin="2.8s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1"><mpath href="#it-ret"/></animateMotion></circle>
+</svg>
+<figcaption>Follow the sequence: Browser asks resolver recursively; resolver queries Root, TLD, and Authoritative iteratively.</figcaption>
+</figure>
+
+<h2>the 4 caching tiers: why 95% of queries never hit the wire</h2>
+<figure class="net-fig wide">
+<svg viewBox="0 0 600 200" role="img" aria-label="Visual funnel diagram of the 4 DNS caching tiers">
+  <rect x="15" y="20" width="130" height="150" rx="10" fill="#eaf3ff" stroke="#1c1a15" stroke-width="2"/>
+  <text x="80" y="45" text-anchor="middle" font-size="11" font-weight="800">1. Browser Cache</text>
+  <text x="80" y="70" text-anchor="middle" font-size="24">🌐</text>
+  <text x="80" y="105" text-anchor="middle" font-size="9.5" fill="#575046">Chrome RAM</text>
+  <text x="80" y="125" text-anchor="middle" font-size="9" font-family="monospace">TTL: ~60s</text>
+  <text x="80" y="150" text-anchor="middle" font-size="9" font-weight="700" fill="#2e9e5b">&lt; 1ms</text>
+
+  <rect x="165" y="20" width="130" height="150" rx="10" fill="#eaf3ff" stroke="#1c1a15" stroke-width="2"/>
+  <text x="230" y="45" text-anchor="middle" font-size="11" font-weight="800">2. OS Cache</text>
+  <text x="230" y="70" text-anchor="middle" font-size="24">💻</text>
+  <text x="230" y="105" text-anchor="middle" font-size="9.5" fill="#575046">/etc/hosts &</text>
+  <text x="230" y="125" text-anchor="middle" font-size="9" font-family="monospace">systemd-resolved</text>
+  <text x="230" y="150" text-anchor="middle" font-size="9" font-weight="700" fill="#2e9e5b">&lt; 2ms</text>
+
+  <rect x="315" y="20" width="130" height="150" rx="10" fill="#eaf3ff" stroke="#1c1a15" stroke-width="2"/>
+  <text x="380" y="45" text-anchor="middle" font-size="11" font-weight="800">3. Router Cache</text>
+  <text x="380" y="70" text-anchor="middle" font-size="24">📡</text>
+  <text x="380" y="105" text-anchor="middle" font-size="9.5" fill="#575046">Wi-Fi Router</text>
+  <text x="380" y="125" text-anchor="middle" font-size="9" font-family="monospace">DNS Proxy</text>
+  <text x="380" y="150" text-anchor="middle" font-size="9" font-weight="700" fill="#2e9e5b">2 – 5ms</text>
+
+  <rect x="465" y="20" width="120" height="150" rx="10" fill="#dcf9e8" stroke="#1c1a15" stroke-width="2.5"/>
+  <text x="525" y="45" text-anchor="middle" font-size="11" font-weight="800">4. ISP / 1.1.1.1</text>
+  <text x="525" y="70" text-anchor="middle" font-size="24">🏢</text>
+  <text x="525" y="105" text-anchor="middle" font-size="9.5" fill="#575046">Public Resolver</text>
+  <text x="525" y="125" text-anchor="middle" font-size="9" font-family="monospace">Anycast Edge</text>
+  <text x="525" y="150" text-anchor="middle" font-size="9" font-weight="800" fill="#2e9e5b">10 – 20ms</text>
+</svg>
+<figcaption>If any tier has the record cached within its TTL, the resolution returns immediately without querying the internet.</figcaption>
+</figure>
+
+<h2>the essential record types: the full cheat sheet</h2>
+<table>
+  <thead>
+    <tr><th>Record</th><th>Full Name</th><th>What It Maps</th><th>Real-World Production Example</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>A</b></td>
+      <td>IPv4 Address</td>
+      <td>Domain → 32-bit IPv4</td>
+      <td><code>stripe.com → 3.218.158.204</code></td>
+    </tr>
+    <tr>
+      <td><b>AAAA</b></td>
+      <td>IPv6 Address</td>
+      <td>Domain → 128-bit IPv6</td>
+      <td><code>google.com → 2607:f8b0:4005:808::200e</code></td>
+    </tr>
+    <tr>
+      <td><b>CNAME</b></td>
+      <td>Canonical Name</td>
+      <td>Domain → Another Domain (Alias)</td>
+      <td><code>docs.stripe.com → stripe.hosteddocs.com</code> (Never points to an IP!)</td>
+    </tr>
+    <tr>
+      <td><b>MX</b></td>
+      <td>Mail Exchange</td>
+      <td>Domain → Mail Server + Priority</td>
+      <td><code>10 aspmx.l.google.com</code> (Lowest priority number gets tried first)</td>
+    </tr>
+    <tr>
+      <td><b>TXT</b></td>
+      <td>Text</td>
+      <td>Arbitrary string metadata</td>
+      <td>Domain verification, <b>SPF</b> (anti-spoofing), <b>DKIM</b> (email crypto signature).</td>
+    </tr>
+    <tr>
+      <td><b>NS</b></td>
+      <td>Name Server</td>
+      <td>Delegates domain to authoritative server</td>
+      <td><code>ns1.cloudflare.com</code> (Tells resolvers who holds the definitive truth).</td>
+    </tr>
+    <tr>
+      <td><b>PTR</b></td>
+      <td>Pointer</td>
+      <td>IP → Domain (Reverse DNS)</td>
+      <td><code>204.158.218.3.in-addr.arpa → api.stripe.com</code> (Used by spam filters).</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>anycast dns: how 1.1.1.1 and 8.8.8.8 exist everywhere at once</h2>
+<p>Cloudflare's resolver IP is <code>1.1.1.1</code>. Does that point to a single server in San Francisco? <b>No.</b></p>
+<p>It uses <b>BGP Anycast</b>. The exact same IP address (<code>1.1.1.1</code>) is advertised simultaneously by routers in <b>over 300 data centers across 100 countries</b>! When your packet leaves your computer, the internet's routing fabric (BGP) naturally steers your packet to the physically closest datacenter in your city or region, delivering response times under 10ms.</p>
+
+<h2>tracing dns with dig from your terminal</h2>
+<pre><code class="language-bash"># 1. Trace the entire resolution hierarchy from Root servers down to leaf
+dig +trace stripe.com
+
+# 2. Query Cloudflare's 1.1.1.1 resolver directly with millisecond timings
+dig @1.1.1.1 github.com A
+
+# 3. Look up SPF / TXT anti-phishing records
+dig google.com TXT +short
+
+# 4. Perform a reverse DNS lookup on an IP
+dig -x 8.8.8.8 +short
+# Output: dns.google.</code></pre>
+
+<div class="callout exam"><b class="label">⭐ viva & interview question</b><br />
+<b>Q: What is the difference between an Authoritative DNS server and a Recursive DNS Resolver?</b><br />
+<b>A:</b> An <b>Authoritative server</b> is the owner of a specific domain's zone files. It holds the definitive record (configured by the domain administrator) and answers questions about its own domain only. A <b>Recursive Resolver</b> owns zero records; it is an intermediary client agent (run by ISPs or Cloudflare) whose sole job is to query the hierarchy on behalf of users and cache the answers.
+</div>

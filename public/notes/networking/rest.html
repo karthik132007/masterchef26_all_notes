@@ -1,0 +1,169 @@
+<style>
+.net-fig { margin: 18px auto 10px; max-width: 580px; text-align: center; }
+.net-fig.wide { max-width: 640px; }
+.net-fig svg { width: 100%; height: auto; display: block; }
+.net-fig figcaption { font-family: var(--font-mono); font-size: 12px; color: var(--ink-soft); margin-top: 4px; line-height: 1.55; }
+.note-body figure.net-fig { animation: net-rise .7s ease both; animation-timeline: view(); animation-range: entry 0% cover 25%; }
+@keyframes net-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .note-body figure.net-fig { animation: none; } }
+.pill-tag { display: inline-block; font-family: var(--font-mono); font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--ink); background: #fff; margin-right: 4px; }
+.analogy-box { background: #fffdf6; border: 2.5px solid var(--ink); border-radius: 14px; padding: 18px 20px; margin: 20px 0; box-shadow: 4px 4px 0 var(--ink); }
+.analogy-box h3 { margin: 0 0 8px; font-size: 16px; font-weight: 800; }
+</style>
+
+<p class="kicker">REST is not a protocol or a software package. It is an architectural philosophy that treats the web as a set of nouns manipulated by a fixed set of universal verbs.</p>
+
+<h2>the 30-second idea</h2>
+<p><b>REST (Representational State Transfer) is an architectural style for distributed systems defined by Roy Fielding in 2000. It organizes your system into addressable Resources identified by URIs, manipulated using standard HTTP verbs, and transferred via stateless representations (like JSON).</b></p>
+
+<div class="analogy-box">
+  <h3>🍝 The Restaurant Menu Grammar Analogy</h3>
+  <p>Imagine a restaurant where every customer invents their own messy grammar:</p>
+  <ul>
+    <li>Customer 1 shouts: <code>/cookMeAPastaNow</code></li>
+    <li>Customer 2 whispers: <code>/removeTheSoupFromTheTable?plate=4</code></li>
+    <li>Customer 3 writes: <code>/executeBillCreation()</code></li>
+  </ul>
+  <p>The kitchen falls into complete anarchy. <b>REST establishes a strict, universal grammar:</b></p>
+  <ul>
+    <li><b>The Menu has only NOUNS (Resources):</b> <code>/pizzas</code>, <code>/pizzas/42</code>, <code>/tables/5/orders</code>.</li>
+    <li><b>The Kitchen has only 4 standard VERBS (HTTP Methods):</b><br />
+      <code>GET /pizzas/42</code> (Look at the pizza)<br />
+      <code>POST /pizzas</code> (Bake a new pizza)<br />
+      <code>PUT /pizzas/42</code> (Replace the entire pizza with a new recipe)<br />
+      <code>DELETE /pizzas/42</code> (Throw the pizza in the trash)
+    </li>
+  </ul>
+</div>
+
+<div class="callout remember"><b class="label">🧷 remember</b><br /><b>URLs contain Nouns only (<code>/users/12/orders</code>). HTTP Verbs contain Actions (<code>GET</code>, <code>POST</code>, <code>PUT</code>, <code>DELETE</code>). Never put verbs in your URLs!</b></div>
+
+<h2>the safety vs idempotency 2x2 matrix</h2>
+<p>This is easily the single most frequent interview question on web architecture:</p>
+
+<figure class="net-fig wide">
+<svg viewBox="0 0 620 300" role="img" aria-label="Visual 2x2 matrix of Safe versus Idempotent HTTP methods">
+  <rect x="15" y="20" width="590" height="260" rx="14" fill="#fffdf6" stroke="#1c1a15" stroke-width="2.5"/>
+
+  <!-- Horizontal Divider -->
+  <line x1="15" y1="150" x2="605" y2="150" stroke="#1c1a15" stroke-width="2"/>
+  <!-- Vertical Divider -->
+  <line x1="310" y1="20" x2="310" y2="280" stroke="#1c1a15" stroke-width="2"/>
+
+  <!-- Top Left: Safe & Idempotent -->
+  <rect x="25" y="30" width="275" height="110" rx="8" fill="#e9f9ef" stroke="#2e9e5b" stroke-width="1.5"/>
+  <text x="162" y="55" text-anchor="middle" font-size="12" font-weight="800" fill="#2e9e5b">SAFE + IDEMPOTENT</text>
+  <text x="162" y="75" text-anchor="middle" font-size="14" font-family="monospace" font-weight="800">GET · HEAD · OPTIONS</text>
+  <text x="162" y="98" text-anchor="middle" font-size="10" fill="#575046">Read-only. Causes zero state changes.</text>
+  <text x="162" y="115" text-anchor="middle" font-size="9.5" fill="#2e9e5b">Safe to retry infinitely on network drop!</text>
+
+  <!-- Top Right: Unsafe but Idempotent -->
+  <rect x="320" y="30" width="275" height="110" rx="8" fill="#eaf3ff" stroke="#2f6fed" stroke-width="1.5"/>
+  <text x="457" y="55" text-anchor="middle" font-size="12" font-weight="800" fill="#2f6fed">UNSAFE + IDEMPOTENT</text>
+  <text x="457" y="75" text-anchor="middle" font-size="14" font-family="monospace" font-weight="800">PUT · DELETE</text>
+  <text x="457" y="98" text-anchor="middle" font-size="10" fill="#575046">Modifies data, but repeating it 100x</text>
+  <text x="457" y="115" text-anchor="middle" font-size="9.5" fill="#2f6fed">leaves server in the exact same state!</text>
+
+  <!-- Bottom Left: Empty quadrant by logic -->
+  <rect x="25" y="160" width="275" height="110" rx="8" fill="#f1f3f5" stroke="#b9b09a" stroke-width="1.5"/>
+  <text x="162" y="200" text-anchor="middle" font-size="12" font-weight="800" fill="#575046">SAFE + NON-IDEMPOTENT</text>
+  <text x="162" y="230" text-anchor="middle" font-size="12" font-weight="800" fill="#c92a2a">(Mathematically Impossible)</text>
+  <text x="162" y="250" text-anchor="middle" font-size="9.5" fill="#575046">If it doesn't change state, it is always idempotent.</text>
+
+  <!-- Bottom Right: Unsafe & Non-Idempotent -->
+  <rect x="320" y="160" width="275" height="110" rx="8" fill="#fde8e8" stroke="#c92a2a" stroke-width="1.5"/>
+  <text x="457" y="185" text-anchor="middle" font-size="12" font-weight="800" fill="#c92a2a">UNSAFE + NON-IDEMPOTENT</text>
+  <text x="457" y="205" text-anchor="middle" font-size="14" font-family="monospace" font-weight="800">POST · PATCH (by spec)</text>
+  <text x="457" y="228" text-anchor="middle" font-size="10" fill="#575046">Creates new records. Repeating it</text>
+  <text x="457" y="245" text-anchor="middle" font-size="9.5" font-weight="700" fill="#c92a2a">charges customer's credit card twice!</text>
+</svg>
+<figcaption>The 2x2 Matrix: Idempotent operations can be safely retried by load balancers on timeout; Non-idempotent operations cannot.</figcaption>
+</figure>
+
+<h2>good rest vs bad rpc url design</h2>
+<table>
+  <thead>
+    <tr><th>Action</th><th>❌ Bad RPC Style (Verbs in URL)</th><th>✅ Clean RESTful Design (Noun + HTTP Verb)</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Fetch all users</td>
+      <td><code>GET /getAllUsers</code></td>
+      <td><code>GET /users</code></td>
+    </tr>
+    <tr>
+      <td>Create a user</td>
+      <td><code>POST /user/create</code></td>
+      <td><code>POST /users</code></td>
+    </tr>
+    <tr>
+      <td>Update user profile</td>
+      <td><code>POST /user/update?id=42</code></td>
+      <td><code>PUT /users/42</code> or <code>PATCH /users/42</code></td>
+    </tr>
+    <tr>
+      <td>Delete an article</td>
+      <td><code>GET /deleteArticle/99</code> (Catastrophic: Web crawlers will delete your DB!)</td>
+      <td><code>DELETE /articles/99</code></td>
+    </tr>
+    <tr>
+      <td>Fetch user's orders</td>
+      <td><code>GET /getUserOrders?userId=42</code></td>
+      <td><code>GET /users/42/orders</code> (Hierarchical resource nesting)</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>the http status code decision flow</h2>
+<figure class="net-fig wide">
+<svg viewBox="0 0 600 220" role="img" aria-label="Status code category decision cards">
+  <!-- 2xx -->
+  <rect x="15" y="20" width="130" height="180" rx="10" fill="#e9f9ef" stroke="#1c1a15" stroke-width="2"/>
+  <text x="80" y="50" text-anchor="middle" font-size="16" font-weight="800" fill="#2e9e5b">2xx</text>
+  <text x="80" y="70" text-anchor="middle" font-size="11" font-weight="800">Success</text>
+  <text x="80" y="98" text-anchor="middle" font-size="9" font-family="monospace">200 OK</text>
+  <text x="80" y="120" text-anchor="middle" font-size="9" font-family="monospace">201 Created</text>
+  <text x="80" y="142" text-anchor="middle" font-size="9" font-family="monospace">204 No Content</text>
+  <text x="80" y="175" text-anchor="middle" font-size="9" fill="#575046">Request fulfilled</text>
+
+  <!-- 3xx -->
+  <rect x="165" y="20" width="130" height="180" rx="10" fill="#eaf3ff" stroke="#1c1a15" stroke-width="2"/>
+  <text x="230" y="50" text-anchor="middle" font-size="16" font-weight="800" fill="#2f6fed">3xx</text>
+  <text x="230" y="70" text-anchor="middle" font-size="11" font-weight="800">Redirection</text>
+  <text x="230" y="98" text-anchor="middle" font-size="9" font-family="monospace">301 Permanent</text>
+  <text x="230" y="120" text-anchor="middle" font-size="9" font-family="monospace">302 Found (Temp)</text>
+  <text x="230" y="142" text-anchor="middle" font-size="9" font-family="monospace">304 Not Modified</text>
+  <text x="230" y="175" text-anchor="middle" font-size="9" fill="#575046">Cache / new URL</text>
+
+  <!-- 4xx -->
+  <rect x="315" y="20" width="130" height="180" rx="10" fill="#fdf6e2" stroke="#1c1a15" stroke-width="2"/>
+  <text x="380" y="50" text-anchor="middle" font-size="16" font-weight="800" fill="#d97706">4xx</text>
+  <text x="380" y="70" text-anchor="middle" font-size="11" font-weight="800">Client Error</text>
+  <text x="380" y="98" text-anchor="middle" font-size="9" font-family="monospace">400 Bad Request</text>
+  <text x="380" y="118" text-anchor="middle" font-size="9" font-family="monospace">401 Unauth (login!)</text>
+  <text x="380" y="138" text-anchor="middle" font-size="9" font-family="monospace">403 Forbidden</text>
+  <text x="380" y="158" text-anchor="middle" font-size="9" font-family="monospace">404 Not Found</text>
+  <text x="380" y="185" text-anchor="middle" font-size="8.5" fill="#d97706">Caller's fault!</text>
+
+  <!-- 5xx -->
+  <rect x="465" y="20" width="120" height="180" rx="10" fill="#fde8e8" stroke="#1c1a15" stroke-width="2"/>
+  <text x="525" y="50" text-anchor="middle" font-size="16" font-weight="800" fill="#c92a2a">5xx</text>
+  <text x="525" y="70" text-anchor="middle" font-size="11" font-weight="800">Server Error</text>
+  <text x="525" y="98" text-anchor="middle" font-size="9" font-family="monospace">500 Internal</text>
+  <text x="525" y="120" text-anchor="middle" font-size="9" font-family="monospace">502 Bad Gateway</text>
+  <text x="525" y="142" text-anchor="middle" font-size="9" font-family="monospace">504 Timeout</text>
+  <text x="525" y="175" text-anchor="middle" font-size="8.5" fill="#c92a2a">Server's fault!</text>
+</svg>
+<figcaption>Golden Rule: If the client can fix the error by changing the request body or headers, it is 4xx. If the server crashed or timed out, it is 5xx.</figcaption>
+</figure>
+
+<h2>making post requests safe: idempotency keys</h2>
+<p>Because <code>POST /payments</code> is not idempotent, what happens if a network hiccup occurs after the server charges the card but before the client receives the <code>200 OK</code> response? If the client retries, the customer is billed twice!</p>
+<p>Stripe invented the <b>Idempotency-Key</b> pattern to solve this:</p>
+<pre><code class="language-http">POST /v1/charges HTTP/1.1
+Host: api.stripe.com
+Idempotency-Key: 9a7b-3c4d-unique-uuid-1234
+Content-Type: application/json
+
+{"amount": 5000, "currency": "usd"}</code></pre>
+<p>The server saves the UUID in Redis alongside the result. If a retry arrives with the exact same <code>Idempotency-Key</code>, the server skips payment processing and simply replays the cached response!</p>

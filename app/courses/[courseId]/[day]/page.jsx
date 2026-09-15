@@ -28,8 +28,8 @@ export async function generateMetadata({ params }) {
   const course = getCourse(courseId);
   if (!course) return {};
   return {
-    title: `${entryLabel(course, day)} · ${course.title} — masterchef26 notes`,
-    description: `${entryLabel(course, day)} notes for ${course.title}. Student-written class notes.`,
+    title: `${entryLabel(course, day)} · ${course.title} — Nexora`,
+    description: `${entryLabel(course, day)} notes for ${course.title}. High-velocity engineering revision.`,
   };
 }
 
@@ -70,8 +70,8 @@ export default async function DayPage({ params }) {
       <footer>
         <div className="wrap">
           <span>
-            <b>masterchef26 notes</b> · {course.short} · {year} · spotted an
-            error? fix the html, push, done.
+            <b>Nexora</b> · {course.short} · {year} · spotted an error?
+            fix the html, push, done.
           </span>
           <span>
             <a href="/">home</a>
