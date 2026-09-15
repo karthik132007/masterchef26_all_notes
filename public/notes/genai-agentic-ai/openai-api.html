@@ -317,11 +317,11 @@ stream = client.chat.completions.create(
 <!-- 4. API COSTS & ECONOMICS -->
 <!-- ============================================================ -->
 <h2>api costs &amp; token economics</h2>
-<p>Cloud providers bill for LLM calls based on <b>tokens consumed</b>, standardized per 1,000,000 tokens ($/1M tokens).</p>
+<p>Cloud providers bill for LLM calls based on <b>tokens consumed</b>, standardized per 1,000,000 tokens (USD per 1M tokens).</p>
 
 <h3>The Asymmetry: Why Output Tokens Cost 3x–4x More</h3>
 <p>Input tokens and output tokens are not computationally equal on modern hardware:</p>
-<table>
+<table class="katex-ignore">
   <thead>
     <tr>
       <th>Model</th>
@@ -334,30 +334,30 @@ stream = client.chat.completions.create(
   <tbody>
     <tr>
       <td><b>GPT-4o</b></td>
-      <td>$2.50</td>
-      <td>$1.25</td>
-      <td>$10.00</td>
+      <td>2.50 USD</td>
+      <td>1.25 USD</td>
+      <td>10.00 USD</td>
       <td><b>4x</b></td>
     </tr>
     <tr>
       <td><b>GPT-4o-mini</b></td>
-      <td>$0.15</td>
-      <td>$0.075</td>
-      <td>$0.60</td>
+      <td>0.15 USD</td>
+      <td>0.075 USD</td>
+      <td>0.60 USD</td>
       <td><b>4x</b></td>
     </tr>
     <tr>
       <td><b>Claude 3.5 Sonnet</b></td>
-      <td>$3.00</td>
-      <td>$0.30</td>
-      <td>$15.00</td>
+      <td>3.00 USD</td>
+      <td>0.30 USD</td>
+      <td>15.00 USD</td>
       <td><b>5x</b></td>
     </tr>
     <tr>
       <td><b>DeepSeek-V3 (MoE)</b></td>
-      <td>$0.14</td>
-      <td>$0.014</td>
-      <td>$0.28</td>
+      <td>0.14 USD</td>
+      <td>0.014 USD</td>
+      <td>0.28 USD</td>
       <td><b>2x</b></td>
     </tr>
   </tbody>
@@ -391,10 +391,10 @@ stream = client.chat.completions.create(
     <div class="calc-field">
       <label for="calc-model">Select Model</label>
       <select id="calc-model" onchange="calcApiCost()">
-        <option value="gpt-4o">GPT-4o (Frontier · $2.50 / $10.00)</option>
-        <option value="gpt-4o-mini" selected>GPT-4o-mini (Lightweight · $0.15 / $0.60)</option>
-        <option value="claude-3-5-sonnet">Claude 3.5 Sonnet (Frontier · $3.00 / $15.00)</option>
-        <option value="deepseek-v3">DeepSeek-V3 (Sparse MoE · $0.14 / $0.28)</option>
+        <option value="gpt-4o">GPT-4o (Frontier · 2.50 / 10.00 USD)</option>
+        <option value="gpt-4o-mini" selected>GPT-4o-mini (Lightweight · 0.15 / 0.60 USD)</option>
+        <option value="claude-3-5-sonnet">Claude 3.5 Sonnet (Frontier · 3.00 / 15.00 USD)</option>
+        <option value="deepseek-v3">DeepSeek-V3 (Sparse MoE · 0.14 / 0.28 USD)</option>
       </select>
     </div>
     <div class="calc-field">
@@ -411,13 +411,13 @@ stream = client.chat.completions.create(
     </div>
   </div>
 
-  <div class="calc-stats">
+  <div class="calc-stats katex-ignore">
     <div class="calc-stat-box">
-      <div class="calc-stat-val" id="stat-single-cost">$0.0005</div>
+      <div class="calc-stat-val" id="stat-single-cost">0.0005 USD</div>
       <div class="calc-stat-lbl">Cost Per Request</div>
     </div>
     <div class="calc-stat-box">
-      <div class="calc-stat-val" id="stat-10k-cost">$5.04</div>
+      <div class="calc-stat-val" id="stat-10k-cost">5.04 USD</div>
       <div class="calc-stat-lbl">Cost per 10,000 Req</div>
     </div>
     <div class="calc-stat-box">
@@ -429,7 +429,7 @@ stream = client.chat.completions.create(
 
 <h3>5 Proven Production Cost Reduction Strategies</h3>
 <ol>
-  <li><b>Model Cascading &amp; Routing:</b> Route high-volume, simple tasks (intent detection, entity extraction) to efficient models like GPT-4o-mini or DeepSeek-V3 ($0.15/1M). Escalate only complex reasoning to GPT-4o.</li>
+  <li><b>Model Cascading &amp; Routing:</b> Route high-volume, simple tasks (intent detection, entity extraction) to efficient models like GPT-4o-mini or DeepSeek-V3 (0.15 USD per 1M). Escalate only complex reasoning to GPT-4o.</li>
   <li><b>Cache-Optimized Prompt Structuring:</b> Place static content (system prompt, few-shot examples) at the start of the prompt so prefixes remain identical across calls and hit prompt caches.</li>
   <li><b>Force Output Concision:</b> Output tokens cost 4x more than inputs. Instruct the model: <i>"Be succinct. Output only the requested code or JSON without conversational filler."</i></li>
   <li><b>Bound Output Tokens:</b> Always configure <code>max_tokens</code> to prevent runaway generation when handling unexpected inputs.</li>
@@ -569,13 +569,13 @@ client = OpenAI()
 
     if (statSingle) {
       if (totalPerReq < 0.01) {
-        statSingle.textContent = "$" + totalPerReq.toFixed(5);
+        statSingle.textContent = totalPerReq.toFixed(5) + " USD";
       } else {
-        statSingle.textContent = "$" + totalPerReq.toFixed(4);
+        statSingle.textContent = totalPerReq.toFixed(4) + " USD";
       }
     }
     if (stat10k) {
-      stat10k.textContent = "$" + total10k.toFixed(2);
+      stat10k.textContent = total10k.toFixed(2) + " USD";
     }
     if (statSavings) {
       statSavings.textContent = savingsPct.toFixed(1) + "%";

@@ -8,7 +8,7 @@ export default function Navbar({ links }) {
           <span className="logo-mark">m</span>
           <span className="logo-text">
             <b>masterchef26</b>
-            <span>class notes · by students</span>
+            <span>field notes & rapid revision</span>
           </span>
         </Link>
         <div className="nav-links">

@@ -1,25 +1,182 @@
-<p class="kicker">operating systems · concept-wise track</p>
-<h1>OS, Concept by Concept</h1>
-<p class="plan-lede">No day-wise grind here. This track is organised by concept — processes, scheduling, memory, concurrency — one page per idea. Topics are being added, check back soon.</p>
+<style>
+.os-plan-hero {
+  margin: 16px 0 24px;
+  padding: 20px;
+  background: var(--canvas-soft, #fdfbf7);
+  border: 1.5px solid var(--border-dim, #e4ded0);
+  border-radius: 12px;
+}
+.os-plan-phases {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+.os-phase-card {
+  background: var(--canvas, #ffffff);
+  border: 1.5px solid var(--border-dim, #e4ded0);
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.os-phase-tag {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--pink, #d1345b);
+  letter-spacing: 0.05em;
+}
+.os-phase-card h3 {
+  margin: 0;
+  font-size: 16px;
+  color: var(--ink, #1c1a15);
+}
+.os-phase-card ul {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+.os-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+.os-stat-box {
+  background: var(--canvas, #ffffff);
+  border: 1.5px solid var(--border-dim, #e4ded0);
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+}
+.os-stat-val {
+  font-family: var(--font-mono, monospace);
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--pink, #d1345b);
+}
+.os-stat-lbl {
+  font-size: 11px;
+  color: var(--ink-soft, #6e675f);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 4px;
+}
+</style>
 
+<p class="kicker">operating systems · master roadmap & curriculum</p>
+<h1>Operating Systems: Zero to FAANG Systems Mastery</h1>
+<p class="plan-lede">A comprehensive, deeply intuitive curriculum designed to take you from asking <i>"what actually happens when I click run?"</i> all the way to answering Staff-level systems design and Linux kernel interview questions at Google, Meta, Apple, Netflix, and Amazon.</p>
+
+<div class="os-stats-grid">
+  <div class="os-stat-box">
+    <div class="os-stat-val">13</div>
+    <div class="os-stat-lbl">Core Modules</div>
+  </div>
+  <div class="os-stat-box">
+    <div class="os-stat-val">0 $\to$ Staff</div>
+    <div class="os-stat-lbl">Target Level</div>
+  </div>
+  <div class="os-stat-box">
+    <div class="os-stat-val">Linux</div>
+    <div class="os-stat-lbl">Kernel Standard</div>
+  </div>
+  <div class="os-stat-box">
+    <div class="os-stat-val">100%</div>
+    <div class="os-stat-lbl">Intuition First</div>
+  </div>
+</div>
+
+<div class="os-plan-hero">
+  <b>The Core Philosophy: Mechanical Sympathy</b>
+  <p style="margin: 8px 0 0; line-height: 1.6;"><i>"You don't have to be an engineer to be a racing driver, but you do have to have mechanical sympathy."</i> — Jackie Stewart. The best software engineers write dramatically faster, bug-free, and scalable code because they can visualise the CPU caches, kernel context switches, page tables, and file system buffers churning beneath their high-level programming language.</p>
+</div>
+
+<h2>course curriculum by phase</h2>
+<p>Each module starts with a crystal-clear real-world intuition, dives step-by-step into hardware and kernel execution mechanisms, explores real Linux source structures, walks through numerical examples, and finishes with high-signal FAANG interview problems.</p>
+
+<div class="os-plan-phases">
+  <div class="os-phase-card">
+    <span class="os-phase-tag">Phase 1 · Foundations</span>
+    <h3>Hardware Abstraction & Process Basics</h3>
+    <ul>
+      <li><b>01. OS Architecture, Dual-Mode & Syscalls:</b> Ring 0 vs Ring 3, trap tables, <code>syscall</code> lifecycle, monolithic vs microkernel, <code>vDSO</code> fast path.</li>
+      <li><b>02. Processes, PCB & Context Switching:</b> Memory layout (Text, Data, BSS, Heap, Stack), PCB, 7-state model, context switch costs, <code>fork()</code>, Copy-On-Write, Zombies & Orphans.</li>
+      <li><b>03. Threads, Fibers & Concurrency Models:</b> 1:1 kernel threads vs M:N green threads, goroutines, false sharing, MESI protocol, cache line padding, thread pool sizing math.</li>
+    </ul>
+  </div>
+
+  <div class="os-phase-card">
+    <span class="os-phase-tag">Phase 2 · CPU & Synchronization</span>
+    <h3>CPU Virtualization & Concurrency</h3>
+    <ul>
+      <li><b>04. CPU Scheduling: From FCFS to Linux CFS:</b> Turnaround/Waiting metrics, Convoy effect, SJF, Round Robin quantum trade-offs, MLFQ, Linux CFS (<code>vruntime</code>, RB-tree, nice decay), EEVDF, Priority Inversion & Mars Pathfinder.</li>
+      <li><b>05. Critical Sections, Mutexes & Futexes:</b> Race conditions, CAS/TAS, spinlock vs mutex, semaphores, Condition Variables & spurious wakeups, Linux <code>futex</code> userspace fast-path, lock-free stacks.</li>
+      <li><b>06. Deadlocks: Coffman, Banker's & Systems:</b> 4 Coffman conditions, RAG cycles, prevention vs avoidance, Banker's algorithm trace, Dining Philosophers solutions, distributed deadlocks.</li>
+    </ul>
+  </div>
+
+  <div class="os-phase-card">
+    <span class="os-phase-tag">Phase 3 · Memory Management</span>
+    <h3>Memory Virtualization & Paging</h3>
+    <ul>
+      <li><b>07. Paging, Segmentation & Address Translation:</b> Internal/External fragmentation, Segment tables, Page tables & offset math, Multi-level page tables (PML4), TLB hit/miss & EMAT formula, HugePages.</li>
+      <li><b>08. Virtual Memory & Page Replacement:</b> Demand paging, 6-step Page Fault lifecycle, Belady's Anomaly proof, LRU, Clock algorithm, Thrashing & Working Set, Linux <code>kswapd</code>, OOM killer scoring.</li>
+    </ul>
+  </div>
+
+  <div class="os-phase-card">
+    <span class="os-phase-tag">Phase 4 · Storage & High-Perf I/O</span>
+    <h3>Storage Systems & IPC</h3>
+    <ul>
+      <li><b>09. File Systems, Inodes, VFS & Ext4:</b> File descriptors vs open file table, Inode pointers, Hard vs Soft links, VFS abstraction, Ext4 journaling modes (Data, Ordered, Writeback), <code>fsync</code>.</li>
+      <li><b>10. I/O Management, DMA, epoll & io_uring:</b> Polling vs Interrupts vs DMA, blocking vs async, <code>select</code>/<code>poll</code> vs <code>epoll</code> ($O(1)$ event notifications), Zero-copy (<code>sendfile</code>), <code>io_uring</code>.</li>
+      <li><b>11. Inter-Process Communication (IPC):</b> Pipes, FIFOs, POSIX Shared Memory, Unix Domain Sockets vs TCP loopback, passing file descriptors, Signals & reentrancy, Chrome browser multi-process design.</li>
+    </ul>
+  </div>
+
+  <div class="os-phase-card">
+    <span class="os-phase-tag">Phase 5 · Modern Systems & FAANG</span>
+    <h3>Containers & Interview Mastery</h3>
+    <ul>
+      <li><b>12. Virtualization, Namespaces & Cgroups:</b> Hypervisors (Type 1 vs 2, VT-x, EPT), Containers demystified, Linux Namespaces (PID, NET, MNT, USER), Cgroups v1/v2, OverlayFS, Seccomp, Firecracker MicroVMs.</li>
+      <li><b>13. FAANG OS Interview Playbook:</b> Top high-frequency interview questions, production server triage (<code>strace</code>, <code>perf</code>, <code>vmstat</code>, <code>/proc</code>), concurrency implementations, and master cheatsheet.</li>
+    </ul>
+  </div>
+</div>
+
+<h2>top 50 faang & ai interview questions</h2>
+<div class="os-plan-hero" style="border-left: 6px solid var(--pink); background: #fff8fb;">
+  <span class="os-phase-tag" style="color: var(--pink);">Special Track · 50 Master Questions</span>
+  <h3 style="margin: 6px 0 10px; font-size: 18px;">Battle-Tested Systems Questions from OpenAI, Anthropic, Google, Meta & NVIDIA</h3>
+  <p style="margin: 0 0 12px; font-size: 14.5px; line-height: 1.6;">
+    Curated directly from real technical interview loops at top AI labs and hyperscalers. Covers process/thread internals, 4-level page table translation, Linux CFS scheduling, futex synchronization, epoll zero-copy, and GPU/container virtualization.
+  </p>
+  <a class="btn pink" href="/courses/os/top-50-interview-questions" style="font-size: 14px; padding: 10px 18px;">
+    Open Top 50 Interview Questions →
+  </a>
+</div>
+
+<h2>how to get the most out of these notes</h2>
 <div class="plan-outcomes">
-  <b>How this track works:</b>
+  <b>Three golden study rules:</b>
   <ol>
-    <li>Pick a concept from the sidebar</li>
-    <li>Each concept is one focused note</li>
-    <li>Concepts land as classes happen</li>
+    <li><b>Trace the hardware step-by-step:</b> Never memorise an abstract definition. Trace what the CPU registers, stack pointers, and MMU are doing at each clock cycle.</li>
+    <li><b>Solve the numerical traces by hand:</b> Calculate page address translations, effective memory access times (EMAT), Banker's safety vectors, and scheduling Gantt charts yourself.</li>
+    <li><b>Connect code to kernel syscalls:</b> When writing high-level Java, Python, or Go, ask yourself: <i>"Which syscall is this invoking? Does it switch to kernel mode? Does it allocate a physical frame or just bump virtual memory?"</i></li>
   </ol>
 </div>
 
-<div class="plan-timeline">
-<section class="plan-day">
-  <span class="plan-daynum">Track</span>
-  <h2>Concepts dropping soon</h2>
-  <p>The concept list lives in <code>lib/courses.js</code> under <code>os.topics</code>. Once the first concept is added, it shows up in the sidebar automatically.</p>
-</section>
-</div>
-
 <div class="plan-rule">
-  <b>One rule: understand, don't memorise.</b>
-  <p>Trace the examples by hand — scheduling orders, page faults, fork outputs.</p>
+  <b>Ready to begin?</b>
+  <p>Start with the <b>01. Top 50 Interview Questions (FAANG & AI)</b> or jump into <b>02. OS Architecture, Dual-Mode & Syscalls</b> to enter Ring 0.</p>
+  <p style="margin-top: 12px;">
+    <a class="btn yellow" href="/courses/os/top-50-interview-questions" style="font-size: 14px; padding: 10px 18px; color: var(--ink);">
+      Start: Top 50 Interview Questions →
+    </a>
+  </p>
 </div>

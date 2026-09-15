@@ -1,0 +1,314 @@
+<style>
+/* sharding notes custom styles */
+.sh-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin:16px 0}
+.sh-card{background:var(--canvas);border:1.5px solid var(--border-dim);border-radius:10px;padding:16px}
+.sh-card h4{margin:0 0 8px;font-size:15px;display:flex;align-items:center;gap:8px}
+.sh-diagram-svg{width:100%;height:auto;display:block;margin:14px 0}
+</style>
+
+<p class="kicker">the library analogy, hash modulo disasters, consistent hashing with vnodes, and the distributed systems tax of cross-shard joins.</p>
+
+<h2>the 30-second elevator pitch</h2>
+<p>Application compute is stateless and trivial to scale: launch 50 more container pods behind a load balancer and traffic is absorbed. <b>Databases are stateful and bound by physical hardware.</b> A single database server has hard physical limits on NVMe disk capacity, memory bus bandwidth, write IOPS, and maximum concurrent connection pools.</p>
+<p>When your dataset grows from gigabytes to terabytes, or write traffic exceeds what the largest bare-metal server can process, you have reached the limits of vertical scaling. <b>Sharding is the architectural weapon of last resort:</b> breaking a massive monolithic database into independent, smaller physical databases (shards) across a distributed cluster.</p>
+
+<div class="callout exam">
+  <b class="label">⭐ the staff interview rule: exhaust every option before sharding</b><br />
+  In an interview, if you say <i>"We'll shard the database on Day 1"</i>, you fail the round. Sharding introduces massive engineering complexity: cross-shard joins break, distributed ACID transactions fail, and resharding risks catastrophic downtime. Always follow the <b>Scale-Up Escalation Ladder:</b><br />
+  1. Optimize SQL queries &amp; composite B+ tree indexes $\to$<br />
+  2. Add Redis caching for hot reads $\to$<br />
+  3. Scale reads horizontally with Primary-Replica replication $\to$<br />
+  4. Scale vertically to high-end cloud instances (e.g. 128 vCPUs, 1TB RAM) $\to$<br />
+  5. <b>Only when write throughput or disk storage exceeds single-node capacity do you shard!</b>
+</div>
+
+<h2>the intuitive library analogy</h2>
+<p>To build unbreakable architectural intuition, think of a traditional city library:</p>
+
+<div class="sh-grid">
+  <div class="sh-card">
+    <h4>1. Single-Server Monolith (One Room)</h4>
+    <p>All 500,000 books are stored in a single room. One librarian handles all checkout requests. Simple, instant lookups ($O(1)$), but when 5,000 students arrive at once, the librarian is bottlenecked.</p>
+  </div>
+  <div class="sh-card">
+    <h4>2. Vertical Partitioning (Split by Category)</h4>
+    <p>You create separate dedicated rooms: Science Room, History Room, Fiction Room. Each room has its own shelves and librarian. But what happens when the Science Room runs out of physical space because 80% of books are STEM?</p>
+  </div>
+  <div class="sh-card">
+    <h4>3. Horizontal Sharding (Split by Range or Hash)</h4>
+    <p>Every library branch has the exact same layout, but holds different book ID ranges (Branch 1 holds books A–F; Branch 2 holds G–M). Now write throughput and physical shelf capacity scale linearly to infinity!</p>
+  </div>
+</div>
+
+<hr style="margin:32px 0;border:none;border-top:2px dashed var(--border-dim)" />
+
+<h2>partitioning vs sharding: the exact distinction</h2>
+<p>Engineers often use these terms interchangeably, but they represent distinct architectural boundaries:</p>
+
+<table>
+  <tr><th>Concept</th><th>Definition</th><th>Hardware Boundary</th><th>Example</th></tr>
+  <tr>
+    <td><b>Table Partitioning</b></td>
+    <td>Dividing a single logical table into smaller sub-tables <b>within the same database engine instance</b>.</td>
+    <td>Single machine (Shared CPU, RAM, and Disk)</td>
+    <td>PostgreSQL Declarative Partitioning (e.g. <code>orders_2026_q1</code>, <code>orders_2026_q2</code> stored in separate local tablespaces).</td>
+  </tr>
+  <tr>
+    <td><b>Vertical Partitioning</b></td>
+    <td>Splitting a wide table by <b>columns</b> into multiple domain tables, or separating whole databases by domain.</td>
+    <td>Separate instances or tables</td>
+    <td>Splitting <code>users</code> into <code>user_auth (id, email, password_hash)</code> and <code>user_profiles (id, bio, avatar_blob, preferences)</code>.</td>
+  </tr>
+  <tr>
+    <td><b>Horizontal Sharding</b></td>
+    <td>Splitting a table by <b>rows</b> across <b>multiple independent physical database servers</b> (shared-nothing architecture).</td>
+    <td>Multiple physical servers (Separate CPU, RAM, Disks, and Networks)</td>
+    <td>Rows with <code>user_id 1 - 1M</code> live on DB Server 1; rows with <code>user_id 1M - 2M</code> live on DB Server 2.</td>
+  </tr>
+</table>
+
+<hr style="margin:32px 0;border:none;border-top:2px dashed var(--border-dim)" />
+
+<h2>sharding strategies: range vs hash vs directory</h2>
+<p>When a write or read request arrives, how does the system know which physical shard holds the row? There are three core routing strategies:</p>
+
+<h3>1. Range-Based Sharding</h3>
+<p>Rows are partitioned based on contiguous ranges of a key (e.g. alphabetical name ranges <code>A–D</code>, <code>E–H</code>, or timestamp ranges):</p>
+<ul>
+  <li><b>Pros:</b> Range queries are extremely fast. Running <code>SELECT * WHERE date BETWEEN '2026-01-01' AND '2026-01-31'</code> routes directly to a single shard without touching any other servers.</li>
+  <li><b>The Hotspotting Disaster:</b> If you partition by date or auto-incrementing ID, <b>100% of today's live write traffic hits the newest shard</b>, while older historical shards sit at 0% CPU! The newest shard melts down, defeating horizontal scaling.</li>
+</ul>
+
+<h3>2. Hash-Based Sharding (Modulo Hashing)</h3>
+<p>Pass the shard key through a cryptographic hash function (e.g. MurmurHash3 or MD5) and take the modulo with the number of shards $N$:</p>
+<div style="margin:8px 0;text-align:center"><code>shard_id = hash(user_id) % N</code></div>
+<ul>
+  <li><b>Pros:</b> Perfectly uniform, random distribution. Spreads write load and disk capacity evenly across all $N$ physical machines.</li>
+  <li><b>The Catastrophic Flaw (The $N+1$ Resharding Tax):</b> What happens when your 4 shards fill up and you scale to 5 shards?
+    <div style="margin:10px 0;padding:12px;background:#fff;border:1.5px solid var(--ink);border-radius:8px">
+      <b>Before (N = 4):</b> Key 100 $\to 100 \pmod 4 = \mathbf{0}$ (Lives on Shard 0)<br />
+      <b>After (N = 5):</b> Key 100 $\to 100 \pmod 5 = \mathbf{0}$ (Lucky! Still Shard 0)<br />
+      <b>Before (N = 4):</b> Key 101 $\to 101 \pmod 4 = \mathbf{1}$ (Lives on Shard 1)<br />
+      <b>After (N = 5):</b> Key 101 $\to 101 \pmod 5 = \mathbf{1}$ (Lucky! Still Shard 1)<br />
+      <b>Before (N = 4):</b> Key 102 $\to 102 \pmod 4 = \mathbf{2}$ (Lives on Shard 2)<br />
+      <b>After (N = 5):</b> Key 102 $\to 102 \pmod 5 = \mathbf{2}$ (Lucky! Still Shard 2)<br />
+      <b>Before (N = 4):</b> Key 103 $\to 103 \pmod 4 = \mathbf{3}$ (Lives on Shard 3)<br />
+      <b>After (N = 5):</b> Key 103 $\to 103 \pmod 5 = \mathbf{3}$ (Wait... Key 107 $\to 107 \pmod 4 = 3$, but $107 \pmod 5 = 2$!)
+    </div>
+    When changing $N \to N+1$, the modulo formula reshuffles almost every key in the database! Moving from 4 to 5 shards forces you to migrate <b>$\frac{N}{N+1} = \frac{4}{5} = \mathbf{80\%}$ of all existing data across the network!</b> Your cluster will grind to a halt.
+  </li>
+</ul>
+
+<hr style="margin:32px 0;border:none;border-top:2px dashed var(--border-dim)" />
+
+<h2>the holy grail: consistent hashing</h2>
+<p>To eliminate the $N+1$ resharding disaster, modern distributed databases (Cassandra, DynamoDB, Couchbase) use <b>Consistent Hashing</b>.</p>
+
+<h3>1. The Virtual Hash Ring</h3>
+<p>Imagine the output range of a 32-bit hash function ($0$ to $2^{32} - 1$) wrapped around into a circular <b>Hash Ring</b> ($0^\circ$ to $360^\circ$):</p>
+<ol>
+  <li><b>Map Servers onto the Ring:</b> Hash each physical database server's IP address or hostname to place it at a coordinate on the ring.</li>
+  <li><b>Map Keys onto the Ring:</b> Hash each record's primary key (e.g. <code>user_id</code>) to find its coordinate on the ring.</li>
+  <li><b>Find Destination Shard:</b> Start at the key's position on the ring and walk <b>clockwise</b> until you hit the first server node. That server is the owner of that key!</li>
+</ol>
+
+<svg class="sh-diagram-svg" viewBox="0 0 740 320" role="img" aria-label="Consistent Hashing Ring with Virtual Nodes">
+  <!-- Outer Frame -->
+  <rect x="15" y="15" width="710" height="290" rx="14" fill="#fffdf6" stroke="#1c1a15" stroke-width="2"/>
+  <text x="370" y="42" text-anchor="middle" font-weight="800" font-size="14">Consistent Hash Ring with Virtual Nodes (Vnodes)</text>
+
+  <!-- Central Ring -->
+  <circle cx="260" cy="170" r="105" fill="none" stroke="#1c1a15" stroke-width="2.5" stroke-dasharray="6 6"/>
+  
+  <!-- Server Nodes on Ring (Physical Servers dispersed as Vnodes) -->
+  <!-- Node A vnodes (Orange) -->
+  <circle cx="260" cy="65" r="12" fill="#ff6b35" stroke="#1c1a15" stroke-width="2"/>
+  <text x="260" y="69" text-anchor="middle" font-size="10" font-weight="800" fill="#fff">A1</text>
+
+  <circle cx="365" cy="170" r="12" fill="#ff6b35" stroke="#1c1a15" stroke-width="2"/>
+  <text x="365" y="174" text-anchor="middle" font-size="10" font-weight="800" fill="#fff">A2</text>
+
+  <!-- Node B vnodes (Blue) -->
+  <circle cx="334" cy="96" r="12" fill="#a8d8ff" stroke="#1c1a15" stroke-width="2"/>
+  <text x="334" y="100" text-anchor="middle" font-size="10" font-weight="800">B1</text>
+
+  <circle cx="186" cy="244" r="12" fill="#a8d8ff" stroke="#1c1a15" stroke-width="2"/>
+  <text x="186" y="248" text-anchor="middle" font-size="10" font-weight="800">B2</text>
+
+  <!-- Node C vnodes (Mint) -->
+  <circle cx="260" cy="275" r="12" fill="#7df0b2" stroke="#1c1a15" stroke-width="2"/>
+  <text x="260" y="279" text-anchor="middle" font-size="10" font-weight="800">C1</text>
+
+  <circle cx="155" cy="170" r="12" fill="#7df0b2" stroke="#1c1a15" stroke-width="2"/>
+  <text x="155" y="174" text-anchor="middle" font-size="10" font-weight="800">C2</text>
+
+  <!-- Data Keys on Ring -->
+  <rect x="295" y="70" width="10" height="10" fill="#ffe14d" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="312" y="72" font-size="10" font-weight="700">Key K1</text>
+  <path d="M 300 80 Q 320 85 330 90" fill="none" stroke="#1c1a15" stroke-width="1.5" marker-end="url(#arr-sh)"/>
+
+  <text x="260" y="165" text-anchor="middle" font-size="11" font-weight="700" fill="#555">Hash Space</text>
+  <text x="260" y="180" text-anchor="middle" font-size="10" font-family="monospace">0 → 2^32 - 1</text>
+
+  <!-- Legend & Explanations on Right Side -->
+  <rect x="420" y="65" width="280" height="195" rx="8" fill="#fff" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="435" y="88" font-weight="800" font-size="12">Why Consistent Hashing Wins:</text>
+
+  <circle cx="445" cy="112" r="7" fill="#ff6b35" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="460" y="116" font-size="11">Server A Tokens (Virtual Nodes)</text>
+
+  <circle cx="445" cy="134" r="7" fill="#a8d8ff" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="460" y="138" font-size="11">Server B Tokens (Virtual Nodes)</text>
+
+  <circle cx="445" cy="156" r="7" fill="#7df0b2" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="460" y="160" font-size="11">Server C Tokens (Virtual Nodes)</text>
+
+  <line x1="435" y1="175" x2="685" y2="175" stroke="#eee" stroke-width="1.5"/>
+
+  <text x="435" y="195" font-size="11" font-weight="700" fill="#2b8a3e">✓ Adding / Removing a Server:</text>
+  <text x="435" y="213" font-size="10" fill="#555">Only $\mathbf{1/N}$ of keys migrate!</text>
+  <text x="435" y="230" font-size="10" fill="#555">All other servers remain 100% untouched.</text>
+  <text x="435" y="247" font-size="10" fill="#d9480f">Zero full-cluster data reshuffling.</text>
+</svg>
+
+<h3>2. The Non-Uniform Hotspot Trap &amp; Virtual Nodes (Vnodes)</h3>
+<p>If you only place 3 physical servers on the ring, random hashing might place Server A and Server B right next to each other. Server C might end up responsible for <b>75% of the entire ring's perimeter</b>, creating an accidental server hotspot!</p>
+<p><b>The Fix: Virtual Nodes (Vnodes).</b> Instead of assigning 1 position per physical machine, assign <b>100 to 256 virtual positions (tokens)</b> per server dispersed uniformly across the ring:</p>
+<ul>
+  <li><b>Uniform Load Distribution:</b> With 256 vnodes per server, statistical variance drops to under $\pm 5\%$. Every machine gets an equal slice of reads and writes.</li>
+  <li><b>Heterogeneous Hardware Support:</b> If Server A has 64 GB RAM and Server B is a massive 256 GB RAM box, you simply assign <b>$4\times$ more virtual tokens</b> to Server B! Server B will naturally absorb $4\times$ more keys without any code changes.</li>
+</ul>
+
+<hr style="margin:32px 0;border:none;border-top:2px dashed var(--border-dim)" />
+
+<h2>choosing the right shard key</h2>
+<p>The shard key is the single most irreversible architectural decision in a database's lifetime. Picking the wrong shard key will ruin your system.</p>
+
+<h3>The 3 Golden Criteria for a Shard Key</h3>
+<ol>
+  <li><b>High Cardinality:</b> The key must have millions of distinct potential values (e.g. <code>user_id</code>, <code>uuid</code>, <code>device_id</code>). Low cardinality keys (like <code>country_code</code> or <code>status</code>) can only create a handful of shards and guarantee massive data skew.</li>
+  <li><b>Uniform Write Distribution:</b> Avoid monotonic sequential keys (such as auto-incrementing integers or timestamps). Monotonic keys write sequentially to a single shard, causing severe write starvation.</li>
+  <li><b>Query Colocation (Query Affinity):</b> Shard on the attribute that appears in <b>90%+ of your critical read queries</b> (e.g. <code>WHERE user_id = ?</code>). This ensures the query router targets a <b>single shard</b> rather than broadcasting across 100 machines.</li>
+</ol>
+
+<h3>The Celebrity / Hot-Key Problem &amp; Salting</h3>
+<p>What happens when you shard a social network by <code>user_id</code>, and Cristiano Ronaldo or Taylor Swift (100M+ followers) publishes a post? Every comment, like, and follow write hits <b>Shard 4</b>, while other shards sit idle.</p>
+
+<div class="callout gotcha">
+  <b class="label">⚠️ the solution: shard key salting</b><br />
+  For hyper-popular accounts, append a pseudo-random integer suffix (a "salt") to the shard key:<br />
+  <code>salted_key = user_id + "_" + random(0, 10)</code><br />
+  This disperses writes evenly across 10 separate physical shards. When reading, the application queries all 10 shards in parallel and merges the results (Scatter-Gather). You trade slightly higher read coordination for surviving 100,000 writes/sec!
+</div>
+
+<hr style="margin:32px 0;border:none;border-top:2px dashed var(--border-dim)" />
+
+<h2>the 4 hard problems of sharding (the distributed systems tax)</h2>
+
+<div class="sh-grid">
+  <div class="sh-card">
+    <h4>1. Cross-Shard Joins</h4>
+    <p>In a monolith, <code>JOIN users u ON orders.user_id = u.id</code> is an in-memory B+ Tree index lookup. When <code>users</code> lives on Shard 1 and <code>orders</code> lives on Shard 4, <b>network joins are impossible</b>.</p>
+    <p><b>Defenses:</b><br />
+    • <b>Entity Colocation:</b> Shard both tables by <code>user_id</code> so Alice's user profile and all her orders live on the exact same physical shard!<br />
+    • <b>Denormalization:</b> Duplicate user fields (e.g. <code>user_name</code>, <code>shipping_address</code>) directly inside the <code>orders</code> table.</p>
+  </div>
+  <div class="sh-card">
+    <h4>2. Distributed Transactions</h4>
+    <p>Transferring 100 USD from Alice (Shard 1) to Bob (Shard 5) cannot be wrapped in a simple local ACID database transaction.</p>
+    <p><b>Defenses:</b><br />
+    • <b>Avoid 2PC (Two-Phase Commit):</b> 2PC holds row locks across network boundaries and collapses under network latency.<br />
+    • <b>The Saga Pattern:</b> Execute two independent local transactions with compensating refund actions if the second step fails.</p>
+  </div>
+  <div class="sh-card">
+    <h4>3. Global Secondary Indexes</h4>
+    <p>If you shard <code>users</code> by <code>user_id</code>, how do you handle login: <code>SELECT * WHERE email = 'alice@gmail.com'</code>?</p>
+    <p><b>Defenses:</b><br />
+    • <b>Scatter-Gather (Anti-pattern at scale):</b> Broadcast the query to all 50 shards in parallel. Latency equals the slowest shard in the cluster.<br />
+    • <b>Global Index Lookup Table:</b> Maintain a separate key-value table mapping <code>email $\to$ user_id</code> cached in Redis. Look up the ID first, then do a direct single-shard lookup.</p>
+  </div>
+  <div class="sh-card">
+    <h4>4. Online Zero-Downtime Resharding</h4>
+    <p>Splitting a 50 TB shard that is actively serving 30,000 live writes/second without locking the database or dropping transactions.</p>
+    <p><b>The 4-Phase Migration:</b><br />
+    1. <b>Dual-Write:</b> App writes new mutations to both old and new shards.<br />
+    2. <b>Backfill:</b> Batch jobs copy historical data.<br />
+    3. <b>Shadow Reads:</b> Compare checksums to verify integrity.<br />
+    4. <b>Cutover:</b> Flip router configuration; decommission old shard.</p>
+  </div>
+</div>
+
+<hr style="margin:32px 0;border:none;border-top:2px dashed var(--border-dim)" />
+
+<h2>sharding architectures: client vs proxy vs coordinator</h2>
+<p>Where does the routing logic live? In enterprise system design, there are three primary models:</p>
+
+<table>
+  <tr><th>Architecture</th><th>How It Works</th><th>Pros</th><th>Cons</th><th>Examples</th></tr>
+  <tr>
+    <td><b>1. Client-Side Routing</b></td>
+    <td>Application code or database driver embeds the hashing logic and directly opens socket connections to all shards.</td>
+    <td>Zero proxy network hop; fastest possible query execution.</td>
+    <td>Client code bloat; every application update requires updating database topology configs.</td>
+    <td>Custom Redis cluster clients, JDBC sharding drivers.</td>
+  </tr>
+  <tr>
+    <td><b>2. Proxy-Based Routing</b></td>
+    <td>Application talks to a stateless SQL proxy. The proxy parses the AST, calculates the target shard, and forwards the query.</td>
+    <td>Application code is completely unaware of sharding; centralized connection pooling and query rewriting.</td>
+    <td>Extra network hop ($\sim 1\text{ms}$); proxy cluster must be scaled and managed.</td>
+    <td><b>Vitess (YouTube)</b>, Citus (PostgreSQL), ProxySQL.</td>
+  </tr>
+  <tr>
+    <td><b>3. Coordinator / Gossip Cluster</b></td>
+    <td>All nodes are equal peers. Client sends query to any random node; node acts as coordinator and routes internally via Gossip protocol.</td>
+    <td>No single point of failure; fully autonomous distributed cluster.</td>
+    <td>Internal network traffic between nodes; complex vector clock conflict resolution.</td>
+    <td><b>Apache Cassandra</b>, Amazon DynamoDB, CockroachDB.</td>
+  </tr>
+</table>
+
+<hr style="margin:32px 0;border:none;border-top:2px dashed var(--border-dim)" />
+
+<h2>faang system design interview scenarios & war stories</h2>
+
+<table>
+  <tr><th>Interview Scenario</th><th>Key Architectural Insight</th><th>The Winning Answer</th></tr>
+  <tr>
+    <td><b>1. "Design the storage layer for an E-Commerce system: how do you shard Orders and OrderItems?"</b></td>
+    <td>Entity Colocation / Hierarchical Sharding</td>
+    <td>
+      Shard both <code>Orders</code> and <code>OrderItems</code> by <code>customer_id</code> (not by <code>order_id</code>). All orders placed by a single customer, along with their line items, will always land on the exact same physical database shard. When the customer opens their order history, 100% of joins are local in-memory B+ tree lookups with zero cross-network RPCs.
+    </td>
+  </tr>
+  <tr>
+    <td><b>2. "A bank customer transfers money between two checking accounts on different shards. How do you guarantee consistency?"</b></td>
+    <td>Two-Phase Sagas &amp; Pending Escrow States</td>
+    <td>
+      Do not use distributed 2PC. Instead, use local transactions with an explicit <code>PENDING</code> status. Step 1 on Shard A: Deduct 100 USD from Alice's account and insert an outbox event. Step 2 on Shard B: Credit 100 USD to Bob's account. If Step 2 permanently fails after retries, trigger a compensating transaction on Shard A to refund the 100 USD.
+    </td>
+  </tr>
+  <tr>
+    <td><b>3. "Why does YouTube use Vitess instead of native MySQL sharding?"</b></td>
+    <td>Connection Pooling &amp; Query Routing Abstraction</td>
+    <td>
+      YouTube operates hundreds of thousands of MySQL instances. If 10,000 web application servers each opened 50 connections to every shard, MySQL would crash from connection thread exhaustion. <b>Vitess</b> sits as a proxy layer that pools millions of incoming connections into a tiny persistent connection pool, while automatically handling consistent hashing, cross-shard scatter-gather queries, and online schema resharding.
+    </td>
+  </tr>
+  <tr>
+    <td><b>4. "How do you generate globally unique auto-incrementing IDs across 100 shards without collisions?"</b></td>
+    <td>Distributed Snowflake IDs</td>
+    <td>
+      Never use single-node database <code>AUTO_INCREMENT</code>. Use <b>Twitter Snowflake</b>: a 64-bit ID composed of a 41-bit millisecond timestamp + 10-bit Node/Shard ID + 12-bit sequential counter. This guarantees IDs are globally unique, roughly time-sorted (preserving B+ tree write locality), and generated locally on each shard with zero coordination.
+    </td>
+  </tr>
+</table>
+
+<h2>the 20-second summary</h2>
+<p>Sharding is the horizontal division of data across independent physical servers. Treat it as a <b>last resort</b> after vertical scaling, caching, and read replication. Master <b>Consistent Hashing with Virtual Nodes (Vnodes)</b> to prevent the catastrophic $N+1$ data migration trap. Choose shard keys with <b>high cardinality, uniform distribution, and query affinity</b>, and design your schemas for <b>entity colocation</b> to defeat cross-shard joins.</p>
+
+<div style="margin-top:28px;padding:16px;background:var(--canvas);border:1.5px solid var(--border-dim);border-radius:10px;text-align:center">
+  <span style="font-size:12px;font-family:var(--font-mono);color:var(--ink-soft);text-transform:uppercase;letter-spacing:1px">Up Next: Topic 07</span><br/>
+  <a href="/courses/hld/microservices" style="font-weight:800;font-size:16px;color:var(--ink);text-decoration:none;display:inline-block;margin-top:6px">Microservices Architecture →</a>
+  <div style="margin-top:8px"><a href="/courses/hld/plan" style="font-size:13px;color:var(--ink-soft);text-decoration:underline">← Return to HLD Course Plan</a></div>
+</div>

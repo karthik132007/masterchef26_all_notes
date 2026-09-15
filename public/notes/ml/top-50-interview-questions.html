@@ -1,0 +1,1871 @@
+<style>
+.iq-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 18px 0 24px;
+  padding: 14px;
+  background: var(--paper-2, #fffdf6);
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+.iq-filter-title {
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  width: 100%;
+  margin-bottom: 4px;
+  color: var(--ink-soft);
+}
+.iq-btn {
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+.iq-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+.iq-btn.active {
+  background: var(--ink);
+  color: #fff;
+}
+details.q-card {
+  background: #ffffff;
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  box-shadow: 3px 3px 0 var(--ink);
+  padding: 0;
+  margin: 18px 0;
+  transition: all 0.12s ease;
+  overflow: hidden;
+}
+details.q-card[open] {
+  box-shadow: 4px 4px 0 var(--ink);
+}
+details.q-card summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 16px 18px;
+  user-select: none;
+  background: #ffffff;
+  transition: background 0.1s ease;
+}
+details.q-card summary::-webkit-details-marker {
+  display: none;
+}
+details.q-card summary:hover {
+  background: var(--paper-2, #fffdf6);
+}
+details.q-card[open] summary {
+  border-bottom: 2px dashed #ded7c6;
+  background: var(--paper-2, #fffdf6);
+}
+.q-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.q-num {
+  font-family: var(--font-mono, monospace);
+  font-size: 13px;
+  font-weight: 800;
+  color: #6842c2;
+}
+.q-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.badge-co {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--ink);
+}
+.badge-openai { background: #10a37f; color: #fff; }
+.badge-anthropic { background: #cc785c; color: #fff; }
+.badge-google { background: #4285f4; color: #fff; }
+.badge-meta { background: #0668e1; color: #fff; }
+.badge-nvidia { background: #76b900; color: #000; }
+.badge-apple { background: #1c1a15; color: #fff; }
+.badge-amazon { background: #ff9900; color: #111; }
+.badge-netflix { background: #e50914; color: #fff; }
+.badge-microsoft { background: #00a4ef; color: #fff; }
+.badge-tesla { background: #e82127; color: #fff; }
+.badge-cat {
+  background: var(--yellow, #ffe14d);
+  color: var(--ink);
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--ink);
+}
+.q-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+.q-title {
+  margin: 0;
+  font-size: 16.5px;
+  font-weight: 800;
+  line-height: 1.4;
+  color: var(--ink);
+  flex: 1;
+}
+.q-toggle-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono, monospace);
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: 1.5px 1.5px 0 var(--ink);
+  margin-top: 2px;
+  transition: all 0.1s ease;
+}
+details.q-card summary:hover .q-toggle-pill {
+  background: var(--yellow, #ffe14d);
+}
+details.q-card[open] .q-toggle-pill {
+  background: var(--ink);
+  color: #fff;
+}
+details.q-card[open] .q-pill-text {
+  font-size: 0;
+}
+details.q-card[open] .q-pill-text::before {
+  content: "Hide Answer";
+  font-size: 11.5px;
+}
+details.q-card[open] .q-pill-icon {
+  transform: rotate(180deg);
+  display: inline-block;
+}
+.q-content {
+  padding: 16px 20px 20px;
+  animation: fadeIn 0.15s ease-in-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.q-direct {
+  background: var(--paper-2, #fffdf6);
+  border-left: 4px solid #6842c2;
+  padding: 10px 14px;
+  border-radius: 0 8px 8px 0;
+  margin: 4px 0 14px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.q-direct b {
+  color: #6842c2;
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+.q-deep {
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: var(--ink);
+}
+.q-deep p { margin: 8px 0; }
+.q-deep ul, .q-deep ol { margin: 6px 0 10px; padding-left: 20px; }
+.q-deep li { margin-bottom: 4px; }
+.q-trap {
+  background: #fff0f5;
+  border: 1.5px solid #ffb6c1;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 12px 0 4px;
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+.q-trap b {
+  color: #c2185b;
+}
+</style>
+
+<p class="kicker">the frontier ai research & ml engineering question bank · 50 real problems</p>
+<h1>Top 50 Machine Learning Interview Questions</h1>
+<p class="plan-lede">Curated from senior research scientist, research engineer, and applied ML interview loops at <b>OpenAI, Anthropic, Google DeepMind, Meta FAIR, Apple, Amazon, Microsoft, NVIDIA, and Tesla</b>. Master the derivations, first-principles mathematical proofs, and distributed systems realities.</p>
+
+<div class="iq-filter-bar">
+  <div class="iq-filter-title">Filter by Company Loop:</div>
+  <div style="width: 100%; display: flex; gap: 8px; margin-bottom: 8px;">
+    <button type="button" class="iq-btn" id="expand-all-btn" onclick="toggleAll(true)" style="background: #eef2ff;">Expand All Answers</button>
+    <button type="button" class="iq-btn" id="collapse-all-btn" onclick="toggleAll(false)" style="background: #fdf2f8;">Collapse All</button>
+  </div>
+  <button class="iq-btn active" onclick="filterQuestions('all', this)">All (50)</button>
+  <button class="iq-btn" onclick="filterQuestions('openai', this)">OpenAI</button>
+  <button class="iq-btn" onclick="filterQuestions('anthropic', this)">Anthropic</button>
+  <button class="iq-btn" onclick="filterQuestions('google', this)">Google DeepMind</button>
+  <button class="iq-btn" onclick="filterQuestions('meta', this)">Meta FAIR</button>
+  <button class="iq-btn" onclick="filterQuestions('nvidia', this)">NVIDIA</button>
+  <button class="iq-btn" onclick="filterQuestions('apple', this)">Apple</button>
+  <button class="iq-btn" onclick="filterQuestions('amazon', this)">Amazon</button>
+  <button class="iq-btn" onclick="filterQuestions('microsoft', this)">Microsoft</button>
+  <button class="iq-btn" onclick="filterQuestions('tesla', this)">Tesla</button>
+</div>
+
+<h2>1. foundations, linear models & optimization (q1 – q10)</h2>
+
+<details class="q-card" data-companies="openai google">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q01</span>
+    <div class="q-badges">
+      <span class="badge-co badge-openai">OpenAI</span>
+      <span class="badge-co badge-google">Google DeepMind</span>
+      <span class="badge-cat">Derivations</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Derive the closed-form Normal Equation for Linear Regression. When does (X^T X) fail to be invertible, and how does Ridge Regularization resolve it?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    Setting the gradient of the MSE cost function $\nabla_\theta J(\theta) = 0$ yields $\theta = (X^T X)^{-1} X^T y$. $(X^T X)$ is non-invertible if features are collinear or $d > N$; Ridge adds $\lambda I$, guaranteeing strict invertibility.
+  </div>
+  <div class="q-deep">
+    <p><b>Step-by-Step Derivation:</b></p>
+    <ol>
+      <li>Matrix cost function: $J(\theta) = \frac{1}{2} \|X\theta - y\|_2^2 = \frac{1}{2} (X\theta - y)^T (X\theta - y) = \frac{1}{2} (\theta^T X^T X \theta - 2 y^T X \theta + y^T y)$.</li>
+      <li>Compute gradient with respect to $\theta$: $\nabla_\theta J(\theta) = X^T X \theta - X^T y$.</li>
+      <li>Set gradient to zero: $X^T X \theta = X^T y \implies \theta = (X^T X)^{-1} X^T y$.</li>
+      <li><b>Singularity Conditions:</b> If columns of $X$ are linearly dependent, or if number of features $d > N$ (number of samples), $X^T X$ is rank-deficient and not invertible.</li>
+      <li><b>The Ridge Fix:</b> Adding L2 penalty modifies the normal equations to $\theta = (X^T X + \lambda I)^{-1} X^T y$. Since $X^T X$ is positive semi-definite and $\lambda I$ is strictly positive definite ($\lambda > 0$), the sum is strictly positive definite and always invertible!</li>
+    </ol>
+  </div>
+  <div class="q-trap">
+    <b>⚠️ Interview Trap:</b> Never invert $(X^T X)$ in production code! Inverting an $n \times n$ matrix takes $O(n^3)$ operations and is numerically unstable. Use QR decomposition or Cholesky solve ($O(n^3/3)$) instead.
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="anthropic meta">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q02</span>
+    <div class="q-badges">
+      <span class="badge-co badge-anthropic">Anthropic</span>
+      <span class="badge-co badge-meta">Meta FAIR</span>
+      <span class="badge-cat">Regularization</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Prove mathematically and geometrically why L1 (Lasso) produces sparse weights (exact zeros) while L2 (Ridge) only shrinks weights toward zero.</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    Geometrically, the L1 constraint region is a diamond with sharp corners on the coordinate axes where contours of the loss function first make contact. Mathematically, the subgradient of $|w|$ has a non-zero constant push ($-\lambda \operatorname{sign}(w)$) all the way to zero.
+  </div>
+  <div class="q-deep">
+    <p><b>Mathematical Subgradient Comparison:</b></p>
+    <ul>
+      <li><b>L2 (Ridge) Gradient Update:</b> $w_{t+1} = w_t - \eta \frac{\partial \mathcal{L}}{\partial w} - 2\eta \lambda w_t = (1 - 2\eta \lambda) w_t - \eta \frac{\partial \mathcal{L}}{\partial w}$. As $w \to 0$, the penalty $2\lambda w \to 0$. The penalty shrinks proportionally to $w$, meaning it never forces $w$ to be exactly zero!</li>
+      <li><b>L1 (Lasso) Subgradient Update:</b> $w_{t+1} = w_t - \eta \frac{\partial \mathcal{L}}{\partial w} - \eta \lambda \operatorname{sign}(w_t)$. The penalty force remains a constant magnitude $\lambda$ regardless of how small $w$ becomes, actively driving small parameters to land exactly at zero (soft-thresholding operator).</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="google openai">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q03</span>
+    <div class="q-badges">
+      <span class="badge-co badge-google">Google DeepMind</span>
+      <span class="badge-co badge-openai">OpenAI</span>
+      <span class="badge-cat">Statistical Theory</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Derive the Bias-Variance Decomposition of Expected Mean Squared Error. What is irreducible error?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    $\mathbb{E}[(y - \hat{f}(x))^2] = \operatorname{Bias}^2(\hat{f}(x)) + \operatorname{Var}(\hat{f}(x)) + \sigma^2$. Irreducible error $\sigma^2$ is the noise inherent in the true data-generating distribution.
+  </div>
+  <div class="q-deep">
+    <p><b>Mathematical Decomposition:</b></p>
+    <p>Let $y = f(x) + \epsilon$ where $\mathbb{E}[\epsilon] = 0$ and $\operatorname{Var}(\epsilon) = \sigma^2$. Let $\bar{f}(x) = \mathbb{E}[\hat{f}(x)]$:</p>
+    <ul>
+      <li>$\mathbb{E}[(y - \hat{f})^2] = \mathbb{E}[(f + \epsilon - \hat{f})^2] = \mathbb{E}[((f - \hat{f}) + \epsilon)^2] = \mathbb{E}[(f - \hat{f})^2] + \sigma^2$.</li>
+      <li>Add and subtract $\bar{f}$: $\mathbb{E}[(f - \bar{f} + \bar{f} - \hat{f})^2] = (f - \bar{f})^2 + \mathbb{E}[(\bar{f} - \hat{f})^2] + 2(f - \bar{f})\mathbb{E}[\bar{f} - \hat{f}]$.</li>
+      <li>The cross term vanishes because $\mathbb{E}[\bar{f} - \hat{f}] = \bar{f} - \bar{f} = 0$.</li>
+      <li>Result: $\operatorname{Bias}^2(\hat{f}) + \operatorname{Var}(\hat{f}) + \sigma^2$. High complexity $\implies$ low bias, high variance. Adding training data reduces variance, never bias.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="meta apple">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q04</span>
+    <div class="q-badges">
+      <span class="badge-co badge-meta">Meta FAIR</span>
+      <span class="badge-co badge-apple">Apple</span>
+      <span class="badge-cat">Loss Functions</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Why do we use Binary Cross-Entropy Loss instead of Mean Squared Error (MSE) for Logistic Regression? Prove why MSE with sigmoid is non-convex.</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    MSE with a sigmoid activation produces a non-convex loss surface with flat plateaus and local minima. Cross-Entropy is strictly convex with respect to weights, guaranteeing a single global minimum and preventing vanishing gradients when predictions are wrong.
+  </div>
+  <div class="q-deep">
+    <p><b>Proof of Vanishing Gradient with MSE:</b></p>
+    <ul>
+      <li>Let $\hat{y} = \sigma(z)$ where $z = w^T x$. For MSE loss $\mathcal{L}_{MSE} = \frac{1}{2}(\hat{y} - y)^2$:</li>
+      <li>$\frac{\partial \mathcal{L}_{MSE}}{\partial w} = (\hat{y} - y) \cdot \sigma'(z) \cdot x = (\hat{y} - y) \cdot \hat{y}(1 - \hat{y}) \cdot x$.</li>
+      <li><b>The Fatal Flaw:</b> If $y = 1$ and the model confidently predicts $\hat{y} = 0.001$, the error $(\hat{y} - y) \approx -1$, but the term $\hat{y}(1 - \hat{y}) = 0.001 \times 0.999 \approx 0.001$. The gradient drops to near zero! The model is completely wrong, yet learning stalls!</li>
+      <li>With Cross-Entropy $\mathcal{L}_{CE} = -[y \log \hat{y} + (1-y)\log(1-\hat{y})]$, the gradient is simply $(\hat{y} - y) x$. The $\hat{y}(1 - \hat{y})$ term cancels out, providing strong learning signals when errors are high!</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="openai amazon">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q05</span>
+    <div class="q-badges">
+      <span class="badge-co badge-openai">OpenAI</span>
+      <span class="badge-co badge-amazon">Amazon</span>
+      <span class="badge-cat">Optimization</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Trace the evolution from SGD to Momentum, RMSprop, and Adam. Why is bias correction essential in Adam?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    Momentum dampens oscillations using first moments (moving average of gradients). RMSprop scales steps inversely by second moments (root mean square of gradients). Adam combines both and applies bias correction to prevent step-size explosion at initialization.
+  </div>
+  <div class="q-deep">
+    <p><b>Adam Optimizer Formulation:</b></p>
+    <ol>
+      <li>First moment (momentum): $m_t = \beta_1 m_{t-1} + (1 - \beta_1) g_t$ ($\beta_1 \approx 0.9$).</li>
+      <li>Second moment (RMSprop): $v_t = \beta_2 v_{t-1} + (1 - \beta_2) g_t^2$ ($\beta_2 \approx 0.999$).</li>
+      <li><b>Why Bias Correction is Needed:</b> Since $m_0 = 0$ and $v_0 = 0$, $v_1 = (1 - \beta_2) g_1^2 = 0.001 g_1^2$. The uncorrected estimate is severely biased toward zero, which would cause an enormous initial update step $\frac{m_1}{\sqrt{v_1}} \approx \frac{0.1 g_1}{\sqrt{0.001 g_1^2}} = 3.16$, destabilizing the model!</li>
+      <li>Corrected moments: $\hat{m}_t = \frac{m_t}{1 - \beta_1^t}$ and $\hat{v}_t = \frac{v_t}{1 - \beta_2^t}$. Update: $\theta_t = \theta_{t-1} - \frac{\eta}{\sqrt{\hat{v}_t} + \epsilon} \hat{m}_t$.</li>
+    </ol>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="anthropic google">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q06</span>
+    <div class="q-badges">
+      <span class="badge-co badge-anthropic">Anthropic</span>
+      <span class="badge-co badge-google">Google DeepMind</span>
+      <span class="badge-cat">Gradients</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Explain the vanishing and exploding gradient problem through backpropagation chain rule. How do Xavier and He initialization solve it?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    During backpropagation, gradients are repeatedly multiplied by weight matrices $\prod_{l=1}^L W_l^T$. If eigenvalues of $W$ are $< 1$ (or activation derivatives $< 1$, like sigmoid max 0.25), gradients decay exponentially to zero; if $> 1$, they explode to infinity.
+  </div>
+  <div class="q-deep">
+    <p><b>Variance Preservation Principle:</b></p>
+    <ul>
+      <li>To prevent activations and gradients from vanishing or exploding, the variance of outputs must equal the variance of inputs: $\operatorname{Var}(y_l) = \operatorname{Var}(y_{l-1})$.</li>
+      <li>For a linear layer with $n_{in}$ inputs: $\operatorname{Var}(y) = n_{in} \operatorname{Var}(w) \operatorname{Var}(x)$. To maintain variance, we must have $\operatorname{Var}(w) = \frac{1}{n_{in}}$.</li>
+      <li><b>Xavier (Glorot) Initialization (for Tanh / Sigmoid):</b> $\operatorname{Var}(W) = \frac{2}{n_{in} + n_{out}}$.</li>
+      <li><b>He (Kaiming) Initialization (for ReLU):</b> Since ReLU zeroes out negative inputs (halving the variance), we must double the weight variance: $\operatorname{Var}(W) = \frac{2}{n_{in}}$.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="microsoft meta">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q07</span>
+    <div class="q-badges">
+      <span class="badge-co badge-microsoft">Microsoft</span>
+      <span class="badge-co badge-meta">Meta FAIR</span>
+      <span class="badge-cat">SVM & Kernels</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">What is the Kernel Trick in Support Vector Machines (SVM)? State Mercer's Condition and explain how the RBF kernel maps to infinite dimensions.</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    The Kernel Trick computes the inner product $\langle \phi(x), \phi(z) \rangle$ in a high-dimensional feature space directly using a kernel function $K(x, z)$ in the original input space without explicitly computing or storing the coordinates $\phi(x)$.
+  </div>
+  <div class="q-deep">
+    <p><b>The Infinite-Dimensional RBF Proof:</b></p>
+    <ul>
+      <li>Gaussian RBF: $K(x, z) = \exp(-\gamma \|x - z\|^2) = \exp(-\gamma \|x\|^2) \exp(-\gamma \|z\|^2) \exp(2\gamma x^T z)$.</li>
+      <li>Expand the exponential term using its Taylor series: $\exp(2\gamma x^T z) = \sum_{k=0}^{\infty} \frac{(2\gamma)^k}{k!} (x^T z)^k$.</li>
+      <li>Each polynomial power $(x^T z)^k$ corresponds to all monomial feature combinations of degree $k$. The infinite sum corresponds to an inner product in an infinite-dimensional Hilbert space!</li>
+      <li><b>Mercer's Condition:</b> A symmetric function $K(x, z)$ is a valid kernel if and only if its Gram matrix is positive semi-definite for all datasets.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="apple amazon">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q08</span>
+    <div class="q-badges">
+      <span class="badge-co badge-apple">Apple</span>
+      <span class="badge-co badge-amazon">Amazon</span>
+      <span class="badge-cat">Feature Preprocessing</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Why is Feature Scaling (Standardization vs Normalization) critical for Gradient Descent, KNN, and SVM, but completely irrelevant for Decision Trees?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    Gradient descent traverses circular loss contours faster than elongated ellipses; distance-based models (KNN, SVM) are dominated by features with large numerical magnitudes. Tree models split on one feature at a time, making them invariant to monotonic scaling.
+  </div>
+  <div class="q-deep">
+    <ul>
+      <li><b>Gradient Descent:</b> Unscaled features produce highly elliptical loss contours. Gradients oscillate perpendicular to the valley instead of pointing toward the minimum, requiring tiny learning rates. Scaling produces spherical contours where negative gradients point directly at the minimum.</li>
+      <li><b>KNN / SVM:</b> Euclidean distance $d = \sqrt{(x_1 - z_1)^2 + (x_2 - z_2)^2}$. If $x_1 \in [0, 100000]$ (income) and $x_2 \in [0, 5]$ (years experience), $x_1$ completely dominates the distance metric, rendering $x_2$ useless.</li>
+      <li><b>Decision Trees:</b> A split checks $x_j > \theta$. Since $x_j > \theta \iff a x_j + b > a \theta + b$ for any $a > 0$, scaling leaves information gain and split thresholds completely unchanged.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="google anthropic">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q09</span>
+    <div class="q-badges">
+      <span class="badge-co badge-google">Google DeepMind</span>
+      <span class="badge-co badge-anthropic">Anthropic</span>
+      <span class="badge-cat">Learning Rate Dynamics</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">What is Learning Rate Warmup and Cosine Annealing? Why is warmup mandatory when training large Transformer models?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    Warmup linearly ramps the learning rate from 0 to $\eta_{max}$ over the first few thousand steps. In early training, model weights and Adam variance estimates ($\hat{v}_t$) are chaotic and uncalibrated; large initial learning rates cause catastrophic divergence.
+  </div>
+  <div class="q-deep">
+    <p><b>Cosine Decay Schedule:</b></p>
+    <ul>
+      <li>$$\eta_t = \eta_{min} + \frac{1}{2}(\eta_{max} - \eta_{min})\left(1 + \cos\left(\frac{t - T_{warm}}{T_{total} - T_{warm}}\pi\right)\right)$$</li>
+      <li>Warmup prevents early activation saturation and keeps gradient updates within the basin of attraction.</li>
+      <li>Cosine decay smoothly lowers the step size to let the optimizer settle into sharp, flat minima without sudden step-function cliffs.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="meta openai">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q10</span>
+    <div class="q-badges">
+      <span class="badge-co badge-meta">Meta FAIR</span>
+      <span class="badge-co badge-openai">OpenAI</span>
+      <span class="badge-cat">Regularization</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">What is Label Smoothing? How does it prevent overconfidence in classification and improve model calibration?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    Label smoothing replaces hard one-hot target vectors $[0, 1, 0]$ with soft probabilities $[ \frac{\alpha}{K}, 1 - \alpha + \frac{\alpha}{K}, \frac{\alpha}{K} ]$, preventing the softmax logits from driving weights toward $\pm \infty$.
+  </div>
+  <div class="q-deep">
+    <p><b>Why Hard Labels Cause Overfitting:</b></p>
+    <ul>
+      <li>Softmax output is $p_k = \frac{e^{z_k}}{\sum_j e^{z_j}}$. To achieve a probability of exactly $1.0$ on the target class, the logit $z_y$ must approach $+\infty$ relative to all other logits!</li>
+      <li>This forces the network to blow up weight magnitudes, leading to extreme overconfidence and poor calibration.</li>
+      <li>With label smoothing (e.g. $\alpha = 0.1$), the model only needs finite logit margins, acting as an effective regularizer that significantly improves beam search in LLMs and test set generalization.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<h2>2. trees, ensembles & unsupervised learning (q11 – q20)</h2>
+
+<details class="q-card" data-companies="amazon meta">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q11</span>
+    <div class="q-badges">
+      <span class="badge-co badge-amazon">Amazon</span>
+      <span class="badge-co badge-meta">Meta</span>
+      <span class="badge-cat">Decision Trees</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Compare Gini Impurity vs Shannon Entropy (Information Gain) in Decision Trees. Why are individual decision trees notorious for high variance?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    $\text{Gini} = 1 - \sum p_i^2$ (computationally faster; no logarithms), whereas $\text{Entropy} = -\sum p_i \log_2 p_i$. Single trees are high variance because a tiny change in a root split completely alters the entire subtree topology below it.
+  </div>
+  <div class="q-deep">
+    <p><b>Split Selection Criterion:</b></p>
+    <ul>
+      <li>The tree evaluates every feature $j$ and split value $s$, picking the pair that maximizes <b>Information Gain</b>: $\Delta I = I(D) - \frac{|D_L|}{|D|} I(D_L) - \frac{|D_R|}{|D|} I(D_R)$.</li>
+      <li>Gini and Entropy yield identical split decisions &gt; 95% of the time. Gini is preferred in practice because floating-point multiplications are significantly faster on CPU than computing logarithms.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="google apple">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q12</span>
+    <div class="q-badges">
+      <span class="badge-co badge-google">Google</span>
+      <span class="badge-co badge-apple">Apple</span>
+      <span class="badge-cat">Ensemble Methods</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Compare Bagging (Bootstrap Aggregation) vs Boosting (XGBoost/LightGBM). Which reduces variance and which reduces bias?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    Bagging trains deep, low-bias trees independently in parallel on bootstrap samples to reduce variance. Boosting trains shallow, high-bias trees sequentially, fitting each to the pseudo-residuals of the previous trees to reduce bias.
+  </div>
+  <div class="q-deep">
+    <table>
+      <tr><th>Property</th><th>Bagging (Random Forest)</th><th>Boosting (XGBoost / LightGBM)</th></tr>
+      <tr><td><b>Architecture</b></td><td>Independent, parallel trees</td><td>Sequential, dependent trees</td></tr>
+      <tr><td><b>Base Learners</b></td><td>Deep, unpruned trees (low bias, high variance)</td><td>Shallow trees / stumps (high bias, low variance)</td></tr>
+      <tr><td><b>Primary Objective</b></td><td><b>Reduces Variance</b> by averaging uncorrelated trees</td><td><b>Reduces Bias</b> by iteratively fitting residuals</td></tr>
+      <tr><td><b>Overfitting Risk</b></td><td>Adding more trees NEVER causes overfitting</td><td>Adding too many trees CAN overfit (learning rate shrinkage required)</td></tr>
+    </table>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="microsoft amazon">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q13</span>
+    <div class="q-badges">
+      <span class="badge-co badge-microsoft">Microsoft</span>
+      <span class="badge-co badge-amazon">Amazon</span>
+      <span class="badge-cat">Random Forests</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">In Random Forests, why do we randomly subsample features at each split in addition to bootstrap sampling rows? What is Out-of-Bag (OOB) error?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    Subsampling features (typically $\sqrt{d}$) decorrelates the individual trees. If one dominant feature exists, all bagged trees would split on it first, making their predictions correlated and nullifying the variance reduction of averaging.
+  </div>
+  <div class="q-deep">
+    <p><b>Out-Of-Bag (OOB) Mathematical Proof:</b></p>
+    <ul>
+      <li>Sampling $N$ items from $N$ with replacement: probability a sample is NOT picked in one draw is $1 - \frac{1}{N}$.</li>
+      <li>Over $N$ draws: $\lim_{N \to \infty} \left(1 - \frac{1}{N}\right)^N = \frac{1}{e} \approx 0.368$.</li>
+      <li>Roughly <b>36.8% of training samples</b> are excluded from each tree's bootstrap dataset! These "out-of-bag" samples serve as a built-in cross-validation test set, allowing unbiased performance estimation with zero extra validation runs.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="meta google">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q14</span>
+    <div class="q-badges">
+      <span class="badge-co badge-meta">Meta</span>
+      <span class="badge-co badge-google">Google</span>
+      <span class="badge-cat">Gradient Boosting</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">How does Gradient Boosting work mathematically? Why is fitting to residuals equivalent to performing Gradient Descent in function space?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    Gradient Boosting minimizes loss $\mathcal{L}(y, F(x))$ by treating the model's predictions as parameters: the residual $r_{im} = - \left[\frac{\partial \mathcal{L}(y_i, F(x_i))}{\partial F(x_i)}\right]_{F=F_{m-1}}$ is the exact negative gradient vector in function space.
+  </div>
+  <div class="q-deep">
+    <p><b>Function Space Gradient Descent:</b></p>
+    <ul>
+      <li>In standard gradient descent: $\theta_{m} = \theta_{m-1} - \eta \nabla_\theta \mathcal{L}$.</li>
+      <li>In functional gradient boosting: $F_m(x) = F_{m-1}(x) + \eta h_m(x)$, where $h_m(x)$ is a decision tree trained to predict the negative gradient $-g_i$.</li>
+      <li>For Squared Error $\mathcal{L} = \frac{1}{2}(y - F(x))^2$, the negative gradient is $- \frac{\partial \mathcal{L}}{\partial F} = y - F(x)$, which is literally the residual!</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="openai anthropic">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q15</span>
+    <div class="q-badges">
+      <span class="badge-co badge-openai">OpenAI</span>
+      <span class="badge-co badge-anthropic">Anthropic</span>
+      <span class="badge-cat">XGBoost Internals</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">What makes XGBoost fundamentally superior to standard Gradient Boosting? Explain its second-order Taylor expansion objective.</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    XGBoost uses a second-order Taylor expansion (gradients $g_i$ and Hessians $h_i$), incorporates explicit tree complexity regularization ($\gamma T + \frac{1}{2}\lambda \sum w_j^2$), and features default directional routing for missing values.
+  </div>
+  <div class="q-deep">
+    <p><b>Second-Order Objective Function:</b></p>
+    <ul>
+      <li>$$\mathcal{L}^{(t)} \approx \sum_{i=1}^N \left[ g_i w_{q(x_i)} + \frac{1}{2} (h_i + \lambda) w_{q(x_i)}^2 \right] + \gamma T$$</li>
+      <li>Optimal leaf weight: $w_j^* = - \frac{\sum_{i \in I_j} g_i}{\sum_{i \in I_j} h_i + \lambda}$.</li>
+      <li>Split gain criterion: $\text{Gain} = \frac{1}{2} \left[ \frac{G_L^2}{H_L + \lambda} + \frac{G_R^2}{H_R + \lambda} - \frac{(G_L + G_R)^2}{H_L + H_R + \lambda} \right] - \gamma$.</li>
+      <li><b>Missing Value Handling:</b> During split search, missing values are sent to the left child, then to the right child; whichever yields higher Gain is chosen as the permanent default branch.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="google apple">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q16</span>
+    <div class="q-badges">
+      <span class="badge-co badge-google">Google</span>
+      <span class="badge-co badge-apple">Apple</span>
+      <span class="badge-cat">Clustering</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Explain the K-Means clustering algorithm. Why is it not guaranteed to reach the global optimum, and how does K-Means++ fix initialization?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    K-Means is an Expectation-Maximization algorithm that alternates between assigning points to the nearest centroid and updating centroids to the mean of assigned points. It converges to a local minimum of inertia. K-Means++ spaces initial centroids far apart with probability proportional to $D(x)^2$.
+  </div>
+  <div class="q-deep">
+    <p><b>K-Means++ Initialization Algorithm:</b></p>
+    <ol>
+      <li>Choose the first centroid $c_1$ uniformly at random from the data points.</li>
+      <li>For each remaining point $x$, compute $D(x)$ (the shortest distance to any already chosen centroid).</li>
+      <li>Choose the next centroid with probability: $P(x) = \frac{D(x)^2}{\sum_{x'} D(x')^2}$.</li>
+      <li>Repeat until $K$ centroids are chosen. Guarantees an $O(\log K)$-competitive approximation to the optimal clustering error!</li>
+    </ol>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="meta amazon">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q17</span>
+    <div class="q-badges">
+      <span class="badge-co badge-meta">Meta</span>
+      <span class="badge-co badge-amazon">Amazon</span>
+      <span class="badge-cat">Clustering Evaluation</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">How do you choose the optimal number of clusters K? Compare the Elbow Method (Inertia/WCSS) vs Silhouette Score.</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    The Elbow Method plots Within-Cluster Sum of Squares (WCSS) vs $K$ and looks for an inflection point. Silhouette Score measures how similar an object is to its own cluster compared to other clusters (ranging from -1 to +1).
+  </div>
+  <div class="q-deep">
+    <p><b>Silhouette Coefficient Formula:</b></p>
+    <ul>
+      <li>$s(i) = \frac{b(i) - a(i)}{\max(a(i), b(i))}$, where $a(i)$ is mean intra-cluster distance, and $b(i)$ is mean nearest-cluster distance.</li>
+      <li>$s(i) \approx +1$: Point is well inside its cluster. $s(i) \approx 0$: Point lies on the boundary between clusters. $s(i) < 0$: Point assigned to wrong cluster.</li>
+      <li>The Elbow method is subjective and often smooth with no sharp elbow on real-world noisy data; Silhouette analysis provides a quantitative metric without manual guesswork.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="anthropic microsoft">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q18</span>
+    <div class="q-badges">
+      <span class="badge-co badge-anthropic">Anthropic</span>
+      <span class="badge-co badge-microsoft">Microsoft</span>
+      <span class="badge-cat">Dimensionality Reduction</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Derive Principal Component Analysis (PCA). Show why maximizing variance of projection is equivalent to finding eigenvectors of the covariance matrix.</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    Projecting zero-centered data $X$ onto unit vector $u$ yields variance $u^T \Sigma u$. Maximizing this under constraint $u^T u = 1$ via Lagrange multipliers yields $\Sigma u = \lambda u$, proving $u$ is an eigenvector of covariance matrix $\Sigma$.
+  </div>
+  <div class="q-deep">
+    <p><b>Lagrangian Derivation:</b></p>
+    <ol>
+      <li>Projected variance: $\operatorname{Var}(X u) = \frac{1}{N} (X u)^T (X u) = u^T \left(\frac{1}{N} X^T X\right) u = u^T \Sigma u$.</li>
+      <li>Formulate Lagrangian with constraint $u^T u = 1$: $\mathcal{L}(u, \lambda) = u^T \Sigma u - \lambda (u^T u - 1)$.</li>
+      <li>Differentiate with respect to $u$ and set to 0: $\nabla_u \mathcal{L} = 2 \Sigma u - 2\lambda u = 0 \implies \Sigma u = \lambda u$.</li>
+      <li>The variance along $u$ is $u^T \Sigma u = u^T (\lambda u) = \lambda (u^T u) = \lambda$. Thus, the principal component is the eigenvector with the largest eigenvalue $\lambda_1$!</li>
+    </ol>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="google meta">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q19</span>
+    <div class="q-badges">
+      <span class="badge-co badge-google">Google DeepMind</span>
+      <span class="badge-co badge-meta">Meta</span>
+      <span class="badge-cat">Anomaly Detection</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">How does Isolation Forest detect anomalies in linear O(N) time? Why do anomalies have shorter path lengths?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    Anomalies are "few and different", meaning they occupy sparse regions of feature space. Random axis-aligned cuts isolate anomalous points close to the root of the tree with significantly shorter average path lengths $h(x)$.
+  </div>
+  <div class="q-deep">
+    <p><b>Isolation Tree Dynamics:</b></p>
+    <ul>
+      <li>Standard trees build profile models of normal points. Isolation Forest isolates anomalies directly by randomly selecting a feature and a random split value between its min and max.</li>
+      <li>Normal clustered points require many recursive random cuts to isolate into leaf nodes (deep path lengths).</li>
+      <li>Anomalies in sparse outliers are isolated in very few splits (shallow path lengths). Anomaly score $s(x, n) = 2^{-\frac{\mathbb{E}[h(x)]}{c(n)}}$; if $s \to 1$, the instance is definitively an anomaly.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="apple openai">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q20</span>
+    <div class="q-badges">
+      <span class="badge-co badge-apple">Apple</span>
+      <span class="badge-co badge-openai">OpenAI</span>
+      <span class="badge-cat">Generative Models</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Compare Gaussian Mixture Models (GMM) vs K-Means. How does the Expectation-Maximization (EM) algorithm perform soft clustering?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    K-Means is a special case of GMM where covariance matrices are spherical ($\sigma^2 I$) with equal cluster priors and hard 0/1 assignments. GMM allows elliptical clusters with arbitrary covariance $\Sigma_k$ and soft probabilities $\gamma_{ik}$.
+  </div>
+  <div class="q-deep">
+    <p><b>EM Algorithm Steps:</b></p>
+    <ul>
+      <li><b>E-step (Expectation):</b> Compute the posterior responsibility $\gamma_{ik}$ that Gaussian $k$ generated point $x_i$: $\gamma_{ik} = \frac{\pi_k \mathcal{N}(x_i | \mu_k, \Sigma_k)}{\sum_j \pi_j \mathcal{N}(x_i | \mu_j, \Sigma_j)}$.</li>
+      <li><b>M-step (Maximization):</b> Re-estimate parameters using weighted averages:
+        $\mu_k = \frac{\sum_i \gamma_{ik} x_i}{\sum_i \gamma_{ik}}$, $\Sigma_k = \frac{\sum_i \gamma_{ik} (x_i - \mu_k)(x_i - \mu_k)^T}{\sum_i \gamma_{ik}}$, $\pi_k = \frac{1}{N} \sum_i \gamma_{ik}$.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<h2>3. deep learning, neural architectures & representation learning (q21 – q30)</h2>
+
+<details class="q-card" data-companies="openai anthropic">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q21</span>
+    <div class="q-badges">
+      <span class="badge-co badge-openai">OpenAI</span>
+      <span class="badge-co badge-anthropic">Anthropic</span>
+      <span class="badge-cat">ResNets</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Prove mathematically why Residual Connections (ResNets: y = F(x) + x) eliminate the vanishing gradient problem in arbitrarily deep networks.</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    The residual formulation creates an uninterrupted gradient highway: $\frac{\partial \mathcal{L}}{\partial x_l} = \frac{\partial \mathcal{L}}{\partial x_L} \left( I + \frac{\partial}{\partial x_l} \sum_{i=l}^{L-1} F(x_i) \right)$. The $+I$ identity term guarantees gradients can flow directly back to shallow layers even if weight gradients vanish!
+  </div>
+  <div class="q-deep">
+    <p><b>Mathematical Gradient Flow:</b></p>
+    <ul>
+      <li>Recursive formulation: $x_L = x_l + \sum_{i=l}^{L-1} F(x_i, W_i)$.</li>
+      <li>Gradient with respect to layer $l$: $\frac{\partial \mathcal{L}}{\partial x_l} = \frac{\partial \mathcal{L}}{\partial x_L} \frac{\partial x_L}{\partial x_l} = \frac{\partial \mathcal{L}}{\partial x_L} \left( I + \frac{\partial}{\partial x_l} \sum_{i=l}^{L-1} F(x_i, W_i) \right)$.</li>
+      <li>Notice the additive $+I$ term! Even if the Jacobian of the residual transformations $\frac{\partial F}{\partial x_l} \to 0$, the gradient is never multiplied by a vanishing fraction $< 1$. It propagates back unattenuated.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="google meta">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q22</span>
+    <div class="q-badges">
+      <span class="badge-co badge-google">Google DeepMind</span>
+      <span class="badge-co badge-meta">Meta FAIR</span>
+      <span class="badge-cat">Normalization</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Compare Batch Normalization vs Layer Normalization. Why is LayerNorm universal in Transformers while BatchNorm dominates CNNs?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    BatchNorm computes statistics across the batch dimension for each channel independently; LayerNorm computes statistics across all channels/features for each individual token independently.
+  </div>
+  <div class="q-deep">
+    <p><b>Why BatchNorm Fails in Transformers & LLMs:</b></p>
+    <ul>
+      <li><b>Variable Sequence Lengths:</b> In NLP, padding tokens in variable-length batches distort mean and variance calculations across the batch dimension.</li>
+      <li><b>Autoregressive Inference:</b> During LLM token generation, batch size is often 1 (single user prompt). BatchNorm cannot compute variance with batch size 1!</li>
+      <li><b>LayerNorm Independence:</b> LayerNorm operates purely along the hidden dimension ($d_{model}$) of a single token: $\mu = \frac{1}{d} \sum x_i, \sigma^2 = \frac{1}{d} \sum (x_i - \mu)^2$. It has zero dependencies on other batch items or previous sequence steps.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="apple microsoft">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q23</span>
+    <div class="q-badges">
+      <span class="badge-co badge-apple">Apple</span>
+      <span class="badge-co badge-microsoft">Microsoft</span>
+      <span class="badge-cat">Regularization</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Explain Dropout as an implicit ensemble of 2^N sub-networks. How does Inverted Dropout ensure identical inference computations?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    Dropping each of $N$ neurons independently with probability $p$ samples one of $2^N$ possible thinned subnetworks at each training step. Inverted Dropout divides active activations by $(1 - p)$ during training, requiring zero modification at test time.
+  </div>
+  <div class="q-deep">
+    <p><b>Inverted Dropout Implementation:</b></p>
+    <ul>
+      <li>Standard Dropout multiplies weights by $(1 - p)$ during inference to match expected activation magnitude: $\mathbb{E}[y] = (1 - p) W x$.</li>
+      <li><b>Inverted Dropout:</b> Scales activations during training: $y_{train} = \frac{\text{mask} \odot x}{1 - p}$.</li>
+      <li>Benefit: Test-time code is completely untouched ($y_{test} = x$). This avoids test-time computation and eliminates serving bugs across inference frameworks.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="google amazon">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q24</span>
+    <div class="q-badges">
+      <span class="badge-co badge-google">Google</span>
+      <span class="badge-co badge-amazon">Amazon</span>
+      <span class="badge-cat">Computer Vision</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">What is the Receptive Field in a CNN? How do Dilated (Atrous) Convolutions expand receptive fields without increasing parameters or downsampling?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    The receptive field is the spatial region in the input image that influences a particular feature unit. Dilated convolutions insert spaces (rate $r - 1$) between kernel weights, expanding the field exponentially without losing spatial resolution.
+  </div>
+  <div class="q-deep">
+    <p><b>The Receptive Field Formula:</b></p>
+    <ul>
+      <li>$RF_{l} = RF_{l-1} + (k_l - 1) \times S_{l-1}$, where $k$ is kernel size and $S$ is cumulative stride.</li>
+      <li>Traditional downsampling (strided conv or max pooling) reduces spatial resolution, losing fine-grained object segmentation details.</li>
+      <li>A $3 \times 3$ kernel with dilation rate $r = 2$ covers a $5 \times 5$ spatial receptive field, and $r = 4$ covers $9 \times 9$, all while using exactly 9 parameters and maintaining full image resolution!</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="openai google">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q25</span>
+    <div class="q-badges">
+      <span class="badge-co badge-openai">OpenAI</span>
+      <span class="badge-co badge-google">Google DeepMind</span>
+      <span class="badge-cat">Self-Supervised Learning</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">How does Self-Supervised Contrastive Learning (CLIP, SimCLR) work? Explain the InfoNCE loss function.</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    Contrastive learning maps augmented views of the same sample (positive pairs) close together in latent embedding space while pushing representations of different samples (negative pairs) far apart using the InfoNCE cross-entropy loss.
+  </div>
+  <div class="q-deep">
+    <p><b>InfoNCE Loss Formulation:</b></p>
+    <ul>
+      <li>$$\mathcal{L}_{\text{InfoNCE}} = - \log \frac{\exp(\operatorname{sim}(q, k^+) / \tau)}{\exp(\operatorname{sim}(q, k^+) / \tau) + \sum_{j=1}^K \exp(\operatorname{sim}(q, k_j^-) / \tau)}$$</li>
+      <li>$\tau$ is a temperature hyperparameter that controls how strictly the model penalizes hard negative samples.</li>
+      <li>In <b>CLIP (OpenAI)</b>, image and text encoders project into a shared multimodal space. Given a batch of $N$ (image, text) pairs, the model maximizes the cosine similarity of the $N$ diagonal positive pairs while minimizing the $N^2 - N$ off-diagonal negative pairs.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="meta anthropic">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q26</span>
+    <div class="q-badges">
+      <span class="badge-co badge-meta">Meta FAIR</span>
+      <span class="badge-co badge-anthropic">Anthropic</span>
+      <span class="badge-cat">NLP & Embeddings</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Compare Word2Vec (Skip-Gram with Negative Sampling) vs Contextual Embeddings (BERT/RoBERTa). What is the Polysemy limitation?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    Word2Vec assigns a single static vector to each word in the vocabulary, incapable of handling polysemy (e.g. "apple" fruit vs "apple" tech company). Contextual embeddings compute representations dynamically as a function of the entire sequence via self-attention.
+  </div>
+  <div class="q-deep">
+    <p><b>Negative Sampling Objective in Word2Vec:</b></p>
+    <ul>
+      <li>Predicting context word $c$ given center word $w$: $\mathcal{L} = \log \sigma(v_c^T v_w) + \sum_{k=1}^K \mathbb{E}_{w_k \sim P_n(w)} [\log \sigma(-v_{w_k}^T v_w)]$. Replaces computing the expensive full-vocabulary softmax ($O(|V|)$) with $K$ binary logistic regressions ($O(K)$).</li>
+      <li>In BERT, bidirectional self-attention allows the token vector for "bank" to dynamically shift towards finance or river depending on surrounding tokens.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="apple nvidia">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q27</span>
+    <div class="q-badges">
+      <span class="badge-co badge-apple">Apple</span>
+      <span class="badge-co badge-nvidia">NVIDIA</span>
+      <span class="badge-cat">Mixed Precision</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Why is Mixed-Precision Training (FP16 vs BF16 vs FP8) faster, and why is Dynamic Loss Scaling required for FP16?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    Lower precision halves memory bandwidth requirements and leverages dedicated hardware Tensor Cores. FP16 has only 5 exponent bits, causing small gradient updates to underflow to zero; Dynamic Loss Scaling scales loss up before backprop.
+  </div>
+  <div class="q-deep">
+    <p><b>FP16 vs BF16 Numerical Format:</b></p>
+    <ul>
+      <li><b>FP32:</b> 1 sign bit, 8 exponent bits, 23 mantissa bits (dynamic range $\approx 10^{38}$).</li>
+      <li><b>FP16:</b> 1 sign bit, 5 exponent bits, 10 mantissa bits (dynamic range only $10^{-5}$ to $65,504$). Gradients smaller than $2^{-14}$ underflow to zero!</li>
+      <li><b>BF16 (Bfloat16):</b> 1 sign bit, <b>8 exponent bits</b>, 7 mantissa bits. Matches FP32's dynamic range; eliminates underflow and makes loss scaling unnecessary!</li>
+      <li><b>Dynamic Loss Scaling (FP16):</b> Multiplies loss by $S = 2^{16}$ before backprop, shifting gradients into FP16's representable range. If an overflow (Inf/NaN) occurs, the update is skipped and $S$ is halved.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="google openai">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q28</span>
+    <div class="q-badges">
+      <span class="badge-co badge-google">Google DeepMind</span>
+      <span class="badge-co badge-openai">OpenAI</span>
+      <span class="badge-cat">VAEs</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Explain the Variational Autoencoder (VAE) loss function (ELBO). Why is the Reparameterization Trick mathematically required?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    The VAE objective optimizes the Evidence Lower Bound: $\text{ELBO} = \mathbb{E}_{q_\phi(z|x)}[\log p_\theta(x|z)] - D_{KL}(q_\phi(z|x) \parallel p(z))$. The Reparameterization Trick express $z = \mu + \sigma \odot \epsilon$ where $\epsilon \sim \mathcal{N}(0, I)$, allowing backpropagation through stochastic nodes.
+  </div>
+  <div class="q-deep">
+    <p><b>The Sampling Bottleneck:</b></p>
+    <ul>
+      <li>Sampling $z \sim q_\phi(z|x) = \mathcal{N}(\mu, \sigma^2)$ is a non-differentiable operation: $\frac{\partial z}{\partial \mu}$ does not exist.</li>
+      <li><b>Reparameterization Trick:</b> Shift randomness to an independent external noise variable $\epsilon \sim \mathcal{N}(0, I)$. Now $z = \mu(x) + \sigma(x) \odot \epsilon$ is a deterministic function with respect to network parameters $\mu$ and $\sigma$, allowing backpropagation to compute $\frac{\partial \mathcal{L}}{\partial \mu}$ and $\frac{\partial \mathcal{L}}{\partial \sigma}$!</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="meta microsoft">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q29</span>
+    <div class="q-badges">
+      <span class="badge-co badge-meta">Meta</span>
+      <span class="badge-co badge-microsoft">Microsoft</span>
+      <span class="badge-cat">Transfer Learning</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">What is Catastrophic Forgetting in continual learning? How do Elastic Weight Consolidation (EWC) and parameter replay mitigate it?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    Catastrophic forgetting occurs when a neural network trained on Task B overwrites weights crucial for Task A, completely losing previous knowledge. EWC uses the Fisher Information Matrix to penalize changes to parameters critical to Task A.
+  </div>
+  <div class="q-deep">
+    <p><b>Elastic Weight Consolidation (EWC) Loss:</b></p>
+    <ul>
+      <li>$$\mathcal{L}(\theta) = \mathcal{L}_B(\theta) + \sum_i \frac{\lambda}{2} F_i (\theta_i - \theta_{A, i}^*)^2$$</li>
+      <li>$F_i$ is the $i$-th diagonal element of the <b>Fisher Information Matrix</b>, measuring how sensitive Task A's predictions are to changes in parameter $\theta_i$.</li>
+      <li>Parameters critical to Task A ($F_i$ high) are heavily anchored; parameters unimportant to Task A ($F_i$ near zero) are free to adapt to Task B.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="anthropic openai">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q30</span>
+    <div class="q-badges">
+      <span class="badge-co badge-anthropic">Anthropic</span>
+      <span class="badge-co badge-openai">OpenAI</span>
+      <span class="badge-cat">Scaling Laws</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Compare Kaplan vs Chinchilla Scaling Laws for LLMs. What is the compute-optimal ratio of model parameters to training tokens?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    Kaplan et al. (OpenAI 2020) suggested scaling parameters faster than tokens ($N \sim C^{0.73}, D \sim C^{0.27}$). Chinchilla (Hoffmann et al., DeepMind 2022) proved parameters and tokens should scale equally: for every $1\times$ increase in parameters, training tokens must scale by $1\times$ ($N \sim C^{0.5}, D \sim C^{0.5}$), approximately 20 tokens per parameter.
+  </div>
+  <div class="q-deep">
+    <p><b>The Chinchilla Revolution:</b></p>
+    <ul>
+      <li>Total training compute: $C \approx 6 N D$ FLOPs (where $N$ is parameter count and $D$ is token count).</li>
+      <li>Models prior to 2022 (e.g. GPT-3 175B trained on 300B tokens) were severely <b>undertrained</b>.</li>
+      <li>Chinchilla showed that a 70B parameter model trained on 1.4 Trillion tokens outperformed a 175B model while requiring significantly cheaper inference latency and memory! Modern models (Llama 3 8B trained on 15T tokens) push far past compute-optimal training to optimize inference serving efficiency.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<h2>4. transformers, llm architectures & alignment (q31 – q40)</h2>
+
+<details class="q-card" data-companies="openai anthropic">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q31</span>
+    <div class="q-badges">
+      <span class="badge-co badge-openai">OpenAI</span>
+      <span class="badge-co badge-anthropic">Anthropic</span>
+      <span class="badge-cat">Attention Derivation</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Derive Scaled Dot-Product Attention. Why is dividing by sqrt(d_k) mathematically mandatory for gradient stability?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    $\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{Q K^T}{\sqrt{d_k}}\right) V$. For large head dimensions $d_k$, the dot product variance grows as $O(d_k)$, pushing softmax into saturation regions where gradients vanish.
+  </div>
+  <div class="q-deep">
+    <p><b>Variance Proof of Dot Product:</b></p>
+    <ul>
+      <li>Let components $q_i, k_i$ be independent random variables with zero mean and unit variance: $\mathbb{E}[q_i] = \mathbb{E}[k_i] = 0, \operatorname{Var}(q_i) = \operatorname{Var}(k_i) = 1$.</li>
+      <li>Dot product: $z = q \cdot k = \sum_{i=1}^{d_k} q_i k_i$.</li>
+      <li>$\mathbb{E}[z] = \sum \mathbb{E}[q_i k_i] = 0$.</li>
+      <li>$\operatorname{Var}(z) = \sum_{i=1}^{d_k} \operatorname{Var}(q_i k_i) = \sum_{i=1}^{d_k} [\operatorname{Var}(q_i)\operatorname{Var}(k_i) + \operatorname{Var}(q_i)\mathbb{E}[k_i]^2 + \operatorname{Var}(k_i)\mathbb{E}[q_i]^2] = \sum_{i=1}^{d_k} 1 = d_k$.</li>
+      <li>As $d_k$ grows (e.g. 128), standard deviation is $\sqrt{128} \approx 11.3$. The largest values in $Q K^T$ dominate, causing softmax to yield one-hot vectors with near-zero gradients ($\frac{\partial \text{softmax}}{\partial z} \to 0$). Dividing by $\sqrt{d_k}$ resets variance back to 1.0!</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="google meta">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q32</span>
+    <div class="q-badges">
+      <span class="badge-co badge-google">Google DeepMind</span>
+      <span class="badge-co badge-meta">Meta FAIR</span>
+      <span class="badge-cat">Attention Variants</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Compare Multi-Head Attention (MHA), Multi-Query Attention (MQA), and Grouped-Query Attention (GQA). Why does Llama 3 use GQA?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    MHA has $H$ distinct key/value heads. MQA collapses them to 1 single key/value head. GQA groups $H$ query heads into $G$ key/value heads (e.g. 8 KV heads for 32 Query heads), slashing KV-cache memory by 75% with zero quality loss.
+  </div>
+  <div class="q-deep">
+    <p><b>KV Cache Footprint Comparison:</b></p>
+    <ul>
+      <li>In LLM decoding, the bottleneck is transferring KV-cache from GPU HBM memory.</li>
+      <li><b>MHA:</b> Memory per token $= 2 \times n_{layers} \times n_{heads} \times d_{head} \times \text{bytes}$. Huge memory footprint!</li>
+      <li><b>MQA:</b> Ultra-fast inference (single KV head), but suffers from training instability and capacity degradation on complex reasoning.</li>
+      <li><b>GQA (Goldilocks Standard):</b> Groups queries (e.g., 4 query heads share 1 KV head). Reduces memory bandwidth traffic by $4\times$ to $8\times$, allowing larger batch sizes and longer context windows without degrading MMLU scores.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="anthropic openai">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q33</span>
+    <div class="q-badges">
+      <span class="badge-co badge-anthropic">Anthropic</span>
+      <span class="badge-co badge-openai">OpenAI</span>
+      <span class="badge-cat">Positional Embeddings</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Explain Rotary Position Embeddings (RoPE). How does RoPE inject relative positional distance via complex 2D rotations?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    RoPE rotates 2D slices of query and key vectors in the complex plane by an angle proportional to position $m$: $R_{\Theta, m} x$. The inner product $\langle R_{\Theta, m} q, R_{\Theta, n} k \rangle = q^T R_{\Theta, n-m} k$ naturally encodes relative distance $(m - n)$ without learnable position lookups.
+  </div>
+  <div class="q-deep">
+    <p><b>Mathematical Rotation:</b></p>
+    <ul>
+      <li>Pair coordinates: $(x_1, x_2) \to x_1 + i x_2$.</li>
+      <li>Multiply by complex phase $e^{i m \theta}$: $\begin{pmatrix} \cos m\theta & -\sin m\theta \\ \sin m\theta & \cos m\theta \end{pmatrix} \begin{pmatrix} x_1 \\ x_2 \end{pmatrix}$.</li>
+      <li>Since $\cos(m\theta - n\theta) = \cos m\theta \cos n\theta + \sin m\theta \sin n\theta$, the attention score depends purely on relative distance $(m - n)$, enabling context length extension via RoPE frequency interpolation (YaRN).</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="openai google">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q34</span>
+    <div class="q-badges">
+      <span class="badge-co badge-openai">OpenAI</span>
+      <span class="badge-co badge-google">Google DeepMind</span>
+      <span class="badge-cat">LLM Inference</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Why is the LLM Prefill phase compute-bound while the Autoregressive Decoding phase is memory-bandwidth bound?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    Prefill processes all prompt tokens in parallel using matrix-matrix multiplications (GEMM, high arithmetic intensity). Decoding processes 1 token at a time, performing matrix-vector products (GEMV) that require loading billions of weights from memory for a single token update.
+  </div>
+  <div class="q-deep">
+    <p><b>Arithmetic Intensity & The Roofline Model:</b></p>
+    <ul>
+      <li><b>Prefill:</b> $N$ tokens are available at once. Operations scale as $O(N \cdot d^2)$. Arithmetic intensity is high ($\text{FLOPs} / \text{Byte} \gg \text{Hardware Ratio}$), fully saturating GPU Tensor Cores.</li>
+      <li><b>Decoding:</b> To generate 1 token, the GPU must stream the entire 70GB model weights (for a 70B parameter model in FP8/INT8) from High Bandwidth Memory (HBM) into SRAM just to multiply by 1 token vector! The GPU cores spend 95% of their time stalled waiting for memory transfers.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="meta anthropic">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q35</span>
+    <div class="q-badges">
+      <span class="badge-co badge-meta">Meta FAIR</span>
+      <span class="badge-co badge-anthropic">Anthropic</span>
+      <span class="badge-cat">FlashAttention</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">How does FlashAttention achieve a 2x-4x speedup? Explain SRAM tiling and the Online Softmax trick.</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    Standard attention materializes an $N \times N$ attention matrix in slow GPU HBM ($O(N^2)$ memory reads/writes). FlashAttention tiles inputs into blocks that fit in ultra-fast GPU on-chip SRAM (~20TB/s) and uses Online Softmax to fuse the entire computation into a single kernel pass.
+  </div>
+  <div class="q-deep">
+    <p><b>Online Softmax Formulation:</b></p>
+    <ul>
+      <li>Standard softmax requires knowing the global maximum $m = \max(x_i)$ and sum $\sum e^{x_i - m}$ across the entire sequence before dividing.</li>
+      <li><b>Online Softmax:</b> Updates running max $m_{new} = \max(m_{old}, \tilde{m})$ and rescales the running sum: $d_{new} = d_{old} e^{m_{old} - m_{new}} + \tilde{d} e^{\tilde{m} - m_{new}}$.</li>
+      <li>Allows computing exact softmax incrementally block-by-block without ever writing the massive $N \times N$ intermediate attention map to GPU HBM!</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="openai anthropic">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q36</span>
+    <div class="q-badges">
+      <span class="badge-co badge-openai">OpenAI</span>
+      <span class="badge-co badge-anthropic">Anthropic</span>
+      <span class="badge-cat">LLM Alignment</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Compare RLHF (Reinforcement Learning from Human Feedback via PPO) vs DPO (Direct Preference Optimization). Why does DPO eliminate the reward model?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    RLHF trains a separate Reward Model and uses unstable PPO reinforcement learning to optimize the policy. DPO mathematically expresses the ground-truth reward in terms of the optimal policy ratio, optimizing the LLM directly on preference pairs $(y_w, y_l)$ with standard binary cross-entropy loss.
+  </div>
+  <div class="q-deep">
+    <p><b>The DPO Loss Formula:</b></p>
+    <ul>
+      <li>$$\mathcal{L}_{\text{DPO}}(\pi_\theta; \pi_{ref}) = - \mathbb{E}_{(x, y_w, y_l)} \left[ \log \sigma \left( \beta \log \frac{\pi_\theta(y_w|x)}{\pi_{ref}(y_w|x)} - \beta \log \frac{\pi_\theta(y_l|x)}{\pi_{ref}(y_l|x)} \right) \right]$$</li>
+      <li>$y_w$ is the winning (preferred) response; $y_l$ is the losing response; $\pi_{ref}$ is the frozen reference SFT model.</li>
+      <li><b>Engineering Advantages:</b> No separate reward model, no value network (critic), no actor-critic sampling during training, no complex PPO hyperparameter tuning. Completely stable and uses $2\times$ less GPU VRAM!</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="google meta">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q37</span>
+    <div class="q-badges">
+      <span class="badge-co badge-google">Google</span>
+      <span class="badge-co badge-meta">Meta</span>
+      <span class="badge-cat">PEFT & LoRA</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">How does LoRA (Low-Rank Adaptation) freeze pre-trained weights while enabling fine-tuning? Show the rank decomposition math.</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    LoRA freezes the base model weights $W_0 \in \mathbb{R}^{d \times k}$ and models parameter updates as the low-rank product of two small matrices: $\Delta W = B \cdot A$, where $B \in \mathbb{R}^{d \times r}$ and $A \in \mathbb{R}^{r \times k}$ with rank $r \ll \min(d, k)$.
+  </div>
+  <div class="q-deep">
+    <p><b>Parameter Reduction Math:</b></p>
+    <ul>
+      <li>Forward pass: $h = W_0 x + \Delta W x = W_0 x + \frac{\alpha}{r} (B \cdot A) x$.</li>
+      <li>If $d = 4096, k = 4096$ and rank $r = 8$:
+        Full weight matrix has $4096 \times 4096 = 16,777,216$ parameters.
+        LoRA has $2 \times (4096 \times 8) = 65,536$ parameters—<b>a 99.6% parameter reduction!</b></li>
+      <li>Zero inference latency: At deployment, $B \cdot A$ is added directly into $W_0$ ($W_{merged} = W_0 + \frac{\alpha}{r} B A$), adding zero extra matrix multiplications during serving.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="anthropic openai">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q38</span>
+    <div class="q-badges">
+      <span class="badge-co badge-anthropic">Anthropic</span>
+      <span class="badge-co badge-openai">OpenAI</span>
+      <span class="badge-cat">Inference Optimization</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">What is Speculative Decoding? How does a small draft model accelerate large target models without changing the output distribution?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    A small, fast draft model generates $K$ speculative tokens in serial; the large target model evaluates all $K$ tokens simultaneously in a single parallel forward pass using modified speculative acceptance sampling.
+  </div>
+  <div class="q-deep">
+    <p><b>Modified Rejection Sampling:</b></p>
+    <ul>
+      <li>Draft model generates candidate tokens $x_1, \dots, x_K$ cheaply.</li>
+      <li>Target model computes probabilities $p(x)$ for all $K$ tokens in one parallel forward pass (compute-bound matrix multiplication, saturating GPUs).</li>
+      <li>Token $x$ is accepted with probability $\min\left(1, \frac{p(x)}{q(x)}\right)$, where $q(x)$ is draft model probability.</li>
+      <li><b>Mathematical Guarantee:</b> The output distribution is provably identical to sampling directly from the large target model, achieving $2\times$ to $3\times$ speedups on latency!</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="apple microsoft">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q39</span>
+    <div class="q-badges">
+      <span class="badge-co badge-apple">Apple</span>
+      <span class="badge-co badge-microsoft">Microsoft</span>
+      <span class="badge-cat">Quantization</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Compare Post-Training Quantization (PTQ) vs Quantization-Aware Training (QAT). How do AWQ and GPTQ compress LLMs to INT4?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    PTQ quantizes weights after training without re-training; QAT models rounding errors during training using the Straight-Through Estimator (STE). AWQ protects the 1% most salient activation weights from quantization error.
+  </div>
+  <div class="q-deep">
+    <p><b>Advanced 4-bit Quantization Techniques:</b></p>
+    <ul>
+      <li><b>GPTQ:</b> Uses second-order Taylor information (inverse Hessian $H^{-1}$) to greedily update unquantized weights row-by-row, compensating for quantization errors.</li>
+      <li><b>AWQ (Activation-aware Weight Quantization):</b> Observes that not all weights are equally important. Weights corresponding to high activation channels contain critical knowledge. AWQ scales these salient weights up by a per-channel factor $s > 1$ before rounding, drastically preserving perplexity at INT4!</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="anthropic google">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q40</span>
+    <div class="q-badges">
+      <span class="badge-co badge-anthropic">Anthropic</span>
+      <span class="badge-co badge-google">Google DeepMind</span>
+      <span class="badge-cat">Hallucinations</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">What causes Hallucinations in Large Language Models? How do you detect and mitigate hallucinations in mission-critical applications?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    Hallucinations arise from statistical next-token prediction objectives prioritizing fluency over factual accuracy, exacerbated by training on uncurated internet data, outdated cutoffs, and overconfidence in unfamiliar domains.
+  </div>
+  <div class="q-deep">
+    <p><b>Mitigation Engineering Stack:</b></p>
+    <ul>
+      <li><b>Retrieval-Augmented Generation (RAG):</b> Ground generation strictly in retrieved authoritative source documents with explicit citation mandates.</li>
+      <li><b>Self-Consistency & Majority Voting:</b> Sample multiple reasoning paths at temperature > 0; evaluate consistency across generated answers.</li>
+      <li><b>Logit Uncertainty Calibration:</b> Monitor token perplexity / entropy. Hallucinated facts often correlate with sharp spikes in predictive token entropy.</li>
+      <li><b>LLM-as-a-Judge Fact Verification:</b> Use a fine-tuned evaluator model to verify claims against reference documents (Faithfulness / Groundedness checks).</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<h2>5. evaluation, production ml & real-world systems (q41 – q50)</h2>
+
+<details class="q-card" data-companies="meta google">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q41</span>
+    <div class="q-badges">
+      <span class="badge-co badge-meta">Meta</span>
+      <span class="badge-co badge-google">Google</span>
+      <span class="badge-cat">Classification Metrics</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Why is Accuracy dangerous for imbalanced datasets? Explain Precision, Recall, and the trade-off controlled by classification threshold.</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    On a dataset with 99% negative class (e.g. ad fraud), a dumb classifier that always predicts 0 achieves 99% accuracy while catching 0% of fraud. Precision measures false alarm rate; Recall measures missed detection rate.
+  </div>
+  <div class="q-deep">
+    <p><b>Metric Formulations:</b></p>
+    <ul>
+      <li>$$\text{Precision} = \frac{TP}{TP + FP} \quad \text{(When we predict positive, how often are we right?)}$$</li>
+      <li>$$\text{Recall} = \frac{TP}{TP + FN} \quad \text{(Out of all real positives, how many did we catch?)}$$</li>
+      <li>$$F_1 = 2 \times \frac{\text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}} \quad \text{(Harmonic mean)}$$</li>
+      <li><b>Threshold Control:</b> Lowering the decision threshold (e.g. from 0.5 to 0.1) increases Recall at the expense of lower Precision (vital for cancer screening and fraud prevention).</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="amazon apple">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q42</span>
+    <div class="q-badges">
+      <span class="badge-co badge-amazon">Amazon</span>
+      <span class="badge-co badge-apple">Apple</span>
+      <span class="badge-cat">Evaluation Curves</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Compare ROC-AUC vs Precision-Recall (PR) AUC. Why does ROC give an overly optimistic picture of model quality under severe class imbalance?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    ROC plots True Positive Rate vs False Positive Rate ($FPR = \frac{FP}{FP + TN}$). When True Negatives are enormous, $FPR$ remains tiny even if False Positives explode by $1000\times$, masking poor precision. PR curves reflect real performance on rare classes.
+  </div>
+  <div class="q-deep">
+    <p><b>Numerical Example:</b></p>
+    <ul>
+      <li>Suppose $P = 100, N = 1,000,000$.</li>
+      <li>Model predicts 1,000 positive cases, capturing 80 true positives ($TP = 80, FP = 920$).</li>
+      <li>$FPR = \frac{920}{920 + 999,080} = 0.00092$ (near 0!). The ROC curve looks stellar!</li>
+      <li>However, $\text{Precision} = \frac{80}{1000} = 8\%$. 92% of all alerts are false alarms! The PR-AUC immediately highlights this failure.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="google netflix">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q43</span>
+    <div class="q-badges">
+      <span class="badge-co badge-google">Google</span>
+      <span class="badge-co badge-netflix">Netflix</span>
+      <span class="badge-cat">Model Monitoring</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Differentiate Covariate Shift, Concept Drift, and Prior Shift. How do you detect drift using Population Stability Index (PSI) and KS-tests?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    Covariate Shift: $P(X)$ changes while $P(Y|X)$ remains fixed. Concept Drift: $P(Y|X)$ changes (the underlying relationship changes). Prior Shift: $P(Y)$ changes.
+  </div>
+  <div class="q-deep">
+    <p><b>Detection Tools:</b></p>
+    <ul>
+      <li><b>Population Stability Index (PSI):</b> Measures shift in feature distributions: $\text{PSI} = \sum (Actual\% - Expected\%) \times \ln\left(\frac{Actual\%}{Expected\%}\right)$.
+        <ul>
+          <li>$\text{PSI} < 0.1$: No significant change.</li>
+          <li>$\text{PSI} > 0.25$: Severe drift; model retraining required immediately.</li>
+        </ul>
+      </li>
+      <li><b>Kolmogorov-Smirnov (KS) Test:</b> Non-parametric test comparing the cumulative distribution functions $D = \sup_x |F_{train}(x) - F_{prod}(x)|$. A low p-value ($p < 0.01$) proves statistical distribution shift.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="openai anthropic">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q44</span>
+    <div class="q-badges">
+      <span class="badge-co badge-openai">OpenAI</span>
+      <span class="badge-co badge-anthropic">Anthropic</span>
+      <span class="badge-cat">RAG Systems</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Explain the RAG Triad for evaluating Retrieval-Augmented Generation systems without human labels.</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    The RAG Triad decomposes quality into three independent metrics: 1) Context Relevance (did retriever fetch relevant docs?), 2) Groundedness/Faithfulness (is the answer derived strictly from context?), 3) Answer Relevance (does the answer address the user query?).
+  </div>
+  <div class="q-deep">
+    <p><b>Diagnostic Power of the Triad:</b></p>
+    <ul>
+      <li><b>Low Context Relevance:</b> Vector search is failing (bad chunking, embedding drift, low top-k, vocabulary mismatch). Fix with hybrid search (BM25 + Dense) or cross-encoder rerankers.</li>
+      <li><b>High Context Relevance, Low Groundedness:</b> Retriever succeeded, but the LLM is hallucinating unsupported claims. Fix via stricter system prompting and temperature reduction.</li>
+      <li><b>High Groundedness, Low Answer Relevance:</b> The LLM stayed faithful to the context, but rambled or answered the wrong question.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="amazon meta">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q45</span>
+    <div class="q-badges">
+      <span class="badge-co badge-amazon">Amazon</span>
+      <span class="badge-co badge-meta">Meta</span>
+      <span class="badge-cat">RecSys Metrics</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">In Recommendation Systems, explain Normalized Discounted Cumulative Gain (NDCG@K). Why do offline ranking improvements often fail to translate to online business metrics?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    NDCG evaluates ranking quality by rewarding relevant items placed at the top while logarithmically discounting items placed lower down. Offline models optimize proxy targets (clicks) which may conflict with true long-term value (retention, customer satisfaction).
+  </div>
+  <div class="q-deep">
+    <p><b>NDCG Formulation:</b></p>
+    <ul>
+      <li>$$\text{DCG}@K = \sum_{i=1}^K \frac{2^{rel_i} - 1}{\log_2(i + 1)} \quad \implies \quad \text{NDCG}@K = \frac{\text{DCG}@K}{\text{IDCG}@K}$$</li>
+      <li>$\text{IDCG}@K$ is the Ideal DCG obtained by sorting items by true relevance in descending order.</li>
+      <li><b>Why Offline Wins Fail Online:</b>
+        <ul>
+          <li><b>Feedback Loops:</b> Recommendations change user behavior over time, violating offline i.i.d. assumptions.</li>
+          <li><b>Clickbait Bias:</b> Models learn to recommend sensationalist items that get clicks but cause high churn.</li>
+          <li><b>Position Bias:</b> Users click top results simply because they are displayed at the top, not because they are inherently better.</li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="google apple">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q46</span>
+    <div class="q-badges">
+      <span class="badge-co badge-google">Google</span>
+      <span class="badge-co badge-apple">Apple</span>
+      <span class="badge-cat">Cold Start</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">How do you solve the Cold-Start Problem in recommender systems for both new users and new items?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    Pure collaborative filtering fails when user/item interaction history is zero. Production systems use hybrid architectures: falling back to content-based metadata and multi-armed bandit exploration.
+  </div>
+  <div class="q-deep">
+    <p><b>Production Solutions:</b></p>
+    <ul>
+      <li><b>New Items:</b> Use multimodal content embeddings (image visual features + product title text embeddings) to project new items into the embedding space, clustering them near established items.</li>
+      <li><b>New Users:</b> Leverage contextual metadata (geolocation, device type, referral source) and present popular/trending onboarding onboarding items to collect quick explicit preferences.</li>
+      <li><b>Multi-Armed Bandits (Thompson Sampling / Upper Confidence Bound - UCB):</b> Allocate a small percentage (e.g. 5%) of traffic to explore cold items and gather interaction signals rapidly without sacrificing overall conversion.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="meta netflix">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q47</span>
+    <div class="q-badges">
+      <span class="badge-co badge-meta">Meta</span>
+      <span class="badge-co badge-netflix">Netflix</span>
+      <span class="badge-cat">A/B Testing</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Explain A/B Testing pitfalls in Machine Learning: Network Spillover (Interference), Novelty Effects, and Peeking p-hacking.</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    A/B testing evaluates causal impact. Network spillover violates SUTVA (Stable Unit Treatment Value Assumption); novelty effects cause temporary engagement spikes; peeking before reaching predetermined sample sizes inflates false positive rates.
+  </div>
+  <div class="q-deep">
+    <p><b>Mitigation Strategies:</b></p>
+    <ul>
+      <li><b>Network Interference:</b> On social networks or ride-sharing apps (Uber, Meta), treating User A affects User B. Use <b>Cluster-based Randomization</b> (partition by social graph community) or <b>Switchback Testing</b> (alternate treatment/control by time-window and geographic region).</li>
+      <li><b>Novelty Effect:</b> Run experiments for at least two full business cycles (2–4 weeks) to let curiosity decay before evaluating steady-state metrics.</li>
+      <li><b>Peeking Problem:</b> Continually checking p-values and stopping once $p < 0.05$ increases true false positive rate to $> 30\%$! Use <b>Sequential Testing</b> (e.g. Always Valid p-values) or fixed sample size power calculations ($N = \frac{16 \sigma^2}{\delta^2}$).</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="microsoft amazon">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q48</span>
+    <div class="q-badges">
+      <span class="badge-co badge-microsoft">Microsoft</span>
+      <span class="badge-co badge-amazon">Amazon</span>
+      <span class="badge-cat">MLOps & Feature Stores</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">What is Train-Serve Skew? How do Feature Stores (Feast, Hopsworks) guarantee Point-in-Time Correctness?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    Train-serve skew occurs when feature engineering logic differs between offline batch pipelines (Spark/SQL) and online real-time inference (C++/Python), or when data leakage introduces future information into training features. Feature stores provide a single definition with time-travel joins.
+  </div>
+  <div class="q-deep">
+    <p><b>Point-in-Time Correctness (Time-Travel Join):</b></p>
+    <ul>
+      <li>If predicting user churn on June 1st, features like <code>user_30d_spend</code> must only consider transactions before June 1st, 00:00:00.</li>
+      <li>Accidentally including transactions from June 2nd leaks the label into the feature, causing spectacular offline test metrics that crash upon live production deployment.</li>
+      <li>Feature stores automatically perform point-in-time joins matching observation event timestamps to the exact state of features at that millisecond.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="openai nvidia">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q49</span>
+    <div class="q-badges">
+      <span class="badge-co badge-openai">OpenAI</span>
+      <span class="badge-co badge-nvidia">NVIDIA</span>
+      <span class="badge-cat">Distributed Training</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Compare Distributed Data Parallel (DDP) vs Fully Sharded Data Parallel (FSDP / ZeRO-1, ZeRO-2, ZeRO-3). What memory states are sharded?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    DDP replicates the entire model on every GPU, exchanging gradients via AllReduce. FSDP (ZeRO) shards the three memory components: Optimizer States (ZeRO-1), Gradients (ZeRO-2), and Model Parameters (ZeRO-3) across GPUs, eliminating redundant memory.
+  </div>
+  <div class="q-deep">
+    <p><b>Memory Breakdown for 16-bit Training (16 bytes per parameter):</b></p>
+    <ul>
+      <li>Model Parameters: 2 bytes (FP16/BF16).</li>
+      <li>Gradients: 2 bytes (FP16/BF16).</li>
+      <li>Optimizer States (Adam): 12 bytes (4 bytes FP32 master weight + 4 bytes FP32 first moment + 4 bytes FP32 second moment).</li>
+      <li><b>ZeRO-1:</b> Shards optimizer states ($4\times$ memory reduction).</li>
+      <li><b>ZeRO-2:</b> Shards optimizer states and gradients ($8\times$ memory reduction).</li>
+      <li><b>ZeRO-3 (FSDP):</b> Shards all parameters, gradients, and optimizer states. Parameters are gathered dynamically via AllGather during forward pass and discarded immediately, enabling trillion-parameter models to fit on GPU clusters.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="anthropic meta">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q50</span>
+    <div class="q-badges">
+      <span class="badge-co badge-anthropic">Anthropic</span>
+      <span class="badge-co badge-meta">Meta FAIR</span>
+      <span class="badge-cat">Calibration & Safety</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">What is Model Calibration? How do you calculate Expected Calibration Error (ECE), and how does Temperature Scaling calibrate probabilities?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    A model is calibrated if its predicted probability reflects real-world frequency: when it predicts 80% confidence, it should be correct exactly 80% of the time. Temperature Scaling post-processes logits $z / T$ without altering accuracy or ranking.
+  </div>
+  <div class="q-deep">
+    <p><b>Expected Calibration Error (ECE) Formula:</b></p>
+    <ul>
+      <li>Partition predictions into $M$ confidence bins $B_m$ (e.g. $[0.7, 0.8]$):</li>
+      <li>$$\text{ECE} = \sum_{m=1}^M \frac{|B_m|}{N} \left| \operatorname{acc}(B_m) - \operatorname{conf}(B_m) \right|$$</li>
+      <li>Modern deep networks with high capacity and batch normalization are notoriously <b>overconfident</b> (predicting 99% confidence for items with only 70% accuracy).</li>
+      <li><b>Temperature Scaling:</b> Divide logits by scalar $T > 1$ before softmax: $\hat{p}_i = \frac{e^{z_i / T}}{\sum_j e^{z_j / T}}$. Optimizing $T$ on validation set via NLL loss smooths overconfidence while keeping classification decisions ($T > 0$ is monotonic) completely unchanged.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<script>
+function toggleAll(open) {
+  document.querySelectorAll('details.q-card').forEach(d => {
+    d.open = open;
+    if (open && window.renderKaTeX) {
+      window.renderKaTeX(d);
+    }
+  });
+  if (open && window.renderKaTeX) {
+    window.renderKaTeX();
+  }
+}
+
+function filterQuestions(company, btn) {
+  const buttons = document.querySelectorAll('.iq-btn');
+  buttons.forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const cards = document.querySelectorAll('.q-card');
+  cards.forEach(card => {
+    if (company === 'all') {
+      card.style.display = 'block';
+    } else {
+      const comps = card.getAttribute('data-companies') || '';
+      if (comps.toLowerCase().includes(company.toLowerCase())) {
+        card.style.display = 'block';
+      } else {
+        card.style.display = 'none';
+      }
+    }
+  });
+}
+
+// Re-render math dynamically whenever any individual question dropdown is expanded
+document.addEventListener('toggle', function(e) {
+  if (e.target && e.target.tagName === 'DETAILS' && e.target.open && window.renderKaTeX) {
+    window.renderKaTeX(e.target);
+  }
+}, true);
+</script>

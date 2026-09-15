@@ -1,0 +1,147 @@
+<style>
+.os-sync-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin: 16px 0;
+}
+.os-sync-card {
+  background: var(--canvas, #ffffff);
+  border: 1.5px solid var(--border-dim, #e4ded0);
+  border-radius: 10px;
+  padding: 16px;
+}
+.os-sync-card h4 {
+  margin: 0 0 8px;
+  font-size: 15px;
+}
+</style>
+
+<p class="kicker">preventing chaos in shared memory — race conditions, semaphores, futexes, and lock-free internals.</p>
+
+<h2>the 30-second elevator pitch</h2>
+<p>Imagine a shared whiteboard where two people simultaneously try to update a bank balance: <code>balance = balance + 10</code>. Person A reads <code>$100</code>. Before Person A writes <code>$110</code>, Person B also reads <code>$100</code>. Both write <code>$110</code>. Ten dollars has vanished into thin air! This is a <b>Race Condition</b>.</p>
+<ul>
+  <li><b>The Critical Section:</b> Any piece of code that accesses shared mutable state (a global counter, a linked list, a database socket). Only <b>one thread</b> may execute inside this section at any instant.</li>
+  <li><b>The Airplane Bathroom Analogy:</b> A mutex is the lock on the airplane bathroom door. If it is green (unlocked), you walk in and slide it red (locked). If someone else arrives while it is red, they must wait outside until you unlock it.</li>
+</ul>
+
+<div class="callout remember">
+  <b class="label">🧷 the 3 critical section rules</b><br />
+  Any valid synchronization solution <b>must</b> satisfy three properties:
+  <ol>
+    <li><b>Mutual Exclusion:</b> If Thread A is executing in its critical section, no other thread can be executing in that section.</li>
+    <li><b>Progress:</b> If no thread is in the critical section and someone wants to enter, only threads actively competing may participate in the decision, and the selection cannot be postponed indefinitely.</li>
+    <li><b>Bounded Waiting:</b> There must be a limit on the number of times other threads can enter before a waiting thread's request is granted (no infinite starvation).</li>
+  </ol>
+</div>
+
+<h2>hardware primitives: test-and-set & compare-and-swap (CAS)</h2>
+<p>Software algorithms alone (like Peterson's algorithm) break on modern out-of-order CPUs because hardware reorders instructions and caches memory. Hardware must provide <b>atomic instructions</b> (uninterruptible at the silicon memory-bus level):</p>
+
+<h3>compare-and-swap (CAS / x86 CMPXCHG)</h3>
+<p>The foundation of all modern concurrent lock-free data structures. The CPU silicon implements this in a single indivisible memory bus transaction:</p>
+<ul>
+  <li><b>Input:</b> A target memory address, an expected old value, and a desired new value.</li>
+  <li><b>Operation:</b> The hardware inspects the memory address. If the current value matches the expected value, it writes the new value and reports success. If another core intervened and changed the value, it aborts without modifying memory and reports failure.</li>
+  <li><b>Atomicity:</b> Guaranteed by hardware bus locking or cache-line locking protocols (e.g., MESI).</li>
+</ul>
+
+<h2>spinlocks vs mutexes: when to spin vs when to sleep?</h2>
+<div class="os-sync-grid">
+  <div class="os-sync-card">
+    <h4>Spinlock (Busy Waiting)</h4>
+    <p>The thread sits in an active CPU loop continuously probing the lock flag via atomic instructions until it becomes free.</p>
+    <ul>
+      <li><b>Pros:</b> Zero context switch overhead. Responds instantly the moment the lock is released.</li>
+      <li><b>Cons:</b> Burns 100% CPU power doing zero useful work while waiting. Horrible on single-core machines.</li>
+      <li><b>Use Case:</b> Operating system kernel interrupt handlers where threads cannot sleep, or critical sections holding a lock for $< 50\text{ns}$.</li>
+    </ul>
+  </div>
+
+  <div class="os-sync-card">
+    <h4>Mutex (Sleeping Lock)</h4>
+    <p>If the lock is busy, the thread yields the CPU. The OS moves the thread from <code>RUNNING</code> to <code>WAITING</code> and schedules another task.</p>
+    <ul>
+      <li><b>Pros:</b> Frees the CPU core for other useful processes to execute. Zero power wasted spinning.</li>
+      <li><b>Cons:</b> High overhead: going to sleep and waking up requires <b>two context switches</b> (~2–4 microseconds).</li>
+      <li><b>Use Case:</b> General application code where critical sections hold locks for milliseconds (disk, network, complex calculations).</li>
+    </ul>
+  </div>
+</div>
+
+<div class="callout gotcha">
+  <b class="label">⚠️ the golden decision rule</b><br />
+  <b>If (Estimated Lock Hold Time &lt; 2 $\times$ Context Switch Latency):</b> Use a <b>Spinlock</b>.<br />
+  <b>If (Estimated Lock Hold Time &gt; 2 $\times$ Context Switch Latency):</b> Use a <b>Mutex</b>.<br />
+  Modern adaptive mutexes (like in Linux pthreads and Java HotSpot) do both: they spin for 100 iterations; if still locked, they put the thread to sleep!
+</div>
+
+<h2>semaphores: counting vs binary</h2>
+<p>Invented by Edsger Dijkstra in 1965. An integer variable <code>S</code> modified only by two atomic operations: <code>wait()</code> (originally <i>P</i> for <i>proberen</i>, to test) and <code>signal()</code> (originally <i>V</i> for <i>verhogen</i>, to increment).</p>
+<ul>
+  <li><b>Binary Semaphore:</b> Value is 0 or 1. Functions similarly to a mutex, with one crucial difference: <b>A semaphore has no ownership concept!</b> Thread A can lock it, and Thread B can unlock it (useful for signaling between threads). A Mutex must be unlocked by the exact same thread that acquired it.</li>
+  <li><b>Counting Semaphore:</b> Initialized to an integer $N$ (e.g., $N=10$). Controls access to a finite pool of $N$ identical resources (e.g., database connection pool of 10 connections). Every <code>wait()</code> decrements; when count hits 0, subsequent callers block until another thread calls <code>signal()</code>.</li>
+</ul>
+
+<h3>classic problem: producer-consumer (bounded buffer)</h3>
+<p>How do producers and consumers share a finite buffer of $N$ slots without race conditions or buffer overflow?</p>
+
+<table>
+  <tr><th>Semaphore</th><th>Initial Value</th><th>Role in Coordination</th></tr>
+  <tr><td><b>mutex</b></td><td>1</td><td>Guarantees mutual exclusion: only one thread modifies the buffer queue at any instant.</td></tr>
+  <tr><td><b>empty_slots</b></td><td>$N$</td><td>Tracks empty slots. Producer decrements (blocks when 0); consumer increments after consuming.</td></tr>
+  <tr><td><b>full_slots</b></td><td>0</td><td>Tracks populated slots. Consumer decrements (blocks when 0); producer increments after producing.</td></tr>
+</table>
+
+<ul>
+  <li><b>Producer Flow:</b> Check <code>empty_slots</code> (sleep if buffer full) $\to$ Acquire <code>mutex</code> $\to$ Insert item into buffer $\to$ Release <code>mutex</code> $\to$ Signal <code>full_slots</code> (wakes up sleeping consumer).</li>
+  <li><b>Consumer Flow:</b> Check <code>full_slots</code> (sleep if buffer empty) $\to$ Acquire <code>mutex</code> $\to$ Remove item from buffer $\to$ Release <code>mutex</code> $\to$ Signal <code>empty_slots</code> (wakes up sleeping producer).</li>
+</ul>
+
+<h2>condition variables & spurious wakeups</h2>
+<p>A <b>Condition Variable (CV)</b> allows threads to sleep until a specific application condition is satisfied. It always works in conjunction with an associated mutex.</p>
+
+<div class="callout gotcha">
+  <b class="label">⚠️ why a while loop is mandatory (spurious wakeups)</b><br />
+  In every systems interview, you will be asked why a condition variable wait must <b>always sit inside a while loop, never an if statement</b>:
+  <ul>
+    <li><b>The Broken Approach (if check):</b> Testing the condition once before waiting. If the thread wakes up, it blindly assumes the condition is met and proceeds immediately.</li>
+    <li><b>The Safe Approach (while check):</b> Testing the condition in a loop. When awakened, the thread loops back to re-verify the condition before executing further.</li>
+  </ul>
+  <b>Why this is mandatory:</b>
+  <ol>
+    <li><b>Spurious Wakeups:</b> The OS kernel or POSIX implementation can occasionally wake up a sleeping thread even when no signal was issued!</li>
+    <li><b>The Thundering Herd Race:</b> When a thread signals or broadcasts, multiple waiting threads wake up. Thread 1 acquires the mutex first and consumes the item. When Thread 2 gets the mutex next, the condition is no longer true! A <code>while</code> loop safely catches this and puts Thread 2 back to sleep.</li>
+  </ol>
+</div>
+
+<h2>under the hood: how linux futex (fast userspace mutex) works</h2>
+<p>Before Linux 2.6, acquiring a mutex meant issuing a <code>sys_semop</code> system call every single time—costing 100ns per lock even when zero other threads were competing for it! Linux revolutionized this with <b>futex (Fast Userspace Mutex)</b>:</p>
+<ol>
+  <li><b>The Fast Path (Uncontended):</b> When Thread 1 locks an uncontended mutex, it executes an atomic <code>CAS</code> instruction entirely in <b>Ring 3 User Space</b>. It marks the integer as locked in <b>5 nanoseconds</b> with <b>zero system calls</b>!</li>
+  <li><b>The Slow Path (Contended):</b> If Thread 2 tries to acquire the lock and the CAS fails (another thread holds it), Thread 2 executes the <code>sys_futex(val_addr, FUTEX_WAIT, ...)</code> syscall. The kernel registers Thread 2 on an internal hash-bucket wait-queue and puts it to sleep.</li>
+  <li><b>The Unlock:</b> When Thread 1 finishes, it checks if any waiters exist. If none, a simple atomic user-space write unlocks it. If waiters exist, it invokes <code>sys_futex(..., FUTEX_WAKE)</code> to wake the sleeper.</li>
+</ol>
+
+<h2>lock-free programming & the aba problem</h2>
+<p>In high-frequency trading and low-latency queuing (like the LMAX Disruptor), locks are banned because sleeping or priority inversion destroys millisecond latency. Instead, developers use <b>Lock-Free Algorithms</b> backed by CAS.</p>
+
+<div class="callout exam">
+  <b class="label">⭐ the aba problem</b><br />
+  Suppose a lock-free stack contains nodes <code>[Top: A] → B → C</code>.<br />
+  1. Thread 1 reads <code>Top = A</code> and <code>Next = B</code>, preparing to pop A via <code>CAS(&Top, A, B)</code>. Thread 1 is preempted.<br />
+  2. Thread 2 runs, pops <code>A</code>, pops <code>B</code>, and frees both. Then it allocates a new node that happens to get the <i>exact same memory address</i> <code>A</code> and pushes it: <code>[Top: A] → C</code>.<br />
+  3. Thread 1 wakes up and runs <code>CAS(&Top, A, B)</code>. It sees <code>Top == A</code>! The CAS succeeds, setting <code>Top = B</code>. But <code>B</code> was freed! The stack now points to dangling garbage memory, corrupting the process.<br />
+  <b>The Fix:</b> <b>Tagged Pointers (Double-word CAS)</b>. Each pointer carries a 64-bit version counter: <code>(Pointer, Version)</code>. When Thread 2 modifies the stack, the counter increments to $V+2$, causing Thread 1's CAS on $(A, V_1)$ to fail safely!
+</div>
+
+<h2>quick check</h2>
+<ul>
+  <li><b>What are the three criteria required to solve the critical section problem?</b> Mutual Exclusion, Progress, and Bounded Waiting.</li>
+  <li><b>Why does a condition variable wait call require a mutex as a parameter?</b> Because it must atomically release the mutex and put the calling thread to sleep on the wait queue in a single indivisible step.</li>
+  <li><b>What is the difference between a mutex and a binary semaphore?</b> A mutex has ownership (only the thread that locked it may unlock it). A semaphore can be signaled by any thread.</li>
+</ul>
+
+<h2>the 20-second summary</h2>
+<p>Concurrent threads sharing memory require synchronization to prevent race conditions. Hardware provides atomic operations like Compare-And-Swap (CAS) to build spinlocks (for microsecond pauses) and mutexes (for sleeping). Linux uses <code>futex</code> to achieve nanosecond locking in user space for uncontended locks, falling back to kernel wait queues only when threads collide. Always wrap condition variable waits in a <code>while</code> loop to defend against spurious wakeups.</p>

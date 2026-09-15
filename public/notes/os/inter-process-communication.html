@@ -1,0 +1,142 @@
+<style>
+.os-ipc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin: 16px 0;
+}
+.os-ipc-card {
+  background: var(--canvas, #ffffff);
+  border: 1.5px solid var(--border-dim, #e4ded0);
+  border-radius: 10px;
+  padding: 16px;
+}
+.os-ipc-card h4 {
+  margin: 0 0 8px;
+  font-size: 15px;
+}
+</style>
+
+<p class="kicker">breaking the wall of memory isolation — pipes, shared memory, unix domain sockets, and signals.</p>
+
+<h2>the 30-second elevator pitch</h2>
+<p>The operating system goes to extraordinary lengths to isolate processes: the MMU prevents Process A from reading a single byte of Process B's memory. But what if Process A is a web scraper and Process B is an AI analyzer? They must collaborate. <b>Inter-Process Communication (IPC)</b> refers to the kernel-provided mechanisms that allow isolated processes to exchange data and synchronize actions safely.</p>
+<ul>
+  <li><b>The Speed vs Convenience Spectrum:</b>
+    <ul>
+      <li><b>Pipes & Sockets:</b> Easiest to use, automatic synchronization, but data is copied through kernel buffers.</li>
+      <li><b>Shared Memory:</b> <b>Fastest IPC in existence</b> (zero copies, native RAM speeds), but you must manually handle synchronization using mutexes or semaphores.</li>
+    </ul>
+  </li>
+</ul>
+
+<div class="callout remember">
+  <b class="label">🧷 the fundamental ipc taxonomy</b><br />
+  1. <b>Data Transfer:</b> Pipes, FIFOs, Message Queues, Sockets (data is moved via kernel buffers).<br />
+  2. <b>Shared Memory:</b> Processes map the exact same physical RAM frames into their address spaces.<br />
+  3. <b>Signaling:</b> Asynchronous software interrupts delivering an integer signal code (e.g. <code>SIGINT</code>).
+</div>
+
+<h2>ipc mechanisms compared</h2>
+
+<div class="os-ipc-grid">
+  <div class="os-ipc-card">
+    <h4>1. Anonymous Pipes</h4>
+    <p>Created with <code>pipe(int fds[2])</code>. Unidirectional byte stream connected between related processes (parent and child).</p>
+    <ul>
+      <li>Implemented as an in-memory <b>64 KB circular ring buffer</b> in kernel RAM.</li>
+      <li>Automatic blocking: Reader blocks if empty; writer blocks if buffer is full (flow control).</li>
+      <li><b>Limitation:</b> Half-duplex. Only processes sharing ancestry via <code>fork()</code> can use them (e.g. <code>ls | grep foo</code>).</li>
+    </ul>
+  </div>
+
+  <div class="os-ipc-card">
+    <h4>2. Named Pipes (FIFOs)</h4>
+    <p>Created via <code>mkfifo /tmp/myfifo</code>. Extends pipes to totally unrelated processes.</p>
+    <ul>
+      <li>Appears as a special file in the directory tree with an Inode.</li>
+      <li><b>Zero Disk I/O:</b> The filesystem entry is merely an access handle. All data flows strictly through the kernel's in-memory buffer!</li>
+      <li>Persists until deleted with <code>rm</code>.</li>
+    </ul>
+  </div>
+
+  <div class="os-ipc-card">
+    <h4>3. POSIX Shared Memory</h4>
+    <p>Created with <code>shm_open()</code> and <code>mmap()</code>.</p>
+    <ul>
+      <li><b>The Speed King:</b> Reading/writing takes <b>0 nanoseconds of kernel overhead</b>. Both processes read and write directly to physical memory.</li>
+      <li><b>The Catch:</b> No automatic synchronization! If both processes write simultaneously, data corrupts. Requires POSIX named semaphores.</li>
+    </ul>
+  </div>
+
+  <div class="os-ipc-card">
+    <h4>4. Unix Domain Sockets (UDS)</h4>
+    <p>Socket communication using the <code>AF_UNIX</code> address family.</p>
+    <ul>
+      <li>Uses standard socket API (<code>connect</code>, <code>accept</code>, <code>send</code>, <code>recv</code>).</li>
+      <li>Supports both stream (TCP-like) and datagram (UDP-like) modes with reliable, in-order delivery.</li>
+      <li><b>Crucial Feature:</b> Can pass open file descriptors across processes via <code>SCM_RIGHTS</code>!</li>
+    </ul>
+  </div>
+</div>
+
+<h2>faang interview showdown: unix domain sockets vs localhost tcp (127.0.0.1)</h2>
+<p>When running microservices on the same Kubernetes pod or connecting a backend app to a local Redis / PostgreSQL instance, should you connect via <code>localhost:6379</code> or a Unix Domain Socket (<code>/var/run/redis.sock</code>)?</p>
+
+<table>
+  <tr><th>Feature</th><th>Localhost TCP (127.0.0.1)</th><th>Unix Domain Socket (UDS)</th></tr>
+  <tr><td><b>Stack Traversed</b></td><td>Full TCP/IP networking stack</td><td><b>Bypasses entire network stack</b></td></tr>
+  <tr><td><b>Overhead</b></td><td>Packetization, checksums, TCP sequence numbers, ACKs, sliding window logic</td><td>Direct memory buffer copy inside the kernel</td></tr>
+  <tr><td><b>Security</b></td><td>Any local process can probe ports</td><td>Secured via standard filesystem permissions (<code>chmod 600</code>)</td></tr>
+  <tr><td><b>Performance</b></td><td>Higher latency (~15–30 µs)</td><td><b>2x Throughput, half latency (~5–10 µs)</b></td></tr>
+  <tr><td><b>FD Passing</b></td><td>No</td><td><b>Yes (via SCM_RIGHTS)</b></td></tr>
+</table>
+
+<div class="callout gotcha">
+  <b class="label">⚠️ magic trick: passing file descriptors across processes</b><br />
+  In high-availability web servers (like Nginx zero-downtime binary reloads) or container runtimes, Process A needs to hand an active, listening network socket over to Process B.<br />
+  You cannot simply send the integer <code>int fd = 4</code> over a pipe! File descriptor integers are strictly local to a process's private FD table. Integer 4 in Process B points to something completely different or nothing at all.<br />
+  <b>The Fix:</b> Send the socket using a Unix Domain Socket with <code>sendmsg()</code> and control message <code>SCM_RIGHTS</code>. The kernel intercepts the message, looks up the real <code>struct file</code> in the system open-file table, creates a new entry in Process B's FD table, and hands Process B a valid descriptor pointing to the exact same underlying connection!
+</div>
+
+<h2>signals: asynchronous software interrupts</h2>
+<p>A <b>Signal</b> is an asynchronous notification delivered by the kernel to a process to notify it of an event:</p>
+<ul>
+  <li><code>SIGINT</code> (2): Ctrl+C in terminal. Graceful interrupt.</li>
+  <li><code>SIGTERM</code> (15): Default termination request. Can be caught and handled for graceful cleanup.</li>
+  <li><code>SIGKILL</code> (9): Immediate termination. <b>Cannot be caught, blocked, or ignored!</b> The kernel deletes the process PCB instantly.</li>
+  <li><code>SIGSEGV</code> (11): Segmentation violation (illegal memory access).</li>
+  <li><code>SIGCHLD</code> (17): Sent to parent whenever a child process terminates or stops (used to reap zombies).</li>
+</ul>
+
+<h3>the danger of async-signal-safe functions</h3>
+<div class="callout exam">
+  <b class="label">⭐ why malloc() and printf() inside signal handlers will hang your server</b><br />
+  A signal can arrive at <b>any instruction boundary</b>.<br />
+  Suppose Thread 1 is inside <code>malloc()</code> and has acquired the internal glibc heap lock. Right at that microsecond, a <code>SIGINT</code> arrives. The CPU pauses Thread 1 and immediately jumps to your custom signal handler function.<br />
+  If your signal handler calls <code>printf()</code> or <code>malloc()</code>, it will attempt to acquire the <b>exact same heap lock</b>! Because Thread 1 already holds it and is paused, the signal handler deadlocks with itself! The process hangs forever.<br />
+  <b>Production Rule:</b> Inside signal handlers, <b>only call async-signal-safe functions</b> (e.g. raw <code>write()</code> syscall, or set a <code>volatile sig_atomic_t flag = 1;</code> and exit).
+</div>
+
+<h2>real-world case study: google chrome's multi-process architecture</h2>
+<p>Before Chrome (2008), browsers ran all tabs as threads in a single process. If one bad JavaScript loop or flash plugin crashed on Tab 8, your entire browser with all 20 tabs died instantly!</p>
+<ul>
+  <li><b>Chrome's Architecture:</b>
+    <ul>
+      <li><b>Browser Process:</b> Manages UI, address bar, network requests, and disk cache. Runs with full user privileges.</li>
+      <li><b>Renderer Processes:</b> One process per tab/site. Executes HTML parsing, CSS styling, and V8 JavaScript. Runs inside a strict <b>OS Sandbox</b> (zero direct disk, network, or device access!).</li>
+      <li><b>GPU Process:</b> Isolates graphics drivers.</li>
+    </ul>
+  </li>
+  <li><b>The IPC Glue:</b> Sandboxed renderer processes cannot write to disk or open network sockets. When JavaScript calls <code>fetch()</code>, the renderer sends an IPC message over a <b>Unix Domain Socket / Mojo IPC channel</b> to the Browser process. The privileged Browser process executes the network I/O and streams the response bytes back into the renderer's memory via <b>Shared Memory</b>!</li>
+</ul>
+
+<h2>quick check</h2>
+<ul>
+  <li><b>Which IPC mechanism provides the highest throughput and lowest latency?</b> Shared Memory.</li>
+  <li><b>Why does a Unix Domain Socket outperform a localhost TCP connection?</b> It bypasses the entire TCP/IP networking stack (checksums, sequencing, flow control) and copies data directly between kernel buffers.</li>
+  <li><b>Can a process catch or ignore `SIGKILL`?</b> No. <code>SIGKILL</code> and <code>SIGSTOP</code> are handled directly by the kernel and cannot be intercepted.</li>
+</ul>
+
+<h2>the 20-second summary</h2>
+<p>Inter-Process Communication circumvents process memory isolation to enable distributed teamwork. Pipes and message queues provide synchronized streams through kernel memory, while Shared Memory offers zero-overhead data transfer requiring manual semaphore synchronization. Unix Domain Sockets deliver 2x the throughput of localhost networking while enabling file descriptor passing, and signals provide lightweight asynchronous interrupts that require strictly reentrant, signal-safe handlers.</p>

@@ -1,0 +1,223 @@
+<style>
+.os-mem-diagram {
+  margin: 16px auto;
+  max-width: 480px;
+  background: var(--canvas, #ffffff);
+  border: 1.5px solid var(--border-dim, #e4ded0);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.os-mem-block {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border-dim, #e4ded0);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-mono, monospace);
+  font-size: 13px;
+}
+.os-mem-block:last-child {
+  border-bottom: none;
+}
+.os-mem-block.stack { background: #ffebee; color: #d1345b; font-weight: 700; }
+.os-mem-block.mmap { background: #fff8e1; color: #b78103; }
+.os-mem-block.heap { background: #e8f5e9; color: #2e7d32; font-weight: 700; }
+.os-mem-block.bss { background: #e3f2fd; color: #1565c0; }
+.os-mem-block.data { background: #ede7f6; color: #512da8; }
+.os-mem-block.text { background: #f5f5f5; color: #424242; font-weight: 700; }
+.os-state-svg {
+  width: 100%;
+  max-width: 600px;
+  height: auto;
+  display: block;
+  margin: 16px auto;
+}
+</style>
+
+<p class="kicker">from dead bytes on an ssd to a living, breathing instance on the cpu.</p>
+
+<h2>the 30-second elevator pitch</h2>
+<p>A <b>program</b> is a dead file on your hard disk (a recipe). A <b>process</b> is that program in active execution inside main memory (a chef actively baking the cake). When you launch five separate terminal windows running Python, you have one program on disk, but <b>five independent processes</b>, each with its own isolated memory space, registers, and open files.</p>
+<ul>
+  <li><b>The Process Abstraction:</b> The OS gives every single process the grand illusion that it owns the entire CPU all to itself and has access to a contiguous, private memory space from address <code>0x0000000000000000</code> to <code>0x7FFFFFFFFFFFFFFF</code>.</li>
+  <li><b>Total Isolation:</b> Process A cannot read, write, or corrupt Process B's memory. If Process A crashes with a segmentation fault, Process B doesn't even flinch.</li>
+</ul>
+
+<div class="callout remember">
+  <b class="label">🧷 remember</b><br />
+  A program is <b>passive</b> (bytes stored in an ELF binary). A process is <b>dynamic</b> (has a Program Counter, Stack Pointer, memory allocations, CPU registers, and state).
+</div>
+
+<h2>the virtual memory layout of a process</h2>
+<p>Every standard Linux 64-bit process is loaded into an identical virtual address layout. The address space is divided into standardized segments:</p>
+
+<div class="os-mem-diagram">
+  <div class="os-mem-block stack">
+    <span>Stack (Call frames, local vars)</span>
+    <span>$\downarrow$ Grows Down</span>
+  </div>
+  <div class="os-mem-block" style="text-align: center; color: var(--ink-soft); font-style: italic; padding: 6px;">
+    <span>$\dots$ Unallocated Guard Space $\dots$</span>
+  </div>
+  <div class="os-mem-block mmap">
+    <span>Memory-Mapped Region (Shared libs, mmap)</span>
+    <span>Shared/Dynamic</span>
+  </div>
+  <div class="os-mem-block" style="text-align: center; color: var(--ink-soft); font-style: italic; padding: 6px;">
+    <span>$\dots$ Unallocated Guard Space $\dots$</span>
+  </div>
+  <div class="os-mem-block heap">
+    <span>Heap (malloc / new dynamic memory)</span>
+    <span>$\uparrow$ Grows Up</span>
+  </div>
+  <div class="os-mem-block bss">
+    <span>BSS Segment (Uninitialized globals/statics)</span>
+    <span>Zeroed out</span>
+  </div>
+  <div class="os-mem-block data">
+    <span>Data Segment (Initialized globals: int x = 42)</span>
+    <span>Read/Write</span>
+  </div>
+  <div class="os-mem-block text">
+    <span>Text / Code Segment (Machine instructions)</span>
+    <span>Read-Only</span>
+  </div>
+</div>
+
+<ul>
+  <li><b>Text Segment:</b> Contains compiled machine opcodes. Marked <b>Read-Only</b> in the hardware MMU so a process cannot accidentally overwrite its own code. Multiple running instances of the same program (e.g. 10 <code>bash</code> shells) share the exact same physical RAM frames for their text segment!</li>
+  <li><b>Data Segment:</b> Global and <code>static</code> variables explicitly initialized by the programmer (e.g. <code>int max_retries = 5;</code>).</li>
+  <li><b>BSS Segment ("Block Started by Symbol"):</b> Global and static variables uninitialized or set to zero (e.g. <code>int counter;</code>). Does not take up space in the binary file on disk; the kernel zero-fills it when the process starts.</li>
+  <li><b>Heap:</b> Dynamically allocated memory requested at runtime via <code>malloc()</code>, <code>calloc()</code>, or C++ <code>new</code>. Managed via the <code>brk</code> / <code>sbrk</code> syscalls or <code>mmap</code>. Grows upwards toward higher memory addresses.</li>
+  <li><b>Stack:</b> Stores function activation frames, return addresses, parameters, and local variables. Managed automatically by the CPU via the Stack Pointer register (<code>%rsp</code>). Grows downwards toward lower addresses.</li>
+</ul>
+
+<h2>the process control block (PCB / task_struct)</h2>
+<p>To pause a process and resume it hours later without losing a single beat, the kernel needs an identity card storing its complete state. In Linux, this is the massive C struct called <code>struct task_struct</code> (defined in <code>&lt;linux/sched.h&gt;</code>):</p>
+
+<table>
+  <tr><th>PCB Component</th><th>Purpose & Internals</th></tr>
+  <tr><td><b>Process Identification (PID)</b></td><td>Unique integer (e.g. PID 1245). Also stores Parent PID (PPID) and User ID (UID).</td></tr>
+  <tr><td><b>Process State</b></td><td>Current state: <code>TASK_RUNNING</code>, <code>TASK_INTERRUPTIBLE</code>, <code>TASK_STOPPED</code>, <code>EXIT_ZOMBIE</code>.</td></tr>
+  <tr><td><b>CPU Registers Context</b></td><td>Program Counter (<code>RIP</code>), Stack Pointer (<code>RSP</code>), general registers (<code>RAX, RBX...</code>), flags.</td></tr>
+  <tr><td><b>CPU Scheduling Info</b></td><td>Priority value, nice value (-20 to +19), <code>vruntime</code> in CFS scheduler, scheduling class.</td></tr>
+  <tr><td><b>Memory Management (mm_struct)</b></td><td>Pointer to page tables (hardware <code>CR3</code> register value), memory regions (VMAs).</td></tr>
+  <tr><td><b>File Descriptor Table (files_struct)</b></td><td>Array mapping integer FDs (0=stdin, 1=stdout, 2=stderr) to open file objects.</td></tr>
+</table>
+
+<h2>the process lifecycle: 5-state and 7-state models</h2>
+<p>A process moves through distinct states during its existence:</p>
+
+<svg class="os-state-svg" viewBox="0 0 600 240" role="img" aria-label="Process 5-State Transition Diagram">
+  <defs><marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1c1a15"/></marker></defs>
+  
+  <rect x="20" y="90" width="80" height="40" rx="8" fill="#f4f1ea" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="60" y="115" text-anchor="middle" font-size="12" font-family="monospace" font-weight="700">NEW</text>
+  
+  <line x1="100" y1="110" x2="160" y2="110" stroke="#1c1a15" stroke-width="2" marker-end="url(#arr)"/>
+  
+  <rect x="160" y="90" width="90" height="40" rx="8" fill="#e8f5e9" stroke="#2e7d32" stroke-width="1.5"/>
+  <text x="205" y="115" text-anchor="middle" font-size="12" font-family="monospace" font-weight="700" fill="#2e7d32">READY</text>
+  
+  <path d="M 250 100 L 330 100" stroke="#1c1a15" stroke-width="2" marker-end="url(#arr)"/>
+  <text x="290" y="92" text-anchor="middle" font-size="10" font-family="monospace">dispatch</text>
+  
+  <path d="M 330 120 L 250 120" stroke="#1c1a15" stroke-width="2" marker-end="url(#arr)"/>
+  <text x="290" y="136" text-anchor="middle" font-size="10" font-family="monospace">preempt</text>
+  
+  <rect x="330" y="90" width="90" height="40" rx="8" fill="#ffebee" stroke="#d1345b" stroke-width="1.5"/>
+  <text x="375" y="115" text-anchor="middle" font-size="12" font-family="monospace" font-weight="700" fill="#d1345b">RUNNING</text>
+  
+  <line x1="420" y1="110" x2="480" y2="110" stroke="#1c1a15" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="480" y="90" width="100" height="40" rx="8" fill="#f5f5f5" stroke="#424242" stroke-width="1.5"/>
+  <text x="530" y="115" text-anchor="middle" font-size="12" font-family="monospace" font-weight="700">TERMINATED</text>
+  
+  <path d="M 375 130 C 375 190, 205 190, 205 130" fill="none" stroke="#1c1a15" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="250" y="180" width="80" height="34" rx="6" fill="#fff8e1" stroke="#b78103" stroke-width="1.5"/>
+  <text x="290" y="202" text-anchor="middle" font-size="11" font-family="monospace" font-weight="700" fill="#b78103">WAITING</text>
+</svg>
+
+<ol>
+  <li><b>New:</b> The process is being created and loaded into memory from an ELF binary.</li>
+  <li><b>Ready:</b> The process is in RAM, fully prepared to execute, waiting in the run queue for an available CPU core.</li>
+  <li><b>Running:</b> The process's instructions are actively being executed by a physical CPU core.</li>
+  <li><b>Waiting (Blocked):</b> The process requested I/O (e.g. disk read or socket packet) or is waiting on a lock/timer. <i>It cannot use the CPU even if 100 cores were idle!</i></li>
+  <li><b>Terminated:</b> Execution finished; resources are freed, but its exit status remains until reaped by its parent.</li>
+</ol>
+
+<h2>context switching: what actually happens on the cpu</h2>
+<p>A <b>Context Switch</b> is the mechanism by which the CPU stops executing Process A and begins executing Process B. Here is the exact physical sequence:</p>
+<ol>
+  <li><b>Trigger:</b> Hardware timer interrupt fires (time slice expired) or Process A makes a blocking syscall (e.g. <code>read()</code>).</li>
+  <li><b>Mode Switch:</b> CPU switches to Ring 0. Hardware pushes current user registers (<code>RIP</code>, <code>RSP</code>, <code>RFLAGS</code>) onto Process A's kernel stack.</li>
+  <li><b>Scheduler Invocation:</b> The kernel scheduler algorithm selects the next task to run (Process B).</li>
+  <li><b>Memory Context Switch:</b> The kernel reloads the hardware <code>CR3</code> register with the physical address of Process B's page directory. <i>This completely changes the virtual-to-physical memory map!</i></li>
+  <li><b>Kernel Stack Switch:</b> The kernel changes the CPU's stack pointer to Process B's kernel stack.</li>
+  <li><b>Restore & Return:</b> Process B's saved CPU registers are popped off its stack. The CPU executes <code>iretq</code> / <code>sysret</code>, switching back to Ring 3. Process B resumes execution exactly where it stopped.</li>
+</ol>
+
+<div class="callout gotcha">
+  <b class="label">⚠️ gotcha</b><br />
+  <b>The Invisible Cost of a Context Switch:</b> The direct CPU register swap takes ~1 to 2 microseconds. But the <b>indirect cache pollution cost</b> can be tens of microseconds! Changing <code>CR3</code> invalidates non-global TLB entries, and Process B's memory accesses cause massive L1/L2 CPU cache misses until the cache is "warmed up."
+</div>
+
+<h2>process creation: fork(), execve(), and copy-on-write (COW)</h2>
+<p>In Unix-like systems, all processes (except PID 1 <code>systemd</code>) are created via the <code>fork()</code> and <code>execve()</code> system calls.</p>
+<ul>
+  <li><code>fork()</code>: Creates an exact clone of the caller. Returns <code>0</code> to the child process and the child's new PID to the parent process.</li>
+  <li><code>execve()</code>: Overwrites the current process's memory space with a completely brand-new program executable (clearing stack, heap, and code) while keeping the same PID and open file descriptors.</li>
+</ul>
+
+<h3>how copy-on-write (COW) prevents system collapse</h3>
+<p>If Redis is holding 64 GB of memory and forks a child process to write a snapshot to disk, does <code>fork()</code> allocate another 64 GB of physical RAM? <b>No!</b> If it did, your server would instantly crash with Out Of Memory.</p>
+<p>Linux utilizes <b>Copy-On-Write (COW)</b>:</p>
+<ol>
+  <li>When <code>fork()</code> runs, the kernel <b>does not copy physical RAM frames</b>. It only duplicates the parent's page tables.</li>
+  <li>Both parent and child page tables point to the exact same physical memory frames.</li>
+  <li>The kernel marks all shared physical frames as <b>Read-Only</b> in the MMU page table entries.</li>
+  <li>If either process merely reads memory, zero copying occurs.</li>
+  <li>The instant either process attempts to <b>write</b> to an address, the CPU hardware raises a <b>Page Fault exception</b>. The kernel intercepts the fault, allocates a single new 4KB physical frame, copies just that one 4KB page, marks it Read-Write, updates the page table, and resumes execution!</li>
+</ol>
+
+<div class="callout try">
+  <b class="label">🔬 the fork-exec workflow</b><br />
+  How Unix launches new programs without code ambiguity:
+  <ol>
+    <li><b>Step 1 (fork):</b> The parent process invokes <code>fork()</code>. The OS clones the process table entry. In the parent, the call returns the child's new PID; in the child, it returns <code>0</code>. Both processes branch based on this value.</li>
+    <li><b>Step 2 (execve):</b> The child detects it is the child (return value = 0) and calls <code>execve()</code> to overwrite its address space with the target executable.</li>
+    <li><b>Step 3 (wait):</b> The parent calls <code>wait()</code> to block until the child finishes, reading its exit code and cleaning up its PCB entry.</li>
+  </ol>
+</div>
+
+<h2>zombies vs orphan processes</h2>
+<table>
+  <tr><th>Type</th><th>Definition</th><th>Problem</th><th>Solution</th></tr>
+  <tr>
+    <td><b>Zombie Process (defunct)</b></td>
+    <td>A process that has called <code>exit()</code> and terminated, but whose parent has not yet read its exit status via <code>wait()</code> / <code>waitpid()</code>.</td>
+    <td>Consumes no CPU or RAM, but occupies a slot in the kernel's finite PID table. If a buggy parent leaks 32,768 zombies, the OS cannot spawn any new processes!</td>
+    <td>Kill the parent process, or write the parent to handle <code>SIGCHLD</code> and invoke <code>waitpid()</code>.</td>
+  </tr>
+  <tr>
+    <td><b>Orphan Process</b></td>
+    <td>A running process whose parent died or terminated before it did.</td>
+    <td>Harmless. The child has no parent to report its final exit code to.</td>
+    <td>The OS kernel automatically <b>reparents</b> the orphan to PID 1 (<code>init</code> or <code>systemd</code>). PID 1 runs a continuous loop calling <code>wait()</code> to reap all orphans upon termination.</td>
+  </tr>
+</table>
+
+<div class="callout exam">
+  <b class="label">⭐ exam tip</b><br />
+  <i>"Can you kill a Zombie process with `kill -9 &lt;PID&gt;`?"</i><br />
+  <b>Answer: NO!</b> You cannot kill what is already dead. A zombie has already terminated and released its memory. The only way to remove a zombie is to prompt its parent to call <code>wait()</code>, or kill the parent process so the zombie is reparented to PID 1 and immediately reaped.
+</div>
+
+<h2>quick check</h2>
+<ul>
+  <li><b>Where is an uninitialized global variable located in memory?</b> In the BSS segment.</li>
+  <li><b>What register stores the base pointer to the active page directory in x86 CPUs?</b> The <code>CR3</code> register.</li>
+  <li><b>What does <code>fork()</code> return to the parent vs the child?</b> It returns the child's PID ($>0$) to the parent, and returns $0$ to the child.</li>
+</ul>
+
+<h2>the 20-second summary</h2>
+<p>A process is an active instance of a program residing in virtual memory, segmented into Text, Data, BSS, Heap, and Stack. The kernel tracks each process via a Process Control Block (<code>task_struct</code>). Moving between processes requires a context switch—saving registers and swapping the <code>CR3</code> page directory. Process creation uses <code>fork()</code> backed by lazy Copy-On-Write, and parents must reap deceased children via <code>wait()</code> to avoid exhausting the OS PID table with zombies.</p>

@@ -1,0 +1,1857 @@
+<style>
+.iq-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 18px 0 24px;
+  padding: 14px;
+  background: var(--paper-2, #fffdf6);
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+.iq-filter-title {
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  width: 100%;
+  margin-bottom: 4px;
+  color: var(--ink-soft);
+}
+.iq-btn {
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+.iq-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+.iq-btn.active {
+  background: var(--ink);
+  color: #fff;
+}
+details.q-card {
+  background: #ffffff;
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  box-shadow: 3px 3px 0 var(--ink);
+  padding: 0;
+  margin: 18px 0;
+  transition: all 0.12s ease;
+  overflow: hidden;
+}
+details.q-card[open] {
+  box-shadow: 4px 4px 0 var(--ink);
+}
+details.q-card summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 16px 18px;
+  user-select: none;
+  background: #ffffff;
+  transition: background 0.1s ease;
+}
+details.q-card summary::-webkit-details-marker {
+  display: none;
+}
+details.q-card summary:hover {
+  background: var(--paper-2, #fffdf6);
+}
+details.q-card[open] summary {
+  border-bottom: 2px dashed #ded7c6;
+  background: var(--paper-2, #fffdf6);
+}
+.q-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.q-num {
+  font-family: var(--font-mono, monospace);
+  font-size: 13px;
+  font-weight: 800;
+  color: #d1345b;
+}
+.q-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.badge-co {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--ink);
+}
+.badge-openai { background: #10a37f; color: #fff; }
+.badge-anthropic { background: #cc785c; color: #fff; }
+.badge-google { background: #4285f4; color: #fff; }
+.badge-meta { background: #0668e1; color: #fff; }
+.badge-nvidia { background: #76b900; color: #000; }
+.badge-apple { background: #1c1a15; color: #fff; }
+.badge-amazon { background: #ff9900; color: #111; }
+.badge-netflix { background: #e50914; color: #fff; }
+.badge-microsoft { background: #00a4ef; color: #fff; }
+.badge-tesla { background: #e82127; color: #fff; }
+.badge-cat {
+  background: var(--yellow, #ffe14d);
+  color: var(--ink);
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--ink);
+}
+.q-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+.q-title {
+  margin: 0;
+  font-size: 16.5px;
+  font-weight: 800;
+  line-height: 1.4;
+  color: var(--ink);
+  flex: 1;
+}
+.q-toggle-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono, monospace);
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: 1.5px 1.5px 0 var(--ink);
+  margin-top: 2px;
+  transition: all 0.1s ease;
+}
+details.q-card summary:hover .q-toggle-pill {
+  background: var(--yellow, #ffe14d);
+}
+details.q-card[open] .q-toggle-pill {
+  background: var(--ink);
+  color: #fff;
+}
+details.q-card[open] .q-pill-text {
+  font-size: 0;
+}
+details.q-card[open] .q-pill-text::before {
+  content: "Hide Answer";
+  font-size: 11.5px;
+}
+details.q-card[open] .q-pill-icon {
+  transform: rotate(180deg);
+  display: inline-block;
+}
+.q-content {
+  padding: 16px 20px 20px;
+  animation: fadeIn 0.15s ease-in-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.q-direct {
+  background: var(--paper-2, #fffdf6);
+  border-left: 4px solid #d1345b;
+  padding: 10px 14px;
+  border-radius: 0 8px 8px 0;
+  margin: 4px 0 14px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.q-direct b {
+  color: #d1345b;
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+.q-deep {
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: var(--ink);
+}
+.q-deep p { margin: 8px 0; }
+.q-deep ul, .q-deep ol { margin: 6px 0 10px; padding-left: 20px; }
+.q-deep li { margin-bottom: 4px; }
+.q-trap {
+  background: #fff0f5;
+  border: 1.5px solid #ffb6c1;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 12px 0 4px;
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+.q-trap b {
+  color: #c2185b;
+}
+</style>
+
+<p class="kicker">the staff & systems engineering question bank · 50 real problems</p>
+<h1>Top 50 Operating Systems Interview Questions</h1>
+<p class="plan-lede">Curated from senior & staff software engineering and AI infrastructure interview loops at <b>OpenAI, Anthropic, Google, Meta, NVIDIA, Apple, Amazon, Netflix, and Microsoft</b>. Structured for mechanical sympathy: from hardware silicon and kernel data structures to real production latency numbers.</p>
+
+<div class="iq-filter-bar">
+  <div class="iq-filter-title">Filter by Company Loop:</div>
+  <div style="width: 100%; display: flex; gap: 8px; margin-bottom: 8px;">
+    <button type="button" class="iq-btn" id="expand-all-btn" onclick="toggleAll(true)" style="background: #eef2ff;">Expand All Answers</button>
+    <button type="button" class="iq-btn" id="collapse-all-btn" onclick="toggleAll(false)" style="background: #fdf2f8;">Collapse All</button>
+  </div>
+  <button class="iq-btn active" onclick="filterQuestions('all', this)">All (50)</button>
+  <button class="iq-btn" onclick="filterQuestions('openai', this)">OpenAI</button>
+  <button class="iq-btn" onclick="filterQuestions('anthropic', this)">Anthropic</button>
+  <button class="iq-btn" onclick="filterQuestions('google', this)">Google</button>
+  <button class="iq-btn" onclick="filterQuestions('meta', this)">Meta</button>
+  <button class="iq-btn" onclick="filterQuestions('nvidia', this)">NVIDIA</button>
+  <button class="iq-btn" onclick="filterQuestions('apple', this)">Apple</button>
+  <button class="iq-btn" onclick="filterQuestions('amazon', this)">Amazon</button>
+  <button class="iq-btn" onclick="filterQuestions('netflix', this)">Netflix</button>
+  <button class="iq-btn" onclick="filterQuestions('microsoft', this)">Microsoft</button>
+</div>
+
+<h2>1. processes, threads & concurrency (q1 – q10)</h2>
+
+<details class="q-card" data-companies="openai meta">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q01</span>
+    <div class="q-badges">
+      <span class="badge-co badge-openai">OpenAI</span>
+      <span class="badge-co badge-meta">Meta</span>
+      <span class="badge-cat">Processes & Threads</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">What is the exact distinction between a process and a thread inside the Linux kernel? How does clone() implement both?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    To the Linux kernel scheduler, there is no fundamental difference: both processes and threads are represented by the exact same C struct: <code>struct task_struct</code>. The difference is solely what resources are shared, controlled by flags passed to the <code>clone()</code> syscall.
+  </div>
+  <div class="q-deep">
+    <p>In Linux, every schedulable unit is a <b>task</b> (often called a lightweight process). When you invoke <code>fork()</code>, it calls <code>clone()</code> with Copy-On-Write memory. When you create a POSIX thread with <code>pthread_create()</code>, it invokes <code>clone()</code> with specific resource-sharing flags:</p>
+    <ul>
+      <li><code>CLONE_VM</code>: The new task shares the exact same virtual memory address space (same page tables, mm_struct).</li>
+      <li><code>CLONE_FS</code>: Shares filesystem information (root directory, cwd, umask).</li>
+      <li><code>CLONE_FILES</code>: Shares the open file descriptor table (writing to fd 3 in thread A is instantly visible to thread B).</li>
+      <li><code>CLONE_SIGHAND</code>: Shares signal handlers.</li>
+      <li><code>CLONE_THREAD</code>: Placed into the same thread group (shares the same process ID <code>PID</code> returned by <code>getpid()</code>, but has a unique thread ID <code>TID</code>).</li>
+    </ul>
+  </div>
+  <div class="q-trap">
+    <b>⚠️ Interview Trap:</b> Candidates often say "threads share the stack." While threads have their own separate stack pointer (<code>RSP</code>) and dedicated stack memory region, there is no hardware memory protection between them. A pointer in Thread A can corrupt Thread B's stack if they share the same address space.
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="anthropic google">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q02</span>
+    <div class="q-badges">
+      <span class="badge-co badge-anthropic">Anthropic</span>
+      <span class="badge-co badge-google">Google</span>
+      <span class="badge-cat">Context Switching</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">What happens step-by-step during a CPU context switch, and why does a thread switch have lower latency than a process switch?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    A context switch saves the architectural state of the outgoing task and loads the state of the incoming task. Switching between threads of the same process preserves the page table (CR3 register), avoiding Translation Lookaside Buffer (TLB) invalidation and cache invalidation.
+  </div>
+  <div class="q-deep">
+    <p><b>Context Switch Anatomy:</b></p>
+    <ol>
+      <li><b>Save Hardware Context:</b> General-purpose registers (RAX, RBX, etc.), instruction pointer (RIP), stack pointer (RSP), and floating-point/SIMD registers are saved onto the task's kernel stack.</li>
+      <li><b>Scheduler Decision:</b> The scheduler picks the next runnable task from the runqueue.</li>
+      <li><b>Switch Virtual Memory (Process switch only):</b> If switching between different processes, the MMU's page table base register (<code>CR3</code> in x86_64) is updated to point to the new process's PML4 root. This flushes non-global TLB entries (or switches PCID - Process-Context Identifiers).</li>
+      <li><b>Switch Kernel Stack & Registers:</b> The kernel changes the active stack pointer and loads the registers of the incoming task.</li>
+      <li><b>Direct vs Indirect Cost:</b> Direct cost is ~1–2 microseconds (register swap + kernel code). The <b>indirect cost</b> is 10–100× worse: cold L1/L2 CPU caches and TLB misses that stall CPU pipelines for thousands of clock cycles as memory lines are refetched from RAM.</li>
+    </ol>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="apple amazon">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q03</span>
+    <div class="q-badges">
+      <span class="badge-co badge-apple">Apple</span>
+      <span class="badge-co badge-amazon">Amazon</span>
+      <span class="badge-cat">Synchronization</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Why are spinlocks disastrous in single-CPU user-space applications, and when is a spinlock preferred over a mutex in the kernel?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    A spinlock polls the lock continuously in a busy loop using atomic operations (e.g. <code>compare_and_swap</code>). On a single CPU, spinning starves the thread holding the lock from ever getting CPU time to release it.
+  </div>
+  <div class="q-deep">
+    <p><b>Rules for Spinlocks:</b></p>
+    <ul>
+      <li><b>Kernel Interrupt Context:</b> Mutexes put the calling thread to sleep (state <code>TASK_UNINTERRUPTIBLE</code>), triggering a scheduler context switch. In an interrupt handler (Top Half), the kernel cannot sleep or yield the CPU! Therefore, interrupt handlers <b>must use spinlocks</b> (specifically <code>spin_lock_irqsave</code>).</li>
+      <li><b>Hold Time Threshold:</b> A spinlock is only preferred when the expected lock holding time is shorter than two context switches (~2–4 microseconds). If the critical section performs I/O or takes long, a mutex is mandatory.</li>
+      <li><b>User-space Pitfall:</b> If Thread 1 acquires a spinlock and gets preempted by the OS scheduler, Thread 2 will burn 100% of its CPU quantum spinning uselessly until Thread 1 is rescheduled.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="google microsoft">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q04</span>
+    <div class="q-badges">
+      <span class="badge-co badge-google">Google</span>
+      <span class="badge-co badge-microsoft">Microsoft</span>
+      <span class="badge-cat">Kernel Internals</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">How does a Linux futex (Fast Userspace Mutex) achieve near zero-overhead locking in the uncontended case?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    A futex is an integer in userspace memory. In uncontended scenarios, acquisition and release are handled entirely in user space using atomic CPU instructions (e.g., <code>lock cmpxchg</code>) with zero syscall overhead. The kernel is only invoked via the <code>futex()</code> syscall when contention occurs.
+  </div>
+  <div class="q-deep">
+    <p><b>Execution Path:</b></p>
+    <ul>
+      <li><b>Fast Path (No Contention):</b> Thread A uses an atomic instruction to change the 32-bit integer from 0 to 1. Success! Cost: ~10 nanoseconds (just cache-line arbitration).</li>
+      <li><b>Slow Path (Contention):</b> Thread B tries to atomically claim the lock and fails. It issues <code>syscall(SYS_futex, &uaddr, FUTEX_WAIT, 1, ...)</code>. The kernel verifies the value hasn't changed and enqueues Thread B onto a kernel wait queue, putting it to sleep.</li>
+      <li><b>Unlock:</b> Thread A atomically decrements the integer. If it detects waiting threads, it calls <code>FUTEX_WAKE</code> to wake the sleeping thread.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="netflix meta">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q05</span>
+    <div class="q-badges">
+      <span class="badge-co badge-netflix">Netflix</span>
+      <span class="badge-co badge-meta">Meta</span>
+      <span class="badge-cat">Concurrency</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Explain the Readers-Writers problem. How do you prevent Writer Starvation in high-concurrency systems?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    In a read-preferring lock, new readers are granted access as long as at least one reader is active. Under constant read traffic, a writer will starve indefinitely. Writer-preference locks prevent this by blocking new readers once a writer has queued.
+  </div>
+  <div class="q-deep">
+    <p><b>Implementation Strategy:</b></p>
+    <ul>
+      <li>Maintain three counters: active readers, queued readers, and queued writers.</li>
+      <li>When a writer requests the lock, set a <code>writer_waiting</code> flag. All subsequent read requests must wait on a condition variable, even if current readers are still finishing.</li>
+      <li>In the Linux kernel, <b>RCU (Read-Copy-Update)</b> is used extensively instead of RW locks. Readers execute lock-free with zero overhead, while writers make a private copy, update it, atomically swap the pointer, and wait for a "grace period" before freeing old memory.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="openai google">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q06</span>
+    <div class="q-badges">
+      <span class="badge-co badge-openai">OpenAI</span>
+      <span class="badge-co badge-google">Google</span>
+      <span class="badge-cat">Hardware & Memory</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">What is False Sharing, how does the MESI protocol cause cache line bouncing, and how do you fix it in high-performance code?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    False sharing occurs when two independent threads on different CPU cores modify completely separate variables that happen to reside on the same 64-byte CPU cache line.
+  </div>
+  <div class="q-deep">
+    <p><b>The MESI Protocol Mechanism:</b></p>
+    <ul>
+      <li>CPUs fetch and invalidate memory in 64-byte chunks called <b>cache lines</b>. The MESI protocol states are Modified, Exclusive, Shared, and Invalid.</li>
+      <li>Core 1 modifies variable <code>a</code>. The cache coherence bus invalidates Core 2's cache line containing <code>b</code>.</li>
+      <li>Core 2 now misses on <code>b</code> and writes to it, invalidating Core 1's cache line. The cache line bounces between L1 caches over the interconnect bus, destroying throughput.</li>
+      <li><b>Fix:</b> Pad data structures so that concurrently written variables reside on separate cache lines (e.g. <code>alignas(64)</code> in C++11, <code>@Contended</code> in Java).</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="apple amazon">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q07</span>
+    <div class="q-badges">
+      <span class="badge-co badge-apple">Apple</span>
+      <span class="badge-co badge-amazon">Amazon</span>
+      <span class="badge-cat">Deadlocks</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">State the 4 Coffman conditions for Deadlock. Why is Banker's Algorithm impractical for modern production operating systems?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    Deadlock occurs if and only if all four conditions hold: 1) Mutual Exclusion, 2) Hold and Wait, 3) No Preemption, 4) Circular Wait. Banker's Algorithm is impractical because processes cannot know their maximum future resource claims in advance.
+  </div>
+  <div class="q-deep">
+    <p><b>Coffman Conditions & Production Reality:</b></p>
+    <ul>
+      <li><b>Circular Wait Prevention:</b> The most effective production solution is strict global lock ordering (acquire Lock A before Lock B everywhere in the codebase).</li>
+      <li><b>Why Banker's fails in real OSes:</b> It requires $O(M \times N^2)$ matrix operations on every single allocation request, assumes a fixed number of processes, and assumes processes state their maximum allocation ahead of time (impossible when users run arbitrary programs). Real OSes use lock-ordering invariants (verified by tools like Linux <code>lockdep</code>) and timeouts.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="anthropic meta">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q08</span>
+    <div class="q-badges">
+      <span class="badge-co badge-anthropic">Anthropic</span>
+      <span class="badge-co badge-meta">Meta</span>
+      <span class="badge-cat">Real-Time Scheduling</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">What is Priority Inversion? How did it nearly abort NASA's Mars Pathfinder mission, and how does Priority Inheritance solve it?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    Priority Inversion occurs when a low-priority task holds a resource needed by a high-priority task, but the low-priority task is preempted by medium-priority tasks, effectively preventing the high-priority task from making progress.
+  </div>
+  <div class="q-deep">
+    <p><b>Mars Pathfinder War Story:</b></p>
+    <ul>
+      <li>Low-priority meteorological task acquired a shared data bus mutex.</li>
+      <li>High-priority attitude control task needed the bus and blocked waiting for the mutex.</li>
+      <li>Medium-priority communications task preempted the low-priority task (since medium &gt; low). The low-priority task could not finish, so the high-priority task missed its deadline, triggering watchdog resets.</li>
+      <li><b>Priority Inheritance Protocol:</b> When a high-priority task blocks on a mutex held by a lower-priority task, the lower-priority task temporarily inherits the high priority until it unlocks the mutex, preventing medium tasks from preempting it.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="google nvidia">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q09</span>
+    <div class="q-badges">
+      <span class="badge-co badge-google">Google</span>
+      <span class="badge-co badge-nvidia">NVIDIA</span>
+      <span class="badge-cat">Threading Models</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Compare 1:1 kernel threads vs M:N user-space green threads (e.g. Go goroutines / Java virtual threads). What are the memory and scaling tradeoffs?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    1:1 models map each application thread directly to an OS kernel thread (`task_struct`). M:N models multiplex M lightweight user threads onto N kernel threads, reducing memory footprint and context switch overhead.
+  </div>
+  <div class="q-deep">
+    <table>
+      <tr><th>Property</th><th>1:1 Kernel Threads (POSIX)</th><th>M:N Green Threads (Goroutines)</th></tr>
+      <tr><td><b>Stack Size</b></td><td>Fixed (typically 2MB to 8MB)</td><td>Dynamic / Growable (starts at 2KB)</td></tr>
+      <tr><td><b>Creation Cost</b></td><td>Syscall (`clone`), ~10–50 $\mu$s</td><td>Heap allocation, ~100 nanoseconds</td></tr>
+      <tr><td><b>Context Switch</b></td><td>Ring 3 $\to$ Ring 0 $\to$ Ring 3 (~1–2 $\mu$s)</td><td>User-space function call (~10–50 ns)</td></tr>
+      <tr><td><b>Blocking Syscall</b></td><td>Blocks only that single thread</td><td>Can block the OS thread unless runtime intercepts with non-blocking I/O or runtime worker handoff.</td></tr>
+    </table>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="meta amazon">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q10</span>
+    <div class="q-badges">
+      <span class="badge-co badge-meta">Meta</span>
+      <span class="badge-co badge-amazon">Amazon</span>
+      <span class="badge-cat">Process Management</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">What are Zombie and Orphan processes? What system resources do zombies consume, and how does PID 1 clean them up?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    A Zombie is a process that has terminated, but whose parent has not yet called <code>wait()</code>/<code>waitpid()</code>. An Orphan is a process whose parent exited before it; it is adopted by PID 1 (<code>init</code> or <code>systemd</code>).
+  </div>
+  <div class="q-deep">
+    <p><b>Zombie Resource Impact:</b></p>
+    <ul>
+      <li>Zombies consume <b>zero CPU and zero RAM</b> (their memory pages, stack, and heap have already been deallocated).</li>
+      <li>However, they retain an entry in the kernel's process table (`task_struct`), holding onto a **Process ID (PID)**.</li>
+      <li>If a buggy parent program continuously spawns children without reaping them, it can exhaust the system's PID table (<code>/proc/sys/kernel/pid_max</code>, typically 32,768 or 4,194,304), preventing any new process from starting on the server!</li>
+      <li><b>Reaping:</b> When a parent dies, all its children are reparented to PID 1. PID 1 runs an infinite loop calling <code>wait()</code> to reap zombies automatically.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<h2>2. virtual memory & address translation (q11 – q20)</h2>
+
+<details class="q-card" data-companies="openai google">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q11</span>
+    <div class="q-badges">
+      <span class="badge-co badge-openai">OpenAI</span>
+      <span class="badge-co badge-google">Google</span>
+      <span class="badge-cat">Address Translation</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Walk through a 64-bit virtual memory address translation on x86_64 across a 4-level page table.</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    x86_64 uses 48-bit canonical virtual addresses divided into four 9-bit indices and a 12-bit physical page offset: PML4 $\to$ PDP $\to$ PD $\to$ PT $\to$ Physical Frame + Offset.
+  </div>
+  <div class="q-deep">
+    <p><b>Bit Breakdown (48-bit Canonical Virtual Address):</b></p>
+    <ul>
+      <li>Bits [47:39] (9 bits): Page Map Level 4 (PML4) index ($2^9 = 512$ entries).</li>
+      <li>Bits [38:30] (9 bits): Page Directory Pointer (PDP) index.</li>
+      <li>Bits [29:21] (9 bits): Page Directory (PD) index.</li>
+      <li>Bits [20:12] (9 bits): Page Table (PT) index.</li>
+      <li>Bits [11:0] (12 bits): Page Offset ($2^{12} = 4096$ bytes = 4KB page).</li>
+    </ul>
+    <p>The CPU uses the physical address in the <code>CR3</code> register to find PML4, indexes down each level, and extracts the physical page frame address, adding the 12-bit offset. Without the TLB, every single memory access would require 5 RAM reads!</p>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="meta anthropic">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q12</span>
+    <div class="q-badges">
+      <span class="badge-co badge-meta">Meta</span>
+      <span class="badge-co badge-anthropic">Anthropic</span>
+      <span class="badge-cat">Page Faults</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Differentiate between Minor Page Faults, Major Page Faults, and Invalid Faults (Segmentation Faults).</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    A Minor fault resolves in RAM without disk I/O. A Major fault requires reading from disk/swap (costing milliseconds). An Invalid fault accesses unmapped memory, resulting in SIGSEGV.
+  </div>
+  <div class="q-deep">
+    <ul>
+      <li><b>Minor Page Fault (Soft Fault):</b> The page is already in physical RAM (e.g. shared library loaded by another process, or freshly allocated zero-filled page by <code>malloc</code>). The kernel just updates the page table entry (PTE). Cost: ~1 microsecond.</li>
+      <li><b>Major Page Fault (Hard Fault):</b> The page must be fetched from disk (file-backed mmap or swapped-out memory). The thread is put to sleep while disk DMA fetches the 4KB block. Cost: ~1–10 milliseconds (HDD) or 10–50 microseconds (NVMe SSD).</li>
+      <li><b>Invalid Fault (SIGSEGV):</b> The address is not in any allocated Virtual Memory Area (VMA), or permissions are violated (e.g. write to read-only code). The kernel delivers signal 11 (`SIGSEGV`).</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="apple netflix">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q13</span>
+    <div class="q-badges">
+      <span class="badge-co badge-apple">Apple</span>
+      <span class="badge-co badge-netflix">Netflix</span>
+      <span class="badge-cat">Memory Allocation</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">How does malloc(100) vs malloc(100MB) behave? How much physical memory is allocated at the moment of malloc()?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    malloc() allocates ZERO bytes of physical RAM! It only updates the virtual memory map. Physical RAM is allocated lazily on the first write via demand-paging page faults.
+  </div>
+  <div class="q-deep">
+    <p><b>Small vs Large Allocations:</b></p>
+    <ul>
+      <li><b>Small (&lt; 128KB):</b> Handled via <code>brk()</code> / <code>sbrk()</code>. Extends the top of the process heap segment. Managed in user space by arena buckets to minimize syscall overhead.</li>
+      <li><b>Large (&ge; 128KB):</b> Allocated via <code>mmap(MAP_ANONYMOUS | MAP_PRIVATE)</code>. Creates a new independent memory mapping outside the heap. When <code>free()</code> is called, memory is immediately released back to the OS via <code>munmap()</code>, preventing heap fragmentation.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="nvidia google">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q14</span>
+    <div class="q-badges">
+      <span class="badge-co badge-nvidia">NVIDIA</span>
+      <span class="badge-co badge-google">Google</span>
+      <span class="badge-cat">HugePages & TLB</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">What is the Translation Lookaside Buffer (TLB)? Why do databases and LLM training pipelines mandate HugePages (2MB / 1GB)?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    The TLB is an on-chip associative cache of recent virtual-to-physical address translations. HugePages (2MB or 1GB instead of 4KB) reduce the number of TLB entries needed by up to 500×, preventing TLB thrashing on large datasets.
+  </div>
+  <div class="q-deep">
+    <p><b>The Math of TLB Reach:</b></p>
+    <ul>
+      <li>A typical L1 TLB has 64 to 128 entries. With 4KB pages, 64 entries cover only $64 \times 4\text{KB} = 256\text{KB}$ of memory!</li>
+      <li>If a database (e.g. PostgreSQL, Redis) or an AI model buffer has 64GB of memory, accessing random memory addresses causes constant TLB misses (each costing 4 RAM reads to walk the page table).</li>
+      <li>With <b>2MB HugePages</b>, 64 TLB entries cover $64 \times 2\text{MB} = 128\text{MB}$ (a 512× improvement). One page table level (PT) is skipped entirely, making walks faster.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="amazon microsoft">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q15</span>
+    <div class="q-badges">
+      <span class="badge-co badge-amazon">Amazon</span>
+      <span class="badge-co badge-microsoft">Microsoft</span>
+      <span class="badge-cat">Page Replacement</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">What is Belady's Anomaly? Which page replacement algorithms suffer from it, and why doesn't LRU?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    Belady's Anomaly is the phenomenon where giving a process MORE physical page frames causes MORE page faults. It occurs in FIFO, but is mathematically impossible in LRU and Optimal replacement.
+  </div>
+  <div class="q-deep">
+    <p><b>Stack Algorithms:</b></p>
+    <ul>
+      <li>An algorithm is a <b>stack algorithm</b> if the set of pages in memory for $N$ frames is always a strict subset of the pages that would be in memory for $N+1$ frames.</li>
+      <li>LRU (Least Recently Used) and Optimal are stack algorithms: adding a frame never evicts a page that would have been kept with fewer frames.</li>
+      <li>FIFO is not a stack algorithm: the oldest page inserted is evicted regardless of whether it is heavily referenced, causing counter-intuitive fault spikes on specific reference strings (e.g. 1, 2, 3, 4, 1, 2, 5, 1, 2, 3, 4, 5).</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="google apple">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q16</span>
+    <div class="q-badges">
+      <span class="badge-co badge-google">Google</span>
+      <span class="badge-co badge-apple">Apple</span>
+      <span class="badge-cat">Virtual Memory</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">What is Memory Thrashing? How does the OS detect it, and what is the Working Set Model?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    Thrashing happens when the total working sets of active processes exceed available physical RAM, causing the OS to spend more time swapping pages to/from disk than executing user instructions.
+  </div>
+  <div class="q-deep">
+    <p><b>The Working Set Theory (Peter Denning):</b></p>
+    <ul>
+      <li>The <b>Working Set</b> $W(t, \Delta)$ is the set of unique pages referenced by a process in the last $\Delta$ time units.</li>
+      <li>If $\sum |W_i| > \text{Total Physical RAM}$, thrashing begins immediately. CPU utilization drops because all processes are blocked waiting for I/O page reads.</li>
+      <li><b>OS Mitigation:</b> The OS must suspend (swap out entirely) one or more processes to free frames for the remaining processes, letting them finish their working sets.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="openai meta">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q17</span>
+    <div class="q-badges">
+      <span class="badge-co badge-openai">OpenAI</span>
+      <span class="badge-co badge-meta">Meta</span>
+      <span class="badge-cat">Copy-On-Write</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">How does Copy-On-Write (COW) work under the hood during fork()? What hardware flag triggers the page duplication?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    <code>fork()</code> duplicates the parent's page table entries without copying any physical memory frames, marking all shared pages as Read-Only. The first write attempt triggers a Page Fault, allowing the kernel to duplicate only that specific 4KB page.
+  </div>
+  <div class="q-deep">
+    <p><b>Step-by-step Execution:</b></p>
+    <ol>
+      <li>Parent calls <code>fork()</code>. Kernel creates child's <code>mm_struct</code> and points page table entries to the parent's existing physical frames.</li>
+      <li>Kernel clears the <b>Write Bit (R/W = 0)</b> in the Page Table Entries of both parent and child.</li>
+      <li>Either process attempts to write to a variable: CPU MMU triggers a Page Fault (fault code: write to read-only page).</li>
+      <li>The kernel inspects the VMA, sees the page is marked COW: allocates a brand-new 4KB physical frame, copies the original data, points the faulting process's PTE to the new frame, sets R/W = 1, and resumes execution.</li>
+    </ol>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="netflix anthropic">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q18</span>
+    <div class="q-badges">
+      <span class="badge-co badge-netflix">Netflix</span>
+      <span class="badge-co badge-anthropic">Anthropic</span>
+      <span class="badge-cat">Linux Kernel</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">How does the Linux Out-of-Memory (OOM) Killer choose which process to terminate? What is oom_score_adj?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    The OOM killer selects the process that frees the maximum RAM with the least collateral damage based on a calculated <code>oom_score</code> (0 to 1000). System services protect themselves using <code>oom_score_adj</code>.
+  </div>
+  <div class="q-deep">
+    <p><b>OOM Scoring Algorithm:</b></p>
+    <ul>
+      <li>Base score is roughly proportional to percentage of physical RAM consumed: <code>points = (RSS + swap) * 1000 / total_ram</code>.</li>
+      <li>Processes running as root or with high CPU run times get minor discounts.</li>
+      <li><b>oom_score_adj (-1000 to +1000):</b> Users/orchestrators adjust priorities. A value of <code>-1000</code> disables OOM killing completely for that process (e.g. <code>sshd</code>, kubelet). A positive value (e.g. +500) makes batch workers sacrificed first.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="nvidia microsoft">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q19</span>
+    <div class="q-badges">
+      <span class="badge-co badge-nvidia">NVIDIA</span>
+      <span class="badge-co badge-microsoft">Microsoft</span>
+      <span class="badge-cat">Hardware Architecture</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">What is NUMA (Non-Uniform Memory Access), and how does NUMA node affinity impact multi-GPU AI clusters?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    In NUMA systems, memory access time depends on memory location relative to the processor. Accessing local memory attached to the CPU socket is 2–3× faster than accessing remote memory across the interconnect bus (UPI / Infinity Fabric).
+  </div>
+  <div class="q-deep">
+    <p><b>Impact on AI & GPU Training:</b></p>
+    <ul>
+      <li>In dual-socket servers, GPU 0–3 are wired to Socket 0's PCIe root complex; GPU 4–7 are wired to Socket 1.</li>
+      <li>If a PyTorch data loader thread runs on Socket 1 but feeds GPU 0 (Socket 0), every tensor transfer crosses the slow CPU-to-CPU inter-socket link, cutting PCIe DMA throughput in half.</li>
+      <li><b>Fix:</b> Bind processes using <code>numactl --cpunodebind=X --membind=X</code> or set CPU core affinity to the PCIe root complex of the assigned GPU.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="apple amazon">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q20</span>
+    <div class="q-badges">
+      <span class="badge-co badge-apple">Apple</span>
+      <span class="badge-co badge-amazon">Amazon</span>
+      <span class="badge-cat">Kernel Memory</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Compare Internal vs External Fragmentation. How do the Linux Buddy Allocator and SLAB/SLUB allocators solve them?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    External fragmentation is free memory broken into small scattered holes. Internal fragmentation is allocated memory larger than requested. Linux uses the Buddy Allocator for page frames and SLAB/SLUB for byte-sized kernel objects.
+  </div>
+  <div class="q-deep">
+    <p><b>Two-Tier Allocator Design:</b></p>
+    <ul>
+      <li><b>Buddy Allocator:</b> Manages physical pages in power-of-two blocks ($2^0, 2^1, ..., 2^{10}$ pages). Solves external fragmentation by merging adjacent free "buddies" into larger contiguous blocks upon deallocation.</li>
+      <li><b>SLAB / SLUB Allocator:</b> Sits on top of the buddy allocator. Frequently allocated kernel structs (e.g. <code>task_struct</code>, <code>inode</code>, <code>dentry</code>) have fixed sizes. SLAB creates dedicated pre-allocated object pools, eliminating internal fragmentation and constructor overhead.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<h2>3. syscalls, scheduling & linux kernel (q21 – q30)</h2>
+
+<details class="q-card" data-companies="google meta">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q21</span>
+    <div class="q-badges">
+      <span class="badge-co badge-google">Google</span>
+      <span class="badge-co badge-meta">Meta</span>
+      <span class="badge-cat">Syscall Mechanics</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Trace the execution path of a system call from user-space assembly into Ring 0 kernel execution.</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    The user program loads the syscall number into the RAX register, sets argument registers, and executes the <code>syscall</code> assembly instruction, transitioning hardware from Ring 3 to Ring 0.
+  </div>
+  <div class="q-deep">
+    <p><b>Step-by-step Trace on x86_64:</b></p>
+    <ol>
+      <li><b>Setup:</b> User C library (glibc) places syscall ID into <code>RAX</code>, and args into <code>RDI, RSI, RDX, R10, R8, R9</code>.</li>
+      <li><b>Instruction:</b> glibc executes <code>syscall</code>. Hardware switches privilege mode bit (Ring 3 $\to$ Ring 0), saves <code>RIP</code> into <code>RCX</code>, saves <code>RFLAGS</code> into <code>R11</code>, and loads the kernel entry point from Model-Specific Register (<code>MSR_LSTAR</code>).</li>
+      <li><b>Stack Swap:</b> Kernel executes <code>swapgs</code> to load kernel per-CPU data and switches the stack pointer <code>RSP</code> to the process's kernel stack.</li>
+      <li><b>Dispatch:</b> Kernel indexes the <code>sys_call_table[RAX]</code> and executes the C implementation (e.g. <code>sys_read()</code>).</li>
+      <li><b>Return:</b> Result is stored in <code>RAX</code>; kernel executes <code>sysretq</code> to restore Ring 3 and user registers.</li>
+    </ol>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="anthropic openai">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q22</span>
+    <div class="q-badges">
+      <span class="badge-co badge-anthropic">Anthropic</span>
+      <span class="badge-co badge-openai">OpenAI</span>
+      <span class="badge-cat">Kernel Optimization</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">What is the vDSO (Virtual Dynamic Shared Object), and how does it make gettimeofday() 100× faster?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    vDSO maps a read-only page of kernel memory containing real-time clock data directly into user space, allowing syscalls like <code>clock_gettime()</code> to execute as ordinary function calls without entering Ring 0.
+  </div>
+  <div class="q-deep">
+    <p><b>Why It Matters:</b></p>
+    <ul>
+      <li>A traditional syscall involves CPU privilege switches, pipeline flushes, and register saves (~50–100 nanoseconds).</li>
+      <li>Microservices and AI logging systems call time functions millions of times per second.</li>
+      <li>The kernel exports a page containing timer calibration data and maps it into every ELF process. The C library simply reads the CPU's invariant Time Stamp Counter (<code>RDTSC</code>) and performs math in user space (~1–3 nanoseconds).</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="meta google">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q23</span>
+    <div class="q-badges">
+      <span class="badge-co badge-meta">Meta</span>
+      <span class="badge-co badge-google">Google</span>
+      <span class="badge-cat">CPU Scheduling</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">How does the Linux CFS (Completely Fair Scheduler) select the next task to run? Explain vruntime and Red-Black trees.</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    CFS tracks each task's virtual runtime (<code>vruntime</code>) and always selects the task that has received the least CPU time (the leftmost node in an augmented Red-Black tree).
+  </div>
+  <div class="q-deep">
+    <p><b>The CFS Math:</b></p>
+    <ul>
+      <li>$$vruntime \mathrel{+}= \Delta \text{exec\_time} \times \frac{\text{NICE\_0\_LOAD}}{\text{task\_weight}}$$</li>
+      <li>Tasks with higher priority (lower nice value) have greater weight, so their $vruntime$ advances more slowly, giving them proportionally more CPU time.</li>
+      <li><b>Data Structure:</b> Tasks are ordered in a Red-Black Tree by $vruntime$. Finding the next task is $O(1)$ (cached pointer to leftmost node). Re-inserting an executed task is $O(\log N)$.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="netflix apple">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q24</span>
+    <div class="q-badges">
+      <span class="badge-co badge-netflix">Netflix</span>
+      <span class="badge-co badge-apple">Apple</span>
+      <span class="badge-cat">CPU Scheduling</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">What is the Convoy Effect in CPU scheduling? How does Round Robin solve it, and what are the tradeoffs of the time quantum?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    The Convoy Effect occurs in FCFS when short I/O-bound tasks get stuck behind a long CPU-bound task, leaving I/O devices idle and spiking latency. Round Robin mitigates this with preemptive time slicing.
+  </div>
+  <div class="q-deep">
+    <p><b>Time Quantum ($q$) Tradeoffs:</b></p>
+    <ul>
+      <li><b>Quantum too large ($q \to \infty$):</b> Degenerates into FCFS, reintroducing the Convoy Effect and poor interactive responsiveness.</li>
+      <li><b>Quantum too small ($q \to 0$):</b> Context switch overhead dominates. If $q = 1\text{ms}$ and context switch is $0.2\text{ms}$, 17% of total CPU capacity is wasted on scheduler bookkeeping.</li>
+      <li><b>Production Sweet Spot:</b> Typically 10ms to 100ms in general-purpose operating systems, dynamically scaled by CFS.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="amazon microsoft">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q25</span>
+    <div class="q-badges">
+      <span class="badge-co badge-amazon">Amazon</span>
+      <span class="badge-co badge-microsoft">Microsoft</span>
+      <span class="badge-cat">Kernel Architecture</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Compare Monolithic Kernels (Linux) vs Microkernels (Mach, seL4). Why did Linux win the performance battle for cloud servers?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    Monolithic kernels run all OS subsystems (FS, drivers, networking, memory) in Ring 0 in a single shared address space. Microkernels run only scheduling and IPC in Ring 0, pushing drivers and filesystems to Ring 3 user space.
+  </div>
+  <div class="q-deep">
+    <p><b>The IPC Bottleneck:</b></p>
+    <ul>
+      <li>In a microkernel, a simple <code>read()</code> request requires multiple message passes and context switches: App $\to$ Kernel $\to$ FS Server $\to$ Kernel $\to$ Disk Driver $\to$ Kernel $\to$ App.</li>
+      <li>In Linux, a <code>read()</code> is a single function call inside Ring 0. Linux won on bare-metal throughput and latency, although microkernels remain popular in mission-critical safety systems (automotive, aerospace, Apple secure enclave).</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="apple google">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q26</span>
+    <div class="q-badges">
+      <span class="badge-co badge-apple">Apple</span>
+      <span class="badge-co badge-google">Google</span>
+      <span class="badge-cat">Interrupts</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">What are Top Halves vs Bottom Halves (softirqs, tasklets, workqueues) in Linux interrupt handling?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    The Top Half runs immediately with interrupts disabled to acknowledge hardware, while the Bottom Half defers expensive packet processing or disk parsing to run asynchronously with interrupts re-enabled.
+  </div>
+  <div class="q-deep">
+    <p><b>Bottom Half Flavors:</b></p>
+    <ul>
+      <li><b>Top Half (Hard IRQ):</b> Runs in interrupt context, cannot sleep. Must be under a few microseconds (e.g. read NIC register, reset hardware interrupt line, enqueue pointer).</li>
+      <li><b>SoftIRQ:</b> Runs concurrently on multiple CPUs, cannot sleep. Used for high-throughput networking (e.g. TCP/IP stack) and block storage.</li>
+      <li><b>Workqueue:</b> Runs in a regular kernel thread (<code>kworker</code>) context. <b>Can sleep, block, and allocate memory</b>. Used for heavy background tasks.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="openai anthropic">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q27</span>
+    <div class="q-badges">
+      <span class="badge-co badge-openai">OpenAI</span>
+      <span class="badge-co badge-anthropic">Anthropic</span>
+      <span class="badge-cat">CPU Affinity</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">How does CPU Affinity (sched_setaffinity) prevent cache invalidation, and when is core pinning essential for AI inference?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    CPU affinity binds a process/thread to specific CPU cores, preventing the scheduler from migrating the thread across cores and invalidating warm L1/L2 caches.
+  </div>
+  <div class="q-deep">
+    <p><b>Performance Wins in AI Inference:</b></p>
+    <ul>
+      <li>When a thread migrates from Core 0 to Core 8, its working memory must be re-fetched from L3 cache or remote RAM, spiking tail latency (p99).</li>
+      <li>In high-throughput LLM engines (vLLM, TensorRT-LLM), background worker threads, tokenizers, and NCCL communication threads are pinned to dedicated physical cores on the same NUMA node as the GPU to prevent jitter and thread migration stalls.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="nvidia meta">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q28</span>
+    <div class="q-badges">
+      <span class="badge-co badge-nvidia">NVIDIA</span>
+      <span class="badge-co badge-meta">Meta</span>
+      <span class="badge-cat">Real-Time Linux</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">How do Linux real-time scheduling policies (SCHED_FIFO, SCHED_RR) work, and how can an unprivileged process cause a system freeze?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    Real-time tasks have static priorities (1 to 99) and will ALWAYS preempt any normal CFS task. A SCHED_FIFO task in an infinite loop will completely starve all normal user and system processes.
+  </div>
+  <div class="q-deep">
+    <p><b>Safety Protections:</b></p>
+    <ul>
+      <li><code>SCHED_FIFO</code>: Runs until it voluntarily yields, blocks on I/O, or is preempted by a higher-priority RT task.</li>
+      <li><code>SCHED_RR</code>: Same as FIFO, but preempted when its time slice expires if another task of identical priority is waiting.</li>
+      <li><b>Throttling Protection:</b> Linux includes <code>/proc/sys/kernel/sched_rt_runtime_us</code> (default 950,000 $\mu$s per 1,000,000 $\mu$s), reserving 5% of CPU time for normal tasks so an admin can log in via SSH to kill a runaway RT process.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="microsoft amazon">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q29</span>
+    <div class="q-badges">
+      <span class="badge-co badge-microsoft">Microsoft</span>
+      <span class="badge-co badge-amazon">Amazon</span>
+      <span class="badge-cat">Hardware & Power</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Explain CPU C-States vs P-States. How does aggressive power management cause p99 latency spikes in high-frequency trading and low-latency APIs?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    C-states are CPU sleep states (C0 = active, C6 = deep sleep). P-states are operating frequencies (voltage/clock scaling). Waking from deep C-states takes 10–50 $\mu$s, causing latency spikes for sporadic requests.
+  </div>
+  <div class="q-deep">
+    <p><b>Latency Anatomy:</b></p>
+    <ul>
+      <li>When a core is idle between requests, the kernel governor puts it into C6 (flushing caches and cutting core voltage).</li>
+      <li>When a new network packet arrives, the CPU takes tens of microseconds just to power back up to C0.</li>
+      <li><b>Low-Latency Tuning:</b> Ultra-low-latency servers disable deep C-states entirely using kernel boot parameters <code>processor.max_cstate=1 intel_idle.max_cstate=1 idle=poll</code> and lock the CPU governor to <code>performance</code>.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="google netflix">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q30</span>
+    <div class="q-badges">
+      <span class="badge-co badge-google">Google</span>
+      <span class="badge-co badge-netflix">Netflix</span>
+      <span class="badge-cat">Security & Silicon</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">What were Meltdown and Spectre? How did hardware speculative execution break OS kernel memory protection?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    Meltdown allowed user-space code to read kernel memory by exploiting out-of-order execution before privilege checks completed, transmitting secrets via cache side-channels.
+  </div>
+  <div class="q-deep">
+    <p><b>Mechanism & Mitigation:</b></p>
+    <ul>
+      <li>A user program accesses kernel memory: <code>val = *kernel_address; access(probe_array[val * 4096]);</code>.</li>
+      <li>The CPU speculatively executes the second instruction before the MMU privilege violation terminates the process. Even though the instruction is rolled back, <code>probe_array[val * 4096]</code> remains cached in L1 cache!</li>
+      <li>The attacker measures memory read times of <code>probe_array</code> to deduce the secret kernel byte.</li>
+      <li><b>OS Fix:</b> <b>KPTI (Kernel Page Table Isolation)</b> completely separates user and kernel page tables, unmapping kernel memory while running in user space (at the cost of a 5–20% performance hit on older CPUs).</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<h2>4. storage, fast i/o & inter-process communication (q31 – q40)</h2>
+
+<details class="q-card" data-companies="netflix google">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q31</span>
+    <div class="q-badges">
+      <span class="badge-co badge-netflix">Netflix</span>
+      <span class="badge-co badge-google">Google</span>
+      <span class="badge-cat">I/O Multiplexing</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Why is epoll O(1) while select() and poll() are O(N)? Explain the internal data structure of epoll.</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    <code>select</code> and <code>poll</code> require copying an array of file descriptors to the kernel on every call and linearly scanning all $N$ descriptors. <code>epoll</code> registers descriptors once in a kernel Red-Black tree and uses an interrupt-driven Ready List for $O(1)$ event retrieval.
+  </div>
+  <div class="q-deep">
+    <p><b>The Three epoll Syscalls & Structures:</b></p>
+    <ul>
+      <li><code>epoll_create1()</code>: Allocates an epoll instance containing an augmented Red-Black Tree (for tracking monitored FDs) and a doubly linked <b>Ready List</b>.</li>
+      <li><code>epoll_ctl()</code>: Adds/modifies/deletes monitored FDs ($O(\log N)$ in the RB-tree). The kernel registers a callback with each socket's wait queue.</li>
+      <li><code>epoll_wait()</code>: When an NIC receives packets for a socket, its callback places that socket into the Ready List. <code>epoll_wait()</code> simply copies the Ready List to user space ($O(\text{ready})$), completely independent of total connections ($N$).</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="openai meta">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q32</span>
+    <div class="q-badges">
+      <span class="badge-co badge-openai">OpenAI</span>
+      <span class="badge-co badge-meta">Meta</span>
+      <span class="badge-cat">epoll Modes</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Explain Edge-Triggered (EPOLLET) vs Level-Triggered epoll. Why is non-blocking I/O mandatory with Edge-Triggered mode?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    Level-Triggered reports an event as long as data remains in the buffer. Edge-Triggered reports an event ONLY when state transitions from empty to non-empty (rising edge).
+  </div>
+  <div class="q-deep">
+    <p><b>Why Non-Blocking Sockets are Mandatory:</b></p>
+    <ul>
+      <li>With Edge-Triggered mode, if you read 1KB from a 4KB buffer, <code>epoll_wait()</code> will <b>never notify you again</b> for the remaining 3KB until new bytes arrive!</li>
+      <li>Therefore, you must loop <code>read()</code> until it returns <code>EAGAIN</code> or <code>EWOULDBLOCK</code>.</li>
+      <li>If the socket is blocking, that final <code>read()</code> will block the worker thread forever, hanging the server!</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="amazon anthropic">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q33</span>
+    <div class="q-badges">
+      <span class="badge-co badge-amazon">Amazon</span>
+      <span class="badge-co badge-anthropic">Anthropic</span>
+      <span class="badge-cat">Zero-Copy</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Trace the complete data path of serving a static file via read()+write() vs sendfile() (Zero-Copy).</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    <code>read() + write()</code> requires 4 context switches and 4 data copies (2 through CPU). <code>sendfile()</code> requires 2 context switches and zero CPU copies (pure DMA).
+  </div>
+  <div class="q-deep">
+    <p><b>Data Path Comparison:</b></p>
+    <ul>
+      <li><b>Traditional read() + write():</b>
+        <ol>
+          <li>Disk $\xrightarrow{\text{DMA}}$ OS Page Cache (Kernel) [Switch 1: User $\to$ Kernel]</li>
+          <li>OS Page Cache $\xrightarrow{\text{CPU copy}}$ User Buffer (App memory) [Switch 2: Kernel $\to$ User]</li>
+          <li>User Buffer $\xrightarrow{\text{CPU copy}}$ Socket Buffer (Kernel) [Switch 3: User $\to$ Kernel]</li>
+          <li>Socket Buffer $\xrightarrow{\text{DMA}}$ Network Card (NIC) [Switch 4: Kernel $\to$ User]</li>
+        </ol>
+      </li>
+      <li><b>sendfile() / splice():</b> Data moves directly from Page Cache to NIC ring buffer via DMA with SG-DMA (Scatter-Gather). CPU never touches the bytes!</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="apple microsoft">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q34</span>
+    <div class="q-badges">
+      <span class="badge-co badge-apple">Apple</span>
+      <span class="badge-co badge-microsoft">Microsoft</span>
+      <span class="badge-cat">Modern Linux I/O</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">What is io_uring in modern Linux? How does it outperform epoll for mixed disk and network workloads?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    io_uring uses two lockless ring buffers (Submission Queue and Completion Queue) shared between kernel and user space via mmap(), allowing asynchronous I/O with zero syscalls in polling mode.
+  </div>
+  <div class="q-deep">
+    <p><b>Key Architecture Advantages:</b></p>
+    <ul>
+      <li><b>True Asynchronous Storage I/O:</b> Linux <code>epoll</code> only works on sockets and pipes (regular file descriptors always report ready immediately even when disk I/O blocks). <code>io_uring</code> is the first truly asynchronous file and network engine in Linux.</li>
+      <li><b>Kernel Polling (IORING_SETUP_SQPOLL):</b> A kernel thread continuously polls the Submission Queue. User space writes I/O requests directly to the ring buffer with memory barriers—<b>submitting millions of IOPS without a single syscall!</b></li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="google apple">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q35</span>
+    <div class="q-badges">
+      <span class="badge-co badge-google">Google</span>
+      <span class="badge-co badge-apple">Apple</span>
+      <span class="badge-cat">File Systems</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">What is an Inode in Unix/Linux? Why doesn't an inode store the filename, and how do hard links vs soft links differ?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    An Inode stores all file metadata (size, permissions, timestamps, block pointers) EXCEPT the filename. Filenames are stored in directory entries (dentry) mapping names to Inode numbers.
+  </div>
+  <div class="q-deep">
+    <p><b>Hard Links vs Symbolic (Soft) Links:</b></p>
+    <ul>
+      <li><b>Hard Link:</b> A new directory entry pointing to the exact same Inode number. Increments the Inode's reference counter (<code>nlink</code>). Deleting one link does not delete data until <code>nlink == 0</code>. Cannot span across different filesystems.</li>
+      <li><b>Soft Link:</b> A standalone file with its own unique Inode whose content is the path string of the target file. Can cross filesystems and can become dangling/broken if the target is moved.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="netflix amazon">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q36</span>
+    <div class="q-badges">
+      <span class="badge-co badge-netflix">Netflix</span>
+      <span class="badge-co badge-amazon">Amazon</span>
+      <span class="badge-cat">Storage Durability</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Differentiate between write(), fsync(), fdatasync(), and O_DIRECT. When is data truly written to disk?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    <code>write()</code> only copies data to the OS Page Cache. <code>fsync()</code> flushes data and metadata to drive hardware. <code>fdatasync()</code> flushes data without metadata unless needed to retrieve data.
+  </div>
+  <div class="q-deep">
+    <p><b>Comparison Table:</b></p>
+    <table>
+      <tr><th>Call</th><th>Buffer Location</th><th>Guarantees</th></tr>
+      <tr><td><code>write()</code></td><td>Page Cache (RAM)</td><td>Fast; data lost if machine crashes before writeback.</td></tr>
+      <tr><td><code>fdatasync()</code></td><td>Flushes disk controller cache</td><td>Flushes data blocks; skips updating file mtime metadata (saving disk head seeks).</td></tr>
+      <tr><td><code>fsync()</code></td><td>Flushes disk controller cache</td><td>Flushes both data blocks and inode metadata (size, timestamps).</td></tr>
+      <tr><td><code>O_DIRECT</code></td><td>Bypasses OS Page Cache entirely</td><td>Direct DMA between user buffer and disk (used by DBMS managing custom buffer pools).</td></tr>
+    </table>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="openai google">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q37</span>
+    <div class="q-badges">
+      <span class="badge-co badge-openai">OpenAI</span>
+      <span class="badge-co badge-google">Google</span>
+      <span class="badge-cat">IPC</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Benchmark IPC mechanisms: Pipes vs Unix Domain Sockets vs POSIX Shared Memory vs TCP Loopback. Which has the lowest latency?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    POSIX Shared Memory is by far the fastest (~100 nanoseconds) because it requires zero kernel copies. Unix Domain Sockets (~2–5 $\mu$s) outperform TCP loopback (~10–20 $\mu$s) by skipping the TCP stack.
+  </div>
+  <div class="q-deep">
+    <ul>
+      <li><b>POSIX Shared Memory:</b> After initial setup via <code>shm_open()</code> and <code>mmap()</code>, communication happens directly through shared RAM addresses with no kernel involvement. Synchronization requires user-space atomics or futexes.</li>
+      <li><b>Unix Domain Sockets:</b> Bypasses TCP checksumming, flow control, and IP routing tables. Performs a single kernel-space memory copy between socket buffers.</li>
+      <li><b>TCP Loopback (127.0.0.1):</b> Traverses the entire network stack, calculating checksums, allocating <code>sk_buff</code> structs, and handling TCP ACK state machines.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="meta anthropic">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q38</span>
+    <div class="q-badges">
+      <span class="badge-co badge-meta">Meta</span>
+      <span class="badge-co badge-anthropic">Anthropic</span>
+      <span class="badge-cat">Production Engineering</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">How does Unix Domain Socket file descriptor passing (SCM_RIGHTS) enable zero-downtime hot reloading of web servers?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    <code>sendmsg()</code> with <code>SCM_RIGHTS</code> allows a running server process to transfer listening socket file descriptors across processes without closing them or dropping incoming TCP client connections.
+  </div>
+  <div class="q-deep">
+    <p><b>Hot-Reload Sequence (e.g. Nginx, Envoy):</b></p>
+    <ol>
+      <li>Process A is serving traffic on port 443 (FD 4).</li>
+      <li>Process B (new binary) is started.</li>
+      <li>Process A opens a Unix Domain Socket to Process B and sends FD 4 using <code>SCM_RIGHTS</code> control message.</li>
+      <li>The kernel clones the open file table reference into Process B's file descriptor table. Process B begins accepting connections immediately on the same port!</li>
+      <li>Process A drains its in-flight connections gracefully and exits cleanly. Zero dropped packets!</li>
+    </ol>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="apple microsoft">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q39</span>
+    <div class="q-badges">
+      <span class="badge-co badge-apple">Apple</span>
+      <span class="badge-co badge-microsoft">Microsoft</span>
+      <span class="badge-cat">File Descriptors</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Explain the three-tier file structure: File Descriptor Table vs Open File Table vs Inode Table. What happens across fork() and exec()?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    File Descriptor Table is per-process; Open File Table is system-wide (tracking file offset and flags); Inode Table is system-wide (tracking physical file metadata).
+  </div>
+  <div class="q-deep">
+    <ul>
+      <li><b>Across fork():</b> The child receives a duplicate FD table, pointing to the <b>same Open File Table entries</b>. Crucial detail: if child seeks to offset 100, the parent's file offset moves to 100 too!</li>
+      <li><b>Across exec():</b> The FD table is preserved UNLESS the file descriptor has the <code>FD_CLOEXEC</code> (close-on-exec) flag set, in which case the kernel closes it before loading the new binary.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="amazon netflix">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q40</span>
+    <div class="q-badges">
+      <span class="badge-co badge-amazon">Amazon</span>
+      <span class="badge-co badge-netflix">Netflix</span>
+      <span class="badge-cat">Journaling File Systems</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Explain the 3 Ext4 Journaling modes (data=journal, data=ordered, data=writeback). How do they balance crash consistency vs write throughput?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    <code>data=journal</code> writes both data and metadata to the journal first (safest, slowest). <code>data=ordered</code> (default) writes data to storage before committing metadata to journal. <code>data=writeback</code> offers maximum speed with no ordering guarantees.
+  </div>
+  <div class="q-deep">
+    <ul>
+      <li><b>data=journal:</b> Every byte is written twice (first to journal ring buffer, then to main file system). Cuts write performance in half.</li>
+      <li><b>data=ordered (Ext4 Default):</b> Only metadata is journaled, but the kernel guarantees that data blocks are written to disk BEFORE metadata commits. Prevents "garbage data" leaks upon crash.</li>
+      <li><b>data=writeback:</b> Metadata is journaled, but data can be written anytime. High throughput, but upon crash, recently appended files may contain stale deleted data from old blocks.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<h2>5. containers, virtualization & ai systems infrastructure (q41 – q50)</h2>
+
+<details class="q-card" data-companies="anthropic openai">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q41</span>
+    <div class="q-badges">
+      <span class="badge-co badge-anthropic">Anthropic</span>
+      <span class="badge-co badge-openai">OpenAI</span>
+      <span class="badge-cat">Containers</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Containers are just processes! List the 7 Linux Namespaces and explain how they construct container isolation.</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    Containers do not have a dedicated hypervisor kernel. They are standard Linux processes isolated by 7 kernel namespaces that partition what system resources a process can see.
+  </div>
+  <div class="q-deep">
+    <p><b>The 7 Core Linux Namespaces:</b></p>
+    <ol>
+      <li><b>PID:</b> Provides isolated process ID tree (container process sees itself as PID 1).</li>
+      <li><b>NET:</b> Dedicated virtual network devices, routing tables, and port spaces.</li>
+      <li><b>MNT (Mount):</b> Independent filesystem mount table (rootfs isolation).</li>
+      <li><b>IPC:</b> Isolates System V IPC and POSIX message queues.</li>
+      <li><b>UTS:</b> Isolates hostname and domain name.</li>
+      <li><b>USER:</b> Maps container root (UID 0) to an unprivileged user (UID 10001) on the host.</li>
+      <li><b>CGROUP:</b> Masks cgroup hierarchies visible inside <code>/proc</code>.</li>
+    </ol>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="meta google">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q42</span>
+    <div class="q-badges">
+      <span class="badge-co badge-meta">Meta</span>
+      <span class="badge-co badge-google">Google</span>
+      <span class="badge-cat">Cgroups</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">How do Cgroups (Control Groups v1 vs v2) enforce CPU quotas and memory limits? What triggers a container OOM kill?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    While Namespaces govern what a container can SEE, Cgroups govern how much resources it can USE. CPU is throttled via CFS quotas; exceeding memory.max triggers cgroup OOM termination.
+  </div>
+  <div class="q-deep">
+    <p><b>Mechanisms in Production:</b></p>
+    <ul>
+      <li><b>CPU Throttling:</b> Governed by <code>cpu.cfs_quota_us</code> and <code>cpu.cfs_period_us</code>. If quota is 200,000 $\mu$s and period is 100,000 $\mu$s, the container is allocated 2 full CPU cores. If it exceeds quota within a period, the kernel CFS deschedules all threads until the next period.</li>
+      <li><b>Container OOM Killer:</b> When a container hits <code>memory.max</code>, the kernel tries page reclaim. If insufficient RAM is freed, the OOM killer kills the highest-scoring task *inside that cgroup*, leaving the host server completely untouched.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="openai anthropic">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q43</span>
+    <div class="q-badges">
+      <span class="badge-co badge-openai">OpenAI</span>
+      <span class="badge-co badge-anthropic">Anthropic</span>
+      <span class="badge-cat">MicroVMs</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">How do MicroVMs (AWS Firecracker / Cloud Hypervisor) compare to traditional QEMU/KVM VMs and Docker containers in security and cold start?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    MicroVMs strip out legacy hardware emulation (PCI bus, ACPI, IDE) to launch lightweight virtual machines in &lt; 5ms with minimal memory footprint (~5MB), combining VM security isolation with container startup speed.
+  </div>
+  <div class="q-deep">
+    <table>
+      <tr><th>Technology</th><th>Isolation Boundary</th><th>Cold Start Latency</th><th>Vulnerability Surface</th></tr>
+      <tr><td><b>Docker Container</b></td><td>Shared Host Kernel (Namespaces/Cgroups)</td><td>~50–200 ms</td><td>High (kernel exploit = host compromise)</td></tr>
+      <tr><td><b>QEMU / KVM</b></td><td>Hardware Hypervisor (Separate Kernel)</td><td>~10–30 seconds</td><td>Medium (complex legacy device emulation)</td></tr>
+      <tr><td><b>Firecracker MicroVM</b></td><td>Hardware Hypervisor + Minimal KVM Device</td><td><b>&lt; 5 milliseconds</b></td><td>Minimal (written in memory-safe Rust; only virtio devices)</td></tr>
+    </table>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="nvidia openai">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q44</span>
+    <div class="q-badges">
+      <span class="badge-co badge-nvidia">NVIDIA</span>
+      <span class="badge-co badge-openai">OpenAI</span>
+      <span class="badge-cat">GPU OS Architecture</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">How does GPUDirect RDMA bypass the host CPU and operating system during multi-node distributed LLM training?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    GPUDirect RDMA allows InfiniBand / RoCE NICs to perform direct PCIe DMA reads/writes to/from GPU VRAM memory without bouncing data through host CPU RAM or kernel network buffers.
+  </div>
+  <div class="q-deep">
+    <p><b>Bypassing Host Bottlenecks:</b></p>
+    <ul>
+      <li><b>Standard Path:</b> GPU VRAM $\xrightarrow{\text{PCIe}}$ Host RAM $\xrightarrow{\text{Kernel copy}}$ TCP/IP Socket Buffer $\xrightarrow{\text{PCIe}}$ NIC. Heavily bottlenecks on host CPU memory bandwidth and triggers kernel context switches.</li>
+      <li><b>GPUDirect RDMA Path:</b> NIC reads directly from GPU HBM memory over PCIe / NVLink switches. Host CPU OS kernel is completely out of the critical data path, enabling line-rate 400Gbps/800Gbps inter-node model synchronization (AllReduce).</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="google meta">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q45</span>
+    <div class="q-badges">
+      <span class="badge-co badge-google">Google</span>
+      <span class="badge-co badge-meta">Meta</span>
+      <span class="badge-cat">Storage & Containers</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">What is OverlayFS, and how do Docker image layers (LowerDir, UpperDir, WorkDir, MergedDir) work?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    OverlayFS combines multiple directories into a single unified mount. Read-only image layers form LowerDir, while container runtime modifications are captured in a thin read-write UpperDir via Copy-Up.
+  </div>
+  <div class="q-deep">
+    <p><b>Layer Dynamics:</b></p>
+    <ul>
+      <li><b>LowerDir:</b> Read-only base layers (e.g. Ubuntu base image + Python dependencies). Shared across hundreds of running containers.</li>
+      <li><b>UpperDir:</b> Writable layer private to that specific container instance.</li>
+      <li><b>Copy-Up:</b> If a container modifies a file existing in LowerDir, the kernel copies the entire file into UpperDir before writing.</li>
+      <li><b>Deletion:</b> Deleting a file from LowerDir creates a <b>Whiteout device node</b> in UpperDir, hiding the file in MergedDir.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="apple amazon">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q46</span>
+    <div class="q-badges">
+      <span class="badge-co badge-apple">Apple</span>
+      <span class="badge-co badge-amazon">Amazon</span>
+      <span class="badge-cat">Virtualization</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Explain Type-1 (Bare-Metal) vs Type-2 (Hosted) Hypervisors. How does hardware virtualization (Intel VT-x, EPT) eliminate trap-and-emulate overhead?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    Type-1 runs directly on hardware (ESXi, KVM). Type-2 runs as an app on a host OS (VirtualBox). Intel VT-x introduced VMX root/non-root modes, allowing the guest OS to run in Ring 0 without binary translation.
+  </div>
+  <div class="q-deep">
+    <p><b>Hardware Elimination of Traps:</b></p>
+    <ul>
+      <li>Historically, x86 had 17 sensitive unprivileged instructions (Popek-Goldberg virtualization requirements failed).</li>
+      <li>Intel VT-x added <b>VMX Non-Root Operation</b>. Guest OS runs in Ring 0 inside non-root mode.</li>
+      <li><b>EPT (Extended Page Tables):</b> The hardware MMU traverses a two-dimensional page table (Guest Virtual $\to$ Guest Physical $\to$ Host Physical), eliminating expensive software shadow page tables.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="microsoft openai">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q47</span>
+    <div class="q-badges">
+      <span class="badge-co badge-microsoft">Microsoft</span>
+      <span class="badge-co badge-openai">OpenAI</span>
+      <span class="badge-cat">eBPF</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">What is eBPF (Extended Berkeley Packet Filter), and how does it revolutionize Linux observability, networking, and security?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    eBPF allows developers to run sandboxed bytecode inside the Linux kernel at runtime without modifying kernel source code or loading risky kernel modules.
+  </div>
+  <div class="q-deep">
+    <p><b>Why It Replaced Kernel Modules:</b></p>
+    <ul>
+      <li><b>Safety Verifier:</b> Before running, the in-kernel verifier statically analyzes eBPF bytecode to prove it cannot crash the kernel (checks for unreachable code, infinite loops, and out-of-bounds memory accesses).</li>
+      <li><b>JIT Compilation:</b> Bytecode is compiled to native machine code for line-rate execution.</li>
+      <li><b>Use Cases:</b> High-speed load balancing (Cilium replacing iptables), real-time syscall tracing without overhead (BCC/bpftrace), and container runtime security monitoring (Falco).</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="netflix google">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q48</span>
+    <div class="q-badges">
+      <span class="badge-co badge-netflix">Netflix</span>
+      <span class="badge-co badge-google">Google</span>
+      <span class="badge-cat">Production Triage</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">Your production server has 99% CPU utilization in %si (SoftIRQ) or %wa (I/O Wait). How do you isolate the root cause in 60 seconds?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    High <code>%si</code> indicates a network packet flood or interrupt storm; high <code>%wa</code> indicates processes blocked waiting for disk/NFS operations.
+  </div>
+  <div class="q-deep">
+    <p><b>60-Second Command Triage:</b></p>
+    <ol>
+      <li>If high <code>%si</code>: Check <code>cat /proc/softirqs</code> to see which subsystem is firing (NET_RX vs BLOCK). If NET_RX is spiking on a single core, inspect <code>ethtool -S &lt;eth0&gt;</code> and balance Receive Side Scaling (RSS) queues.</li>
+      <li>If high <code>%wa</code>: Run <code>iostat -xz 1 5</code>. Check <code>%util</code> (disk saturation) and <code>await</code> (average I/O response time in ms). If await &gt; 20ms and %util &gt; 95%, disk is saturated.</li>
+      <li>Run <code>iotop -o</code> to identify the exact PID and thread performing disk writes.</li>
+      <li>Run <code>vmstat 1 5</code>: check <code>si</code>/<code>so</code> (swap in / swap out). If non-zero, memory exhaustion is forcing constant swapping.</li>
+    </ol>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="meta anthropic">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q49</span>
+    <div class="q-badges">
+      <span class="badge-co badge-meta">Meta</span>
+      <span class="badge-co badge-anthropic">Anthropic</span>
+      <span class="badge-cat">Container Security</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">How do Seccomp and Linux Capabilities restrict container privileges to prevent container breakout exploits?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    Linux Capabilities break root's god-mode into ~40 discrete privileges. Seccomp (Secure Computing Mode) uses BPF filters to intercept and block forbidden system calls at the kernel gate.
+  </div>
+  <div class="q-deep">
+    <ul>
+      <li><b>Linux Capabilities:</b> Rather than giving a container UID 0 full root powers, Docker drops risky capabilities by default (e.g. <code>CAP_SYS_ADMIN</code>, <code>CAP_NET_ADMIN</code>, <code>CAP_SYS_RAWIO</code>), leaving only harmless privileges like <code>CAP_CHOWN</code>.</li>
+      <li><b>Seccomp-BPF:</b> A program sets a seccomp filter via <code>prctl()</code>. The Linux kernel evaluates the filter on every single syscall. If a compromised container process attempts <code>reboot()</code>, <code>kexec_load()</code>, or <code>ptrace()</code>, the kernel instantly terminates it with <code>SIGSYS</code>.</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<details class="q-card" data-companies="openai nvidia">
+  <summary>
+    <div class="q-top">
+      <span class="q-num">Q50</span>
+    <div class="q-badges">
+      <span class="badge-co badge-openai">OpenAI</span>
+      <span class="badge-co badge-nvidia">NVIDIA</span>
+      <span class="badge-cat">AI Infrastructure</span>
+    </div>
+    </div>
+    <div class="q-title-row">
+      <div class="q-title">In high-throughput LLM inference engines (e.g. vLLM), why does KV-cache memory fragmentation mandate PagedAttention, and how does it mirror OS virtual memory?</div>
+      <span class="q-toggle-pill"><span class="q-pill-text">Show Answer</span> <span class="q-pill-icon">▾</span></span>
+    </div>
+  </summary>
+  <div class="q-content">
+    <div class="q-direct">
+    <b>Direct Takeaway</b>
+    Traditional LLM serving pre-allocates contiguous GPU VRAM for the maximum possible sequence length (e.g. 8K tokens), wasting 60–80% of VRAM due to internal and external fragmentation. PagedAttention mirrors OS virtual memory by partitioning the KV cache into non-contiguous physical memory blocks.
+  </div>
+  <div class="q-deep">
+    <p><b>The Direct Operating System Parallel:</b></p>
+    <ul>
+      <li><b>The OS Analogy:</b> Just as the OS kernel uses Page Tables to map contiguous Virtual Memory addresses to non-contiguous 4KB Physical RAM frames, vLLM maintains a <b>Block Table</b> mapping logical token positions to non-contiguous 16-token GPU memory blocks.</li>
+      <li><b>Dynamic Allocation:</b> As the LLM generates tokens during decoding, new physical memory blocks are allocated on demand (demand paging).</li>
+      <li><b>Copy-on-Write for Parallel Sampling:</b> Multiple candidate branches in beam search or parallel sampling share the prompt's KV cache blocks via reference counting, duplicating only when modified—identical to Linux <code>fork()</code> Copy-On-Write!</li>
+    </ul>
+  </div>
+  </div>
+</details>
+
+<script>
+function toggleAll(open) {
+  document.querySelectorAll('details.q-card').forEach(d => {
+    d.open = open;
+    if (open && window.renderKaTeX) {
+      window.renderKaTeX(d);
+    }
+  });
+  if (open && window.renderKaTeX) {
+    window.renderKaTeX();
+  }
+}
+
+function filterQuestions(company, btn) {
+  const buttons = document.querySelectorAll('.iq-btn');
+  buttons.forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const cards = document.querySelectorAll('.q-card');
+  cards.forEach(card => {
+    if (company === 'all') {
+      card.style.display = 'block';
+    } else {
+      const comps = card.getAttribute('data-companies') || '';
+      if (comps.toLowerCase().includes(company.toLowerCase())) {
+        card.style.display = 'block';
+      } else {
+        card.style.display = 'none';
+      }
+    }
+  });
+}
+
+// Re-render math dynamically whenever any individual question dropdown is expanded
+document.addEventListener('toggle', function(e) {
+  if (e.target && e.target.tagName === 'DETAILS' && e.target.open && window.renderKaTeX) {
+    window.renderKaTeX(e.target);
+  }
+}, true);
+</script>

@@ -8,6 +8,7 @@ import {
   entryNumber,
   isConceptCourse,
 } from "../lib/courses";
+import renderMathInElement from "katex/contrib/auto-render";
 
 // Give every h2 in a note fragment a stable id and return the
 // "on this page" entries for the right rail. Parses as an inert
@@ -50,6 +51,7 @@ export default function CourseView({ course, day, hasPlan }) {
   const clickedIdRef = useRef(null);
   const clickTimerRef = useRef(null);
   const tocRef = useRef(null);
+  const articleRef = useRef(null);
 
   useEffect(() => {
     let alive = true;
@@ -183,58 +185,83 @@ export default function CourseView({ course, day, hasPlan }) {
     }
   }, [activeId]);
 
-  // Render LaTeX with KaTeX after the note HTML is injected (Jupyter / paper style)
+  // KaTeX rendering helper with robust delimiter matching, HTML entity preprocessing, and class exclusions
+  const applyKaTeX = (el) => {
+    if (!el || typeof window === "undefined" || !renderMathInElement) return;
+    try {
+      renderMathInElement(el, {
+        delimiters: [
+          { left: "$$", right: "$$", display: true },
+          { left: "\\[", right: "\\]", display: true },
+          { left: "\\(", right: "\\)", display: false },
+          { left: "$", right: "$", display: false },
+        ],
+        ignoredTags: [
+          "script",
+          "noscript",
+          "style",
+          "textarea",
+          "pre",
+          "code",
+          "option",
+          "svg",
+        ],
+        ignoredClasses: ["katex-ignore", "calc-stats", "calc-stat-box", "katex"],
+        preProcess: (math) => {
+          return math
+            .replace(/&lt;/g, "<")
+            .replace(/&gt;/g, ">")
+            .replace(/&amp;/g, "&")
+            .replace(/&le;/g, "\\le ")
+            .replace(/&ge;/g, "\\ge ");
+        },
+        throwOnError: false,
+        trust: true,
+      });
+    } catch (err) {
+      console.error("KaTeX render error:", err);
+    }
+  };
+
+  // Render LaTeX with KaTeX after the note HTML is injected
   useEffect(() => {
     if (typeof html !== "string" || !html) return;
-    const t = setTimeout(() => {
-      const el =
-        document.querySelector(".note-body") ||
-        document.querySelector(".plan-body");
-      if (!el) return;
+    const el = articleRef.current || document.querySelector(".note-body, .plan-body");
+    if (!el) return;
 
-      // Execute any script tags inside the note HTML so interactive widgets work
-      el.querySelectorAll("script").forEach((oldScript) => {
-        const newScript = document.createElement("script");
-        Array.from(oldScript.attributes).forEach((attr) =>
-          newScript.setAttribute(attr.name, attr.value)
-        );
-        newScript.textContent = oldScript.textContent;
-        oldScript.parentNode?.replaceChild(newScript, oldScript);
-      });
+    // Execute any script tags inside note HTML so interactive widgets work
+    el.querySelectorAll("script").forEach((oldScript) => {
+      const newScript = document.createElement("script");
+      Array.from(oldScript.attributes).forEach((attr) =>
+        newScript.setAttribute(attr.name, attr.value)
+      );
+      newScript.textContent = oldScript.textContent;
+      oldScript.parentNode?.replaceChild(newScript, oldScript);
+    });
 
-      import("katex/contrib/auto-render").then((mod) => {
-        const render =
-          typeof mod.default === "function"
-            ? mod.default
-            : typeof mod === "function"
-              ? mod
-              : mod.renderMathInElement;
-        if (!render) return;
-        try {
-          render(el, {
-            delimiters: [
-              { left: "$$", right: "$$", display: true },
-              { left: "\\[", right: "\\]", display: true },
-              { left: "\\(", right: "\\)", display: false },
-              { left: "$", right: "$", display: false },
-            ],
-            ignoredTags: [
-              "script",
-              "noscript",
-              "style",
-              "textarea",
-              "pre",
-              "code",
-              "option",
-              "svg",
-            ],
-            throwOnError: false,
-            trust: false,
-          });
-        } catch {}
-      });
-    }, 0);
-    return () => clearTimeout(t);
+    // Apply KaTeX immediately across the full article
+    applyKaTeX(el);
+
+    // Expose globally so interactive widgets can re-trigger math rendering if needed
+    window.renderKaTeX = (target) => applyKaTeX(target || el);
+
+    // Capture toggle events on <details> (toggle event doesn't bubble, so capture: true is mandatory)
+    const handleToggle = (e) => {
+      if (e.target && e.target.tagName === "DETAILS" && e.target.open) {
+        applyKaTeX(e.target);
+      }
+    };
+    el.addEventListener("toggle", handleToggle, true);
+
+    // Re-run on next animation frame to guarantee rendering after any dynamic script mutations
+    const raf = requestAnimationFrame(() => {
+      applyKaTeX(el);
+    });
+
+    return () => {
+      cancelAnimationFrame(raf);
+      el.removeEventListener("toggle", handleToggle, true);
+    };
   }, [html]);
 
   const days = useMemo(() => getEntrySlugs(course), [course]);
@@ -370,6 +397,7 @@ export default function CourseView({ course, day, hasPlan }) {
 
             {typeof html === "string" && (
               <article
+                ref={articleRef}
                 className={day === "plan" ? "plan-body" : "note-body"}
                 dangerouslySetInnerHTML={{ __html: html }}
               />

@@ -1,0 +1,123 @@
+<style>
+.os-vm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin: 16px 0;
+}
+.os-vm-card {
+  background: var(--canvas, #ffffff);
+  border: 1.5px solid var(--border-dim, #e4ded0);
+  border-radius: 10px;
+  padding: 16px;
+}
+.os-overlay-fig {
+  width: 100%;
+  max-width: 580px;
+  height: auto;
+  display: block;
+  margin: 16px auto;
+}
+</style>
+
+<p class="kicker">demystifying the cloud stack — hypervisors, linux namespaces, cgroups, and overlayfs.</p>
+
+<h2>the 30-second elevator pitch</h2>
+<p>There is a massive misconception in the software industry: <i>"A Docker container is a lightweight virtual machine."</i> <b>This is completely false.</b> A container is <b>just a regular Linux process</b> running on the host kernel, restricted by two kernel features: <b>Namespaces</b> (which control what it can <i>see</i>) and <b>Cgroups</b> (which control what it can <i>use</i>).</p>
+<ul>
+  <li><b>The Hotel vs Apartment Analogy:</b>
+    <ul>
+      <li><b>Virtual Machine (VM):</b> A standalone house. It has its own private plumbing, electrical wiring, HVAC, and foundation (Guest OS kernel, virtual drivers, BIOS). Completely secure and isolated, but heavy to build and heat.</li>
+      <li><b>Container:</b> An apartment in a large complex. All tenants share the same foundation and central plumbing (the single shared Linux Host Kernel), but your front door has a lock, your windows have blinds (Namespaces), and your breaker box limits you to 15 amps (Cgroups).</li>
+    </ul>
+  </li>
+</ul>
+
+<div class="callout remember">
+  <b class="label">🧷 the two pillars of containerization</b><br />
+  1. <b>Namespaces (Isolation):</b> What a process can <b>SEE</b> (its view of PIDs, network cards, mounts, users).<br />
+  2. <b>Control Groups / Cgroups (Resource Limiting):</b> What a process can <b>USE</b> (CPU percentage, RAM megabytes, I/O bandwidth, max processes).
+</div>
+
+<h2>virtual machines vs containers: the engineering reality</h2>
+<table>
+  <tr><th>Dimension</th><th>Virtual Machine (KVM, ESXi, EC2)</th><th>Container (Docker, Podman, K8s)</th></tr>
+  <tr><td><b>Architecture</b></td><td>Hardware Virtualization via Hypervisor</td><td>OS-Level Virtualization via Kernel Features</td></tr>
+  <tr><td><b>Kernel</b></td><td>Runs its own independent <b>Guest OS Kernel</b></td><td><b>Shares the Host Linux Kernel</b></td></tr>
+  <tr><td><b>Startup Time</b></td><td>30 to 120 seconds (full OS boot cycle)</td><td><b>50 to 500 milliseconds</b> (forking a process)</td></tr>
+  <tr><td><b>Memory Overhead</b></td><td>1 GB to 4 GB baseline per VM</td><td><b>10 MB to 30 MB</b> (almost zero overhead)</td></tr>
+  <tr><td><b>Isolation & Security</b></td><td>Strong: Enforced by hardware silicon (Intel VT-x)</td><td>Moderate: Shared kernel attack surface</td></tr>
+</table>
+
+<h2>the 7 linux namespaces (what a container sees)</h2>
+<p>When you run <code>docker run</code>, the container runtime invokes the <code>clone()</code> system call with namespace flags:</p>
+
+<table>
+  <tr><th>Namespace</th><th>Syscall Flag</th><th>What It Isolates</th></tr>
+  <tr><td><b>PID</b></td><td><code>CLONE_NEWPID</code></td><td>Process IDs. The entrypoint process becomes <b>PID 1</b> inside the container, while on the host it is regular PID 28401! Cannot see or kill host processes.</td></tr>
+  <tr><td><b>NET</b></td><td><code>CLONE_NEWNET</code></td><td>Network devices, IP addresses, IP routing tables, port bindings, firewall rules.</td></tr>
+  <tr><td><b>MNT</b></td><td><code>CLONE_NEWNS</code></td><td>Filesystem mount points. Isolates the container root filesystem from the host.</td></tr>
+  <tr><td><b>UTS</b></td><td><code>CLONE_NEWUTS</code></td><td>Hostname and NIS domain name (e.g. <code>my-container-pod</code>).</td></tr>
+  <tr><td><b>IPC</b></td><td><code>CLONE_NEWIPC</code></td><td>Inter-process communication (POSIX message queues, System V shared memory).</td></tr>
+  <tr><td><b>USER</b></td><td><code>CLONE_NEWUSER</code></td><td>User & Group IDs. <b>Root (UID 0) inside container maps to non-privileged user (UID 10001) on host!</b></td></tr>
+  <tr><td><b>CGROUP</b></td><td><code>CLONE_NEWCGROUP</code></td><td>Isolates the view of the cgroup hierarchy.</td></tr>
+</table>
+
+<h2>control groups (cgroups v2): resource boundaries</h2>
+<p>If Namespaces give a process its own world, <b>Cgroups (Control Groups)</b> prevent that world from devouring the entire physical server:</p>
+
+<ul>
+  <li><b>CPU Quotas (CFS Bandwidth Control):</b>
+    <p>In Kubernetes, setting a CPU limit of <code>0.5 cores</code> configures <code>cpu.max</code> to <code>50000 100000</code> (meaning a 50ms execution quota per 100ms cycle). Every 100ms period, this container is strictly allowed to run for at most 50ms. If it attempts to compute beyond that threshold, the Linux CFS scheduler <b>throttles the process</b>, causing severe latency spikes!</p>
+  </li>
+  <li><b>Memory Limits & OOM:</b>
+    <p>Setting <code>resources.limits.memory: "512Mi"</code> writes to <code>memory.max</code>. If the application allocates 513MB, the kernel's memory controller immediately delivers an <b>OOMKilled</b> event (Exit Code 137), terminating the container instantly.</p>
+  </li>
+  <li><b>PID Limits (Anti-Fork-Bomb):</b>
+    <p>Setting <code>pids.max = 100</code> prevents a malicious script (<code>:(){ :|:& };:</code>) from spawning 100,000 processes and freezing the cloud server.</p>
+  </li>
+</ul>
+
+<h2>how docker images work: union filesystems & overlayfs</h2>
+<p>If you run 50 containers running <code>node:18</code> (each 1 GB in size), does your server consume 50 GB of disk space? <b>No! It consumes only 1 GB.</b> This is made possible by <b>OverlayFS</b>:</p>
+
+<svg class="os-overlay-fig" viewBox="0 0 580 200" role="img" aria-label="OverlayFS Layered Architecture">
+  <!-- Merged View -->
+  <rect x="40" y="20" width="500" height="36" rx="6" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
+  <text x="290" y="43" text-anchor="middle" font-size="12" font-family="monospace" font-weight="700" fill="#2e7d32">MergedDir (Unified container view: what the app sees)</text>
+  
+  <!-- Upper Layer -->
+  <rect x="40" y="75" width="500" height="36" rx="6" fill="#ffebee" stroke="#d1345b" stroke-width="1.5"/>
+  <text x="290" y="98" text-anchor="middle" font-size="12" font-family="monospace" font-weight="700" fill="#d1345b">UpperDir (Read-Write scratch layer for this container)</text>
+  
+  <!-- Lower Layers -->
+  <rect x="40" y="130" width="500" height="50" rx="6" fill="#fdfbf7" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="290" y="152" text-anchor="middle" font-size="11" font-family="monospace">LowerDir (Read-Only Shared Base Image: Ubuntu + Node.js)</text>
+  <text x="290" y="170" text-anchor="middle" font-size="10" font-family="monospace" fill="#6e675f">Shared across all 50 containers in physical RAM Page Cache!</text>
+</svg>
+
+<ol>
+  <li><b>LowerDir (Read-Only):</b> The layers built during <code>docker build</code>. Stored once on disk and shared in read-only memory across all containers.</li>
+  <li><b>UpperDir (Read-Write):</b> A tiny, ephemeral scratch directory created when the container starts. Any new files created (e.g. logs) are written here.</li>
+  <li><b>Copy-on-Write (COW):</b> If the container modifies a shared file from the LowerDir (e.g. <code>/etc/hosts</code>), the kernel copies that one file up to the UpperDir and modifies it there. The shared base image remains 100% pristine!</li>
+</ol>
+
+<h2>container security: capabilities, seccomp & microvms</h2>
+<p>Because all containers share the host Linux kernel, if a container runs as <code>root</code> and has access to all kernel syscalls, a zero-day vulnerability in the Linux kernel allows the attacker to execute a <b>Container Escape</b> and compromise the entire physical server!</p>
+
+<div class="callout gotcha">
+  <b class="label">⚠️ defense-in-depth: the three barriers</b><br />
+  1. <b>Linux Capabilities:</b> Traditional Unix divided privileges into root (UID 0) vs non-root. Linux splits root privileges into 40+ granular capabilities. Docker drops dangerous capabilities by default (e.g. <code>CAP_SYS_ADMIN</code>, <code>CAP_NET_RAW</code>, <code>CAP_SYS_PTRACE</code>).<br />
+  2. <b>Seccomp (Secure Computing Mode):</b> Restricts which system calls a container can execute. Docker applies a default seccomp profile that blocks over 40 dangerous syscalls (like <code>reboot</code> and <code>sys_chroot</code>).<br />
+  3. <b>MicroVMs (AWS Firecracker / Google gVisor):</b> How does AWS Lambda run untrusted code from 1,000 different customers on the same EC2 instance? Not using raw Docker! AWS built <b>Firecracker</b>: minimalist virtual machines that use KVM hardware-virtualization to provide true hypervisor-level security boundaries while booting in <b>under 5 milliseconds</b> with only 5MB memory overhead!
+</div>
+
+<h2>quick check</h2>
+<ul>
+  <li><b>Does a Docker container run its own operating system kernel?</b> No. It shares the host machine's Linux kernel.</li>
+  <li><b>Which Linux namespace provides isolated IP addresses and network routes?</b> The <code>NET</code> namespace (<code>CLONE_NEWNET</code>).</li>
+  <li><b>What happens when a container exceeds its cgroup memory limit?</b> The Linux kernel OOM killer terminates the container process with exit code 137.</li>
+</ul>
+
+<h2>the 20-second summary</h2>
+<p>Virtual Machines simulate complete hardware to run isolated guest kernels using hypervisors (KVM), incurring startup and memory penalties. Containers achieve near-zero-overhead isolation on a shared Linux kernel by combining Namespaces (for visibility partitioning), Cgroups (for CPU/memory throttling), and OverlayFS (for layered copy-on-write storage). In multi-tenant environments, security is hardened through Seccomp, Linux capabilities, or hardware-assisted MicroVMs like AWS Firecracker.</p>

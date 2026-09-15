@@ -1,0 +1,316 @@
+<style>
+/* containerization notes custom styles */
+.ct-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin:16px 0}
+.ct-card{background:var(--canvas);border:1.5px solid var(--border-dim);border-radius:10px;padding:16px}
+.ct-card h4{margin:0 0 8px;font-size:15px;display:flex;align-items:center;gap:8px}
+.ct-diagram-svg{width:100%;height:auto;display:block;margin:14px 0}
+.ns-badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;font-family:var(--font-mono);background:#fff;border:1.5px solid var(--ink);margin:2px}
+</style>
+
+<p class="kicker">hardware virtualization vs os-level process isolation, the 3 linux kernel primitives, and the bridge to distributed orchestration.</p>
+
+<h2>the 30-second elevator pitch</h2>
+<p>Before containerization, the software industry suffered from the <b>"Matrix from Hell"</b>: deploying $M$ microservices across $N$ physical environments (developer laptops, staging clusters, on-premise bare-metal, and multi-region clouds). Differences in Linux kernel versions, shared dynamic C libraries (<code>glibc</code>), and installed dependencies caused the notorious production outage excuse: <i>"It worked fine on my machine!"</i></p>
+<p><b>Containerization</b> solves this by packaging the application binary, runtime, system libraries, and configuration into an immutable, portable artifact:</p>
+<ul>
+  <li><b>The Fundamental Reality:</b> A container is <b>NOT</b> a mini-virtual machine. A container is simply a <b>standard Linux process</b> isolated by kernel primitives (Namespaces) and throttled by resource limits (Cgroups).</li>
+  <li><b>Sub-Second Boot Time:</b> Because containers share the host Linux kernel, starting a container is just launching a regular process ($\sim 50\text{ milliseconds}$), compared to minutes for a Virtual Machine booting a full guest OS.</li>
+  <li><b>Immutable Infrastructure:</b> You build once, sign the cryptographic digest, and run the exact same binary bits across development, staging, and production.</li>
+</ul>
+
+<div class="callout exam">
+  <b class="label">⭐ the core interview distinction</b><br />
+  <b>Virtual Machines</b> virtualize the <b>Hardware</b> (CPU, RAM, NIC) via a Hypervisor. Every VM runs its own full guest operating system.<br />
+  <b>Containers</b> virtualize the <b>Operating System</b>. All containers running on a host share the exact same underlying Linux kernel.
+</div>
+
+<h2>virtual machines vs containers: the architectural stack</h2>
+<p>In a Staff system design interview, understanding the physical resource utilization and isolation boundaries between VMs and containers is critical:</p>
+
+<svg class="ct-diagram-svg" viewBox="0 0 740 280" role="img" aria-label="Virtual Machines vs Containers Architecture Stack">
+  <!-- VM Stack -->
+  <rect x="20" y="15" width="330" height="250" rx="12" fill="#fffdf6" stroke="#1c1a15" stroke-width="2"/>
+  <text x="185" y="40" text-anchor="middle" font-weight="800" font-size="14">Virtual Machines (Hardware Level)</text>
+
+  <!-- VM Apps -->
+  <rect x="35" y="55" width="90" height="35" rx="6" fill="#ffe14d" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="80" y="77" text-anchor="middle" font-weight="700" font-size="11">App 1 + Libs</text>
+
+  <rect x="140" y="55" width="90" height="35" rx="6" fill="#7df0b2" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="185" y="77" text-anchor="middle" font-weight="700" font-size="11">App 2 + Libs</text>
+
+  <rect x="245" y="55" width="90" height="35" rx="6" fill="#ff90e8" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="290" y="77" text-anchor="middle" font-weight="700" font-size="11">App 3 + Libs</text>
+
+  <!-- Guest OS Layer -->
+  <rect x="35" y="100" width="300" height="35" rx="6" fill="#ffe3ef" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="185" y="122" text-anchor="middle" font-weight="700" font-size="11" fill="#d1345b">Guest OS 1, 2, 3 (Kernel, Drivers, Init)</text>
+
+  <!-- Hypervisor -->
+  <rect x="35" y="145" width="300" height="35" rx="6" fill="#fff" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="185" y="167" text-anchor="middle" font-weight="800" font-size="12">Hypervisor (KVM / ESXi / Xen)</text>
+
+  <!-- Host OS & HW -->
+  <rect x="35" y="190" width="300" height="30" rx="6" fill="#eee5cf" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="185" y="210" text-anchor="middle" font-weight="600" font-size="11">Host Operating System</text>
+
+  <rect x="35" y="228" width="300" height="25" rx="6" fill="#1c1a15"/>
+  <text x="185" y="245" text-anchor="middle" font-weight="700" font-size="11" fill="#fff">Physical Hardware (CPU, RAM, Disk, NIC)</text>
+
+  <!-- Container Stack -->
+  <rect x="390" y="15" width="330" height="250" rx="12" fill="#fffdf6" stroke="#1c1a15" stroke-width="2"/>
+  <text x="555" y="40" text-anchor="middle" font-weight="800" font-size="14">Containers (OS Process Level)</text>
+
+  <!-- Containers -->
+  <rect x="405" y="55" width="90" height="75" rx="6" fill="#ffe14d" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="450" y="85" text-anchor="middle" font-weight="700" font-size="11">Container 1</text>
+  <text x="450" y="105" text-anchor="middle" font-size="9" fill="#555">App + Bin/Libs</text>
+
+  <rect x="510" y="55" width="90" height="75" rx="6" fill="#7df0b2" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="555" y="85" text-anchor="middle" font-weight="700" font-size="11">Container 2</text>
+  <text x="555" y="105" text-anchor="middle" font-size="9" fill="#555">App + Bin/Libs</text>
+
+  <rect x="615" y="55" width="90" height="75" rx="6" fill="#ff90e8" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="660" y="85" text-anchor="middle" font-weight="700" font-size="11">Container 3</text>
+  <text x="660" y="105" text-anchor="middle" font-size="9" fill="#555">App + Bin/Libs</text>
+
+  <!-- Container Engine -->
+  <rect x="405" y="145" width="300" height="35" rx="6" fill="#a8d8ff" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="555" y="167" text-anchor="middle" font-weight="800" font-size="12">Container Engine (Docker / containerd / runc)</text>
+
+  <!-- Shared Host Kernel & HW -->
+  <rect x="405" y="190" width="300" height="30" rx="6" fill="#dcf9e8" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="555" y="210" text-anchor="middle" font-weight="800" font-size="11" fill="#2b8a3e">Shared Host Linux Kernel (Namespaces + Cgroups)</text>
+
+  <rect x="405" y="228" width="300" height="25" rx="6" fill="#1c1a15"/>
+  <text x="555" y="245" text-anchor="middle" font-weight="700" font-size="11" fill="#fff">Physical Hardware (CPU, RAM, Disk, NIC)</text>
+</svg>
+
+<h3>Architectural Trade-Off Comparison</h3>
+<table>
+  <tr><th>Dimension</th><th>Virtual Machine (VM)</th><th>Container (Docker)</th></tr>
+  <tr>
+    <td><b>Virtualization Layer</b></td>
+    <td>Hardware virtualization (Hypervisor emulates CPU/RAM/disks)</td>
+    <td>Operating System virtualization (Shares host Linux kernel)</td>
+  </tr>
+  <tr>
+    <td><b>Startup Latency</b></td>
+    <td><code>30 seconds - 3 minutes</code> (full OS boot cycle)</td>
+    <td><b><code>50 - 500 milliseconds</code></b> (process fork + namespace clone)</td>
+  </tr>
+  <tr>
+    <td><b>Memory Footprint</b></td>
+    <td>Heavy (1 GB - 4 GB base memory per VM for guest OS)</td>
+    <td><b>Ultralight</b> (only the RAM consumed by the process, ~10 MB - 100 MB)</td>
+  </tr>
+  <tr>
+    <td><b>Density per Server</b></td>
+    <td>Dozens of VMs per physical host</td>
+    <td><b>Hundreds to thousands</b> of containers per physical host</td>
+  </tr>
+  <tr>
+    <td><b>Security Isolation</b></td>
+    <td><b>Hard hardware boundary</b> (VT-x CPU rings; guest breakout is rare)</td>
+    <td><b>Process boundary</b> (Shared kernel; kernel exploits impact all containers)</td>
+  </tr>
+  <tr>
+    <td><b>Operating System Flexibility</b></td>
+    <td>Can run any OS on any host (e.g. Windows VM on Linux bare-metal)</td>
+    <td>Must share host kernel (Linux containers run on Linux kernels)</td>
+  </tr>
+</table>
+
+<hr style="margin:32px 0;border:none;border-top:2px dashed var(--border-dim)" />
+
+<h2>the holy trinity: how linux creates containers</h2>
+<p>If you inspect a Linux server hosting 50 Docker containers with the <code>ps aux</code> command, you will see 50 standard processes running on the host. There is no special "container hardware" in the CPU. Containers are constructed by combining three native Linux kernel capabilities:</p>
+
+<h3>1. Linux Namespaces: Isolation ("What the Process Can SEE")</h3>
+<p>A <b>Namespace</b> wraps a global system resource in an abstraction so that processes inside the namespace believe they have their own dedicated, isolated instance of that resource:</p>
+
+<div class="ct-grid">
+  <div class="ct-card">
+    <h4><span class="ns-badge">PID</span> Process ID Isolation</h4>
+    <p>Provides an isolated process hierarchy. Inside the container, your web server runs as <b>PID 1</b> (init process). On the host operating system, that exact same process might have PID 34,921. The container cannot see or signal any host processes.</p>
+  </div>
+  <div class="ct-card">
+    <h4><span class="ns-badge">NET</span> Virtual Network Stack</h4>
+    <p>Provides an isolated network stack: private virtual Ethernet interface (<code>eth0</code>), independent routing tables, firewall iptables rules, and private port bindings. Two separate containers can both bind to port 8080 on the same physical host without port conflicts!</p>
+  </div>
+  <div class="ct-card">
+    <h4><span class="ns-badge">MNT</span> File System Mount Points</h4>
+    <p>Isolates the filesystem hierarchy. The container sees its own private root directory (<code>/</code>) populated by the container image, completely detached from the host machine's root filesystem.</p>
+  </div>
+  <div class="ct-card">
+    <h4><span class="ns-badge">IPC</span> Inter-Process Communication</h4>
+    <p>Isolates shared memory segments (POSIX/SysV IPC) and message queues. Prevents processes in different containers from snooping on each other's shared RAM buffers.</p>
+  </div>
+  <div class="ct-card">
+    <h4><span class="ns-badge">UTS</span> Hostname &amp; Domain</h4>
+    <p>Allows each container to have its own independent hostname (e.g. <code>payment-service-pod-x89</code>) without altering the host's actual server hostname.</p>
+  </div>
+  <div class="ct-card">
+    <h4><span class="ns-badge">USER</span> User ID Mapping</h4>
+    <p>Maps user and group IDs. A process running as user root (UID 0) inside the container can be safely mapped to an unprivileged user (e.g. UID 10001) on the host system, mitigating root privilege escalations.</p>
+  </div>
+</div>
+
+<h3>2. Control Groups (cgroups): Resource Limits ("What the Process Can USE")</h3>
+<p>While Namespaces provide visibility isolation, <b>Control Groups (cgroups v1 and v2)</b> enforce resource governance and prevent the <b>"Noisy Neighbor"</b> problem where one rogue microservice consumes 100% of host CPU and starves all other services:</p>
+
+<ul>
+  <li><b>CPU Throttling:</b> Defines fractional CPU shares and quotas. In Linux CFS (Completely Fair Scheduler), allocating <code>0.5 CPU</code> means the container is granted 50ms of CPU runtime out of every 100ms scheduling period. Excess CPU requests result in <b>throttling</b> (latency spikes, but process stays alive).</li>
+  <li><b>Memory Ceilings:</b> Sets a hard ceiling on resident set size (RSS) memory (e.g. <code>512 MB</code>).</li>
+  <li><b>Disk I/O &amp; Network Bandwidth:</b> Limits read/write throughput (IOPS) to block devices and throttles egress network packets.</li>
+</ul>
+
+<div class="callout gotcha">
+  <b class="label">⚠️ the linux oom (out-of-memory) killer disaster</b><br />
+  If a container exceeds its allocated cgroup memory limit, the Linux kernel invokes the <b>OOM Killer</b>. The kernel computes an <code>oom_score</code> and sends an uncatchable <b><code>SIGKILL (kill -9)</code></b>, immediately terminating the container with <b>Exit Code 137</b> ($128 + 9$). The container does not shut down gracefully—it vanishes instantly. Always set application heap memory below the cgroup limit to allow graceful garbage collection!
+</div>
+
+<h3>3. Union File Systems & Copy-on-Write (Overlay2)</h3>
+<p>If you run 20 instances of an Ubuntu-based microservice image (500 MB each), does that consume 10 GB of host disk space? <b>No!</b> It consumes only 500 MB of shared disk space thanks to <b>Union File Systems (OverlayFS / Overlay2)</b>.</p>
+
+<svg class="ct-diagram-svg" viewBox="0 0 720 220" role="img" aria-label="UnionFS Copy on Write Layers">
+  <rect x="20" y="15" width="680" height="190" rx="12" fill="#fffdf6" stroke="#1c1a15" stroke-width="2"/>
+  <text x="360" y="38" text-anchor="middle" font-weight="800" font-size="13">Overlay2: Unified View of Stacked Layers</text>
+
+  <!-- Container R/W layer -->
+  <rect x="40" y="55" width="640" height="32" rx="6" fill="#ffe3ef" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="55" y="76" font-weight="800" font-size="11" fill="#d1345b">Upper Layer (Container Layer):</text>
+  <text x="260" y="76" font-size="11">Thin Read-Write layer (Ephemerally holds mutated files, deleted on container destroy)</text>
+
+  <!-- Image Layer 3 -->
+  <rect x="40" y="95" width="640" height="28" rx="6" fill="#fff4c2" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="55" y="114" font-weight="700" font-size="11">Layer 3 (Read-Only):</text>
+  <text x="210" y="114" font-size="11">Application Binary &amp; Runtime Config (SHA-256 Digest: d4e1f8...)</text>
+
+  <!-- Image Layer 2 -->
+  <rect x="40" y="130" width="640" height="28" rx="6" fill="#e7f5ff" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="55" y="149" font-weight="700" font-size="11">Layer 2 (Read-Only):</text>
+  <text x="210" y="149" font-size="11">Language Dependencies &amp; Shared Libraries (Node.js / JVM / Go)</text>
+
+  <!-- Image Layer 1 (Base) -->
+  <rect x="40" y="165" width="640" height="28" rx="6" fill="#eee5cf" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="55" y="184" font-weight="700" font-size="11">Layer 1 (Base OS):</text>
+  <text x="210" y="184" font-size="11">Minimal Base OS Root Filesystem (Alpine Linux / Debian Slim ~5MB)</text>
+</svg>
+
+<ul>
+  <li><b>Immutable Read-Only Layers:</b> Every instruction in an image definition creates a content-addressable, cached layer identified by its SHA-256 cryptographic hash. Once built, image layers are <b>read-only and immutable</b>.</li>
+  <li><b>Copy-on-Write (CoW) Mechanics:</b> When a container needs to modify an existing file stored in a read-only lower layer, the kernel copies that file up into the thin <b>Read-Write Container Layer</b> before modifying it. The lower image layer remains completely pristine and shared across all other containers.</li>
+</ul>
+
+<hr style="margin:32px 0;border:none;border-top:2px dashed var(--border-dim)" />
+
+<h2>container networking in distributed systems</h2>
+<p>How do microservices running inside isolated network namespaces communicate with each other and the external world?</p>
+
+<table>
+  <tr><th>Network Mode</th><th>Mechanics</th><th>Pros &amp; Cons</th><th>Best System Design Use Case</th></tr>
+  <tr>
+    <td><b>Bridge Mode (Default)</b></td>
+    <td>Creates a virtual software switch (<code>docker0</code>) on the host. Each container receives a private IP address on a virtual subnet (e.g. <code>172.17.0.2</code>). Connections to the outside world route through host NAT (Network Address Translation).</td>
+    <td><b>Pros:</b> Full network isolation.<br/><b>Cons:</b> Small latency penalty due to iptables NAT port forwarding overhead.</td>
+    <td>Standard microservices, local multi-container development.</td>
+  </tr>
+  <tr>
+    <td><b>Host Mode</b></td>
+    <td>Removes network namespace isolation completely. The container shares the host machine's physical network stack directly.</td>
+    <td><b>Pros:</b> <b>Zero network virtualization overhead</b>; line-rate throughput.<br/><b>Cons:</b> Zero port isolation (two containers cannot bind to port 80).</td>
+    <td>High-throughput ultra-low-latency workloads: Edge Load Balancers, Reverse Proxies, video streaming transcoders.</td>
+  </tr>
+  <tr>
+    <td><b>Overlay / Mesh Network</b></td>
+    <td>Encapsulates Layer 2 network packets inside Layer 3 UDP packets (<b>VXLAN</b>) across multiple physical host servers.</td>
+    <td><b>Pros:</b> Containers on different AWS EC2 instances talk to each other directly on a flat private virtual network.<br/><b>Cons:</b> CPU packet encapsulation tax.</td>
+    <td>Distributed orchestrators: Kubernetes Pod networking (Calico, Cilium, AWS VPC CNI).</td>
+  </tr>
+</table>
+
+<hr style="margin:32px 0;border:none;border-top:2px dashed var(--border-dim)" />
+
+<h2>stateless vs stateful containers: storage design</h2>
+<p>By default, containers are designed to be <b>stateless and ephemeral</b>. If a container crashes, restarts, or scales down, everything written to its thin read-write container layer is permanently incinerated.</p>
+
+<div class="ct-grid">
+  <div class="ct-card">
+    <h4>1. Stateless Services (The Happy Path)</h4>
+    <p>API servers, web gateways, asynchronous worker consumers. They store no persistent state locally on the container filesystem. All state is pushed downstream to persistent databases (PostgreSQL), distributed caches (Redis), or blob storage (S3).</p>
+    <p><b>Benefit:</b> Containers can be killed and rescheduled across any server in the cluster in milliseconds with zero data loss.</p>
+  </div>
+  <div class="ct-card">
+    <h4>2. Stateful Services (Persistent Volumes)</h4>
+    <p>Databases, Kafka brokers, Elasticsearch clusters. They require persistent data that survives container lifecycle terminations.</p>
+    <p><b>Mechanism:</b> The orchestrator mounts an external <b>Persistent Volume (PV)</b> (such as an AWS EBS block device or Ceph network storage) directly into the container filesystem mount namespace. When the container pod dies, the block storage unmounts from the dead host and remounts onto the new host server.</p>
+  </div>
+</div>
+
+<hr style="margin:32px 0;border:none;border-top:2px dashed var(--border-dim)" />
+
+<h2>why docker alone fails at scale: the need for orchestration</h2>
+<p>A frequent junior mistake in system design interviews is answering: <i>"We will deploy Docker containers to run our 20 microservices."</i></p>
+<p>Docker is a <b>single-node container runtime</b>. The Docker daemon manages containers on <b>one machine</b>. In enterprise production, your architecture spans hundreds of physical servers across three Availability Zones. Docker alone cannot answer:</p>
+
+<ol>
+  <li><b>Cluster Scheduling:</b> You have 500 EC2 instances. Which physical node has enough free RAM and CPU to run the newly created Payment container?</li>
+  <li><b>Auto-Healing:</b> If AWS EC2 instance <code>node-42</code> experiences hardware failure and goes dark, who detects that 15 containers died and relaunches them on healthy nodes?</li>
+  <li><b>Service Discovery &amp; Dynamic DNS:</b> When the Payment service scales from 5 pods to 30 pods, how does the Order service find their dynamic private IP addresses without manual load balancer configuration?</li>
+  <li><b>Zero-Downtime Rolling Deployments:</b> How do you upgrade from version 1.2 to 1.3 without dropping live customer traffic, rolling back automatically if error rates spike?</li>
+</ol>
+
+<div class="callout remember">
+  <b class="label">🧷 the ecosystem hierarchy</b><br />
+  <b>runc / OCI:</b> The low-level runtime that actually executes kernel syscalls (<code>clone</code>, <code>unshare</code>, <code>pivot_root</code>).<br />
+  <b>containerd / Docker Engine:</b> The high-level daemon that manages images, network interfaces, and container lifecycles on a single host.<br />
+  <b>Kubernetes (K8s) / AWS ECS:</b> The <b>Distributed Orchestrator</b> that manages clusters of hundreds of hosts, scheduling containers, self-healing, scaling, and load-balancing traffic.
+</div>
+
+<hr style="margin:32px 0;border:none;border-top:2px dashed var(--border-dim)" />
+
+<h2>faang system design interview scenarios & war stories</h2>
+
+<table>
+  <tr><th>Interview Scenario</th><th>Key Architectural Insight</th><th>The Winning System Design Defense</th></tr>
+  <tr>
+    <td><b>1. "Why did my Java microservice get killed by the kernel even though JVM heap was set to 500 MB and the container limit was 512 MB?"</b></td>
+    <td>Off-Heap Memory &amp; Metaspace</td>
+    <td>
+      A JVM process consumes far more than just the Java heap: it requires memory for the <b>JVM Metaspace</b>, thread stacks (1 MB per thread $\times 200\text{ threads} = 200\text{ MB}$), garbage collector overhead, and native JNI buffers! Total process memory exceeded the 512 MB cgroup boundary, triggering the Linux OOM Killer. <b>The Fix:</b> Set the JVM maximum heap (<code>-Xmx</code>) to no more than 65-70% of the container cgroup memory limit.
+    </td>
+  </tr>
+  <tr>
+    <td><b>2. "During high traffic spikes, container autoscaling takes 45 seconds to spin up new pods, causing timeouts. How do you fix cold starts?"</b></td>
+    <td>Image Bloat &amp; Pre-Warmed Pools</td>
+    <td>
+      A 1.5 GB container image takes 30+ seconds just to pull layers over the network from AWS ECR! <b>Defense:</b>
+      1. <b>Multi-Stage Image Builds:</b> Strip build toolchains and SDKs; use minimal base images (Alpine / Distroless) to drop image size under 50 MB.<br/>
+      2. <b>Lazy Image Pulling (e.g. Stargz / eStargz):</b> Start the container before the full image finishes downloading, streaming files on-demand via HTTP range requests.<br/>
+      3. <b>Over-Provisioning / Warm Pools:</b> Maintain a baseline buffer of pre-warmed idle pods.
+    </td>
+  </tr>
+  <tr>
+    <td><b>3. "Is a container as secure as a Virtual Machine in a multi-tenant cloud?"</b></td>
+    <td>Kernel Attack Surface &amp; Shared System Calls</td>
+    <td>
+      <b>No.</b> If malicious tenant code triggers a privilege escalation flaw or zero-day vulnerability in the shared Linux kernel (e.g. Dirty COW), it can compromise the host and access neighboring containers. <b>Solution:</b> For hostile multi-tenant environments (e.g. AWS Fargate, Google Cloud Run), use <b>MicroVMs</b> (like AWS <b>Firecracker</b> or Google <b>gVisor</b>) which provide hardware-isolated virtualization with the launch speed of containers.
+    </td>
+  </tr>
+  <tr>
+    <td><b>4. "Should we run our production primary PostgreSQL database inside a Docker container?"</b></td>
+    <td>Stateful container anti-patterns &amp; blast radius</td>
+    <td>
+      While possible via Kubernetes StatefulSets and persistent EBS volumes, running stateful primary transactional databases in containers introduces operational risk: kernel I/O scheduling latency, volume detachment races during node failovers, and complexity in disaster recovery. For Tier-1 relational databases, choose managed database services (AWS Aurora / RDS) where hardware replication, automated snapshots, and multi-AZ failovers are managed by dedicated storage engines.
+    </td>
+  </tr>
+</table>
+
+<h2>the 20-second summary</h2>
+<p>Containers are not physical boxes; they are <b>isolated Linux processes</b> powered by <b>Namespaces</b> (visibility boundary), throttled by <b>Control Groups</b> (resource quotas), and layered through <b>Union File Systems</b> (storage efficiency). Use containers to enforce immutable deployment artifacts for stateless microservices, and pair them with distributed orchestrators like <b>Kubernetes or AWS ECS</b> to manage multi-host scheduling, self-healing, and elastic autoscaling.</p>
+
+<div style="margin-top:28px;padding:16px;background:var(--canvas);border:1.5px solid var(--border-dim);border-radius:10px;text-align:center">
+  <span style="font-size:12px;font-family:var(--font-mono);color:var(--ink-soft);text-transform:uppercase;letter-spacing:1px">HLD Concept Track Complete</span><br/>
+  <a href="/courses/hld/plan" style="font-weight:800;font-size:16px;color:var(--ink);text-decoration:none;display:inline-block;margin-top:6px">← Return to HLD Course Plan</a>
+</div>

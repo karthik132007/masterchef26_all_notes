@@ -1,0 +1,168 @@
+<style>
+.os-io-compare {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin: 16px 0;
+}
+.os-io-card {
+  background: var(--canvas, #ffffff);
+  border: 1.5px solid var(--border-dim, #e4ded0);
+  border-radius: 10px;
+  padding: 16px;
+}
+.os-zc-fig {
+  width: 100%;
+  max-width: 620px;
+  height: auto;
+  display: block;
+  margin: 16px auto;
+}
+</style>
+
+<p class="kicker">taming the hardware speed chasm — dma controllers, epoll internals, zero-copy, and io_uring.</p>
+
+<h2>the 30-second elevator pitch</h2>
+<p>Your CPU executes an instruction every <b>0.3 nanoseconds</b>. Reading a block from a fast NVMe SSD takes <b>50,000 nanoseconds</b>. Reading a network packet from across the globe takes <b>100,000,000 nanoseconds</b>. If the CPU had to sit idle waiting for I/O devices, computers would run at 0.0001% of their potential speed!</p>
+<ul>
+  <li><b>The Executive & Courier Analogy:</b> A CEO (CPU) doesn't drive to the post office and stand in line for 2 hours to mail a contract. The CEO drops the envelope on a desk, tells their assistant (<b>DMA Controller</b>) to ship it, and immediately returns to closing million-dollar deals. The assistant knocks on the CEO's door (<b>Interrupt</b>) only when the package is delivered.</li>
+  <li><b>The C10K Problem:</b> How do modern web servers (Nginx, Node.js, Redis, Netty) handle <b>1,000,000 concurrent client connections</b> on a single server without running out of RAM or CPU? By replacing thread-per-connection architectures with event-driven <b>I/O Multiplexing (<code>epoll</code>)</b>.</li>
+</ul>
+
+<div class="callout remember">
+  <b class="label">🧷 the hardware transfer hierarchy</b><br />
+  1. <b>Polling:</b> CPU repeatedly queries device status register in a tight loop. Wastes 100% CPU.<br />
+  2. <b>Interrupt-Driven:</b> Device signals CPU when ready. Good for low-bandwidth devices (keyboards), but overwhelms CPU with millions of interrupts for gigabit networks.<br />
+  3. <b>Direct Memory Access (DMA):</b> The DMA controller transfers blocks directly between the peripheral and physical RAM over PCIe with <b>zero CPU involvement</b>!
+</div>
+
+<h2>the evolution of i/o multiplexing: select vs poll vs epoll</h2>
+<p>In 1999, Dan Kegel framed the <b>C10K problem</b>: web servers running Apache created one OS thread per incoming connection. When 10,000 clients connected, 10,000 threads consumed 80 GB of stack memory and ground the CPU to a halt through context-switch storms. The solution was event-driven multiplexing:</p>
+
+<div class="os-io-compare">
+  <div class="os-io-card">
+    <h4>select() — 1983 (BSD Unix)</h4>
+    <p>Passes three bitmasks of file descriptors to the kernel.</p>
+    <ul>
+      <li><b>Time Complexity:</b> <b>$O(N)$ linear scan</b>. The kernel scans all $N$ descriptors, and user code must scan all $N$ descriptors upon return to see who is ready.</li>
+      <li><b>Hard Limit:</b> Capped at <code>FD_SETSIZE</code> (hardcoded to <b>1,024 FDs</b> in Linux!). Cannot handle more than 1,024 connections.</li>
+      <li><b>Overhead:</b> User space must re-copy the entire bitmap into kernel space on <i>every single invocation</i>.</li>
+    </ul>
+  </div>
+
+  <div class="os-io-card">
+    <h4>poll() — 1986 (System V)</h4>
+    <p>Replaces bitmasks with an array of <code>struct pollfd</code>.</p>
+    <ul>
+      <li><b>Time Complexity:</b> Still <b>$O(N)$</b>. Both kernel and user space must linearly iterate through every item in the array.</li>
+      <li><b>Advantage:</b> Removed the 1,024 FD limit (array size is dynamic).</li>
+      <li><b>Fatal Flaw:</b> Copying an array of 100,000 descriptors between user and kernel space 1,000 times per second burns massive memory bandwidth.</li>
+    </ul>
+  </div>
+
+  <div class="os-io-card">
+    <h4>epoll — 2002 (Linux 2.5.44)</h4>
+    <p>The modern backbone of high-performance Linux servers.</p>
+    <ul>
+      <li><b>Time Complexity:</b> <b>$O(1)$ event readiness</b>!</li>
+      <li><b>Stateful Kernel Storage:</b> Uses an internal <b>Red-Black Tree</b> to track monitored FDs and a <b>Ready List</b> (doubly linked list) to return only active events.</li>
+      <li><b>Scalability:</b> Effortlessly handles 1,000,000 concurrent connections.</li>
+    </ul>
+  </div>
+</div>
+
+<h2>deep dive: how linux epoll works internally</h2>
+<p>The magic of <code>epoll</code> lies in splitting registration from waiting across three system calls:</p>
+
+<ol>
+  <li><code>epoll_create(int size)</code>: Allocates an internal <code>eventpoll</code> object inside the kernel, containing two core data structures:
+    <ul>
+      <li>A <b>Red-Black Tree (rbr)</b>: Stores all monitored file descriptors. Inserting or removing an FD via <code>epoll_ctl()</code> is $O(\log N)$.</li>
+      <li>A <b>Ready List (rdllist)</b>: A doubly-linked list storing only the file descriptors that currently have unread data ready!</li>
+    </ul>
+  </li>
+  <li><code>epoll_ctl(epfd, op, fd, event)</code>: Registers an FD. Crucially, the kernel attaches a <b>callback handler (<code>ep_poll_callback</code>)</b> to the device driver's wait queue for that socket.</li>
+  <li><code>epoll_wait(epfd, events, maxevents, timeout)</code>: <b>Zero linear scanning!</b> The calling thread simply sleeps on the Ready List. When a network packet arrives at the NIC, the hardware interrupt fires, the driver invokes the callback, and the socket is appended directly to the Ready List. <code>epoll_wait</code> wakes up and returns <b>only the ready descriptors in $O(1)$ time!</b></li>
+</ol>
+
+<h3>edge-triggered (ET) vs level-triggered (LT)</h3>
+<table>
+  <tr><th>Mode</th><th>Notification Behavior</th><th>Coding Requirement</th></tr>
+  <tr>
+    <td><b>Level-Triggered (LT) — Default</b></td>
+    <td><code>epoll_wait</code> continuously reports the FD as long as the buffer contains unread bytes.</td>
+    <td>Safe and easy to write. If you read only 512 bytes of a 1024-byte packet, the next call will immediately wake you up again for the rest.</td>
+  </tr>
+  <tr>
+    <td><b>Edge-Triggered (ET) — High Perf</b></td>
+    <td><code>epoll_wait</code> reports the FD <b>only once</b> when new data arrives at the network interface (on the state transition edge).</td>
+    <td><b>Must use non-blocking sockets!</b> You must loop calling <code>read()</code> until it returns <code>EAGAIN</code> or <code>EWOULDBLOCK</code>. If you leave even 1 byte in the socket buffer, the thread will sleep forever and stall the client!</td>
+  </tr>
+</table>
+
+<h2>zero-copy: sending files at wire speed</h2>
+<p>Consider a standard web server (like Nginx) serving a 1GB video file from disk over a TCP socket to a browser.</p>
+
+<h3>the naive approach (read + write): 4 context switches, 4 copies</h3>
+<figure class="os-zc-fig">
+<svg viewBox="0 0 600 200" role="img" aria-label="Standard Read-Write vs Zero-Copy sendfile">
+  <rect x="20" y="20" width="120" height="40" rx="6" fill="#fdfbf7" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="80" y="44" text-anchor="middle" font-size="11" font-family="monospace">1. Disk/NVMe</text>
+  
+  <line x1="140" y1="40" x2="200" y2="40" stroke="#1c1a15" stroke-width="2"/>
+  <text x="170" y="32" font-size="9" font-family="monospace">DMA</text>
+  
+  <rect x="200" y="20" width="130" height="40" rx="6" fill="#e8f5e9" stroke="#2e7d32" stroke-width="1.5"/>
+  <text x="265" y="44" text-anchor="middle" font-size="11" font-family="monospace">2. Page Cache</text>
+  
+  <line x1="330" y1="40" x2="390" y2="40" stroke="#d1345b" stroke-width="2"/>
+  <text x="360" y="32" font-size="9" font-family="monospace">CPU Copy</text>
+  
+  <rect x="390" y="20" width="130" height="40" rx="6" fill="#ffebee" stroke="#d1345b" stroke-width="1.5"/>
+  <text x="455" y="44" text-anchor="middle" font-size="11" font-family="monospace">3. User Buffer</text>
+  
+  <path d="M 455 60 L 455 120" stroke="#d1345b" stroke-width="2"/>
+  <text x="465" y="95" font-size="9" font-family="monospace">CPU Copy</text>
+  
+  <rect x="390" y="120" width="130" height="40" rx="6" fill="#fff8e1" stroke="#b78103" stroke-width="1.5"/>
+  <text x="455" y="144" text-anchor="middle" font-size="11" font-family="monospace">4. Socket Buffer</text>
+  
+  <line x1="390" y1="140" x2="200" y2="140" stroke="#1c1a15" stroke-width="2"/>
+  <text x="300" y="132" font-size="9" font-family="monospace">DMA Gather</text>
+  
+  <rect x="70" y="120" width="130" height="40" rx="6" fill="#fdfbf7" stroke="#1c1a15" stroke-width="1.5"/>
+  <text x="135" y="144" text-anchor="middle" font-size="11" font-family="monospace">5. NIC Buffer</text>
+</svg>
+<figcaption>Naive transfer wastes CPU copying gigabytes in and out of user space</figcaption>
+</figure>
+
+<ol>
+  <li><code>read()</code> syscall: <b>DMA Copy 1</b> from disk into Kernel Page Cache. (Context Switch 1).</li>
+  <li>Kernel copies data into User Space memory buffer via <b>CPU Copy 2</b>. (Context Switch 2).</li>
+  <li><code>write()</code> syscall: CPU copies data from User Space into Kernel Socket Buffer via <b>CPU Copy 3</b>. (Context Switch 3).</li>
+  <li>Socket buffer transferred to NIC via <b>DMA Copy 4</b>. (Context Switch 4).</li>
+</ol>
+<p>The CPU wasted billions of clock cycles copying data into user RAM that user space never modified!</p>
+
+<h3>the zero-copy solution: sendfile()</h3>
+<p>The <code>sendfile()</code> system call provides an in-kernel direct transfer pipeline: the application passes the source file descriptor (the disk file) and destination descriptor (the network socket), delegating the entire movement to the kernel.</p>
+<p>Data moves directly from the Kernel Page Cache into the NIC buffer via <b>DMA Gather</b> without ever entering user space! Context switches drop from 4 to <b>2</b>, CPU copies drop to <b>0</b>, and network throughput saturates 100GbE line-rate speeds!</p>
+
+<h2>the cutting edge: linux io_uring (2019+)</h2>
+<p>Even with <code>epoll</code>, every network <code>read()</code> and <code>write()</code> requires a separate system call ($50\text{ns}$ each). At 2,000,000 requests per second, syscall overhead becomes the dominant bottleneck.</p>
+<p>Created by Jens Axboe, <b>io_uring</b> provides true asynchronous I/O via <b>two lock-free circular ring buffers</b> shared directly in memory between User Space and Kernel Space:</p>
+<ul>
+  <li><b>Submission Queue (SQ):</b> User space pushes I/O requests (read, write, accept) directly into shared RAM without issuing a syscall.</li>
+  <li><b>Completion Queue (CQ):</b> The kernel posts completed results into shared RAM.</li>
+  <li><b>SQPOLL Mode:</b> A dedicated kernel thread continuously polls the Submission Queue. The application performs millions of I/O operations with <b>literally ZERO system calls!</b></li>
+</ul>
+
+<h2>quick check</h2>
+<ul>
+  <li><b>Why does epoll scale to 1 million connections while select() fails?</b> <code>select()</code> scans an entire array of FDs in $O(N)$ time on every call, whereas <code>epoll</code> maintains a kernel Red-Black tree and returns only active descriptors from a Ready List in $O(1)$ time.</li>
+  <li><b>What error must you handle when reading from an Edge-Triggered epoll socket?</b> <code>EAGAIN</code> or <code>EWOULDBLOCK</code>, signaling that all available bytes in the kernel socket buffer have been consumed.</li>
+  <li><b>How does <code>sendfile()</code> achieve Zero-Copy?</b> It passes data directly between kernel Page Cache and the network adapter via DMA without copying bytes into user-space memory.</li>
+</ul>
+
+<h2>the 20-second summary</h2>
+<p>Modern high-performance systems use Direct Memory Access (DMA) to decouple CPU cycles from slow disk and network peripherals. Linux <code>epoll</code> conquered the C10K problem by pairing a kernel Red-Black tree with an $O(1)$ event ready-list, eliminating linear descriptor scanning. Advanced architectures deploy <code>sendfile()</code> to eliminate intermediate buffer copies and leverage <code>io_uring</code> shared ring buffers to execute asynchronous I/O with zero syscall overhead.</p>

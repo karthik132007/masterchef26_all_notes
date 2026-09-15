@@ -1691,7 +1691,7 @@
   window.onAngleSliderChange = function(val) {
     currentAngleDeg = parseFloat(val);
     if (insightBox) {
-      insightBox.innerHTML = "📐 Angle manually set to <b>" + currentAngleDeg.toFixed(1) + "°</b>. Notice how cosine drops from $+1.0$ at $0^\\circ$ to $0.0$ at $90^\\circ$ (orthogonal/unrelated) and $-1.0$ at $180^\\circ$ (opposites).";
+      insightBox.innerHTML = "📐 Angle manually set to <b>" + currentAngleDeg.toFixed(1) + "°</b>. Notice how cosine drops from <b>+1.0 at 0°</b> to <b>0.0 at 90°</b> (orthogonal/unrelated) and <b>-1.0 at 180°</b> (opposites).";
     }
     updateCosineUI();
   };

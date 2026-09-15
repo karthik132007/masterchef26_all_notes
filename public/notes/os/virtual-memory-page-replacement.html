@@ -1,0 +1,163 @@
+<style>
+.os-pf-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 16px 0;
+}
+.os-pf-step {
+  background: var(--canvas, #ffffff);
+  border: 1.5px solid var(--border-dim, #e4ded0);
+  border-radius: 8px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.os-step-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--pink, #d1345b);
+  color: #fff;
+  font-family: var(--font-mono, monospace);
+  font-size: 13px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+</style>
+
+<p class="kicker">the art of living beyond your physical ram — page faults, belady's anomaly, and the linux oom killer.</p>
+
+<h2>the 30-second elevator pitch</h2>
+<p>Your server has 16 GB of physical RAM, but you are running a database using 12 GB, 5 microservices using 8 GB, and an ML model using 6 GB (total = 26 GB). How does your computer not explode? Through <b>Virtual Memory & Demand Paging</b>.</p>
+<ul>
+  <li><b>The Desk vs The Bookshelf Analogy:</b> Your physical desk (RAM) only has room for 3 open textbooks. The library bookshelf (SSD / Swap space) holds 1,000 textbooks. You don't bring all 1,000 books to your desk at once. You keep the 3 books you are actively studying right now on the desk. When you need a 4th book, you move one idle book back to the shelf to make room.</li>
+  <li><b>Demand Paging:</b> Never load a page of memory from disk into RAM until the CPU actively attempts to execute or read from it ("lazy loading at the hardware level").</li>
+</ul>
+
+<div class="callout remember">
+  <b class="label">🧷 the valid / invalid bit</b><br />
+  Every Page Table Entry (PTE) contains a hardware <b>Present/Valid Bit</b>:<br />
+  - <b>Bit = 1:</b> The page is resident in physical RAM. MMU translates address instantly.<br />
+  - <b>Bit = 0:</b> The page is either unmapped (illegal access) or swapped out on disk. Accessing it triggers a <b>Page Fault Exception</b>.
+</div>
+
+<h2>the 6-step lifecycle of a page fault</h2>
+<p>What physically occurs inside the CPU and kernel when your code touches a non-resident page?</p>
+
+<div class="os-pf-steps">
+  <div class="os-pf-step">
+    <div class="os-step-num">1</div>
+    <div><b>Hardware Trap:</b> CPU attempts to read address. MMU sees Valid Bit = 0 and raises a hardware Page Fault Exception (Interrupt 14 on x86).</div>
+  </div>
+  <div class="os-pf-step">
+    <div class="os-step-num">2</div>
+    <div><b>Kernel Validity Check:</b> The OS kernel takes over in Ring 0 and consults the process's Virtual Memory Areas (VMAs). If the address is outside valid allocations, the kernel fires <code>SIGSEGV</code> (Segmentation Fault). If valid, it proceeds.</div>
+  </div>
+  <div class="os-pf-step">
+    <div class="os-step-num">3</div>
+    <div><b>Frame Allocation:</b> The kernel searches for a free physical RAM frame. If RAM is completely full, it runs a <b>Page Replacement Algorithm</b> to evict an existing victim page to disk.</div>
+  </div>
+  <div class="os-pf-step">
+    <div class="os-step-num">4</div>
+    <div><b>Disk I/O Transfer:</b> The OS issues a DMA read request to load the 4KB page from the swap space / SSD file into the allocated physical frame. The faulting thread is put to sleep (<code>WAITING</code>).</div>
+  </div>
+  <div class="os-pf-step">
+    <div class="os-step-num">5</div>
+    <div><b>Update Page Table:</b> The disk controller fires a hardware interrupt signaling the transfer is complete. The kernel writes the physical frame number into the PTE and sets <b>Valid Bit = 1</b>.</div>
+  </div>
+  <div class="os-pf-step">
+    <div class="os-step-num">6</div>
+    <div><b>Instruction Restart:</b> The kernel returns from interrupt. The CPU hardware <b>restarts the exact assembly instruction</b> that caused the fault! This time, the MMU finds Valid Bit = 1 and succeeds transparently.</div>
+  </div>
+</div>
+
+<h2>page replacement algorithms</h2>
+
+<h3>1. Optimal Page Replacement (Belady's Min Algorithm)</h3>
+<p>Replace the page that will not be used for the longest period of time in the future. <b>Provably produces the lowest possible number of page faults</b>. However, it is an impossible algorithm in real OSes because the kernel cannot see the future! It is used solely as a theoretical benchmark.</p>
+
+<h3>2. FIFO & Belady's anomaly</h3>
+<p>Evict the oldest page loaded in memory using a simple queue. Intuition suggests that giving a process <i>more</i> physical memory frames will always reduce page faults. <b>With FIFO, this intuition is dead wrong!</b></p>
+
+<div class="callout gotcha">
+  <b class="label">⚠️ belady's anomaly proof</b><br />
+  Consider the page reference string: <b>1, 2, 3, 4, 1, 2, 5, 1, 2, 3, 4, 5</b><br />
+  - With <b>3 physical frames:</b> Tracing FIFO yields <b>9 Page Faults</b>.<br />
+  - With <b>4 physical frames:</b> Tracing FIFO yields <b>10 Page Faults</b>!<br />
+  Adding more memory caused <i>more</i> page faults! FIFO suffers from Belady's Anomaly because it does not belong to the class of <b>Stack Algorithms</b> (algorithms where the set of pages in memory for $N$ frames is always a strict subset of pages for $N+1$ frames).
+</div>
+
+<h3>3. Least Recently Used (LRU)</h3>
+<p>Evict the page that has not been accessed for the longest period of time. Approximates the optimal algorithm by using the recent past to predict the future (Temporal Locality). <b>Never suffers from Belady's Anomaly</b>.</p>
+<p><b>Why doesn't Linux implement pure LRU?</b> Pure LRU requires updating a doubly-linked list or timestamp register on <b>every single memory access</b>! Doing that on billions of CPU read/writes per second would incinerate memory performance.</p>
+
+<h3>4. The Clock Algorithm (Second-Chance Algorithm)</h3>
+<p>How real operating systems approximate LRU with almost zero hardware overhead:</p>
+<ol>
+  <li>The CPU hardware sets a 1-bit <b>Reference Bit</b> in the PTE to <code>1</code> whenever a page is read or written.</li>
+  <li>The OS organizes all physical frames into a circular queue with a pointer (the <b>Clock Hand</b>).</li>
+  <li>When a page must be evicted:
+    <ul>
+      <li>If the frame under the hand has $\text{Reference Bit} = 1$: The OS clears it to $0$ ("gives it a second chance") and advances the hand to the next frame.</li>
+      <li>If the frame has $\text{Reference Bit} = 0$: <b>This page is evicted!</b> The new page takes its place, and the hand advances.</li>
+    </ul>
+  </li>
+</ol>
+
+<h2>thrashing & the working set model</h2>
+<p>If a process does not have enough physical frames to hold its actively used pages, it spends 99% of its time waiting for pages to be swapped in and out of disk. CPU utilization collapses to near 0%. This state is called <b>Thrashing</b>.</p>
+
+<figure class="os-fig">
+<svg viewBox="0 0 540 180" role="img" aria-label="Thrashing Graph: CPU utilization vs Degree of Multiprogramming">
+  <line x1="60" y1="140" x2="480" y2="140" stroke="#1c1a15" stroke-width="2"/>
+  <line x1="60" y1="140" x2="60" y2="20" stroke="#1c1a15" stroke-width="2"/>
+  <text x="270" y="170" text-anchor="middle" font-size="11" font-family="monospace">Degree of Multiprogramming (Number of active processes)</text>
+  <text x="20" y="80" text-anchor="middle" font-size="11" font-family="monospace" transform="rotate(-90 20 80)">CPU Utilization</text>
+  <path d="M 60 140 Q 260 20, 310 30 Q 340 35, 360 135" fill="none" stroke="#d1345b" stroke-width="3"/>
+  <line x1="330" y1="20" x2="330" y2="140" stroke="#d1345b" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="380" y="60" font-size="12" font-family="monospace" font-weight="700" fill="#d1345b">Thrashing Point!</text>
+</svg>
+<figcaption>Beyond the thrashing point, adding processes causes CPU utilization to plummet to zero</figcaption>
+</figure>
+
+<h3>the working set model (Peter Denning)</h3>
+<ul>
+  <li><b>Working Set Window ($\Delta$):</b> A fixed number of recent page references (e.g. last 10,000 references).</li>
+  <li><b>Working Set ($WSS_i$):</b> The total number of distinct pages process $P_i$ accessed inside window $\Delta$.</li>
+  <li><b>The Anti-Thrashing Condition:</b> Total memory demand $D = \sum WSS_i$.
+    <ul>
+      <li>If $D \le \text{Total Physical RAM}$: The system runs smoothly.</li>
+      <li>If $D > \text{Total Physical RAM}$: <b>Thrashing begins.</b> The OS scheduler must suspend (swap out) an entire process to free its frames for others.</li>
+    </ul>
+  </li>
+</ul>
+
+<h2>production linux internals: kswapd & the oom killer</h2>
+<p>In production Linux servers, memory reclamation operates in two tiers:</p>
+<ol>
+  <li><b>Background Reclamation (<code>kswapd</code> daemon):</b> When free RAM drops below the <code>low</code> watermark, the kernel wakes up <code>kswapd</code> asynchronously to write dirty pages to disk and reclaim clean page-cache frames. Applications continue running without pause.</li>
+  <li><b>The OOM (Out Of Memory) Killer:</b> When free RAM drops to zero and direct reclamation fails, the kernel must kill a process to prevent a complete hardware kernel panic.</li>
+</ol>
+
+<div class="callout exam">
+  <b class="label">⭐ how linux chooses which process to kill (oom score)</b><br />
+  The kernel calculates a score from <code>0</code> to <code>1000</code> for each process:
+  $$\text{badness\_score} \approx \frac{\text{RSS Memory Used}}{\text{Total RAM}} \times 1000 + \text{oom\_score\_adj}$$
+  - The process consuming the most RAM with the lowest priority gets killed first with <code>SIGKILL</code>.<br />
+  - <b>Production Tip:</b> Critical processes (like an SSH daemon or Redis database) can be granted immunity by writing <code>-1000</code> into <code>/proc/&lt;PID&gt;/oom_score_adj</code>. A value of <code>-1000</code> removes the process from OOM consideration entirely!
+</div>
+
+<h2>quick check</h2>
+<ul>
+  <li><b>What triggers a Page Fault?</b> An attempt to access a virtual page whose PTE has Valid Bit = 0.</li>
+  <li><b>Which page replacement algorithm suffers from Belady's Anomaly?</b> First-In, First-Out (FIFO).</li>
+  <li><b>What is the difference between pure LRU and the Clock Algorithm?</b> Pure LRU tracks exact access history; Clock uses a single hardware-set Reference bit per page to give pages a second chance.</li>
+</ul>
+
+<h2>the 20-second summary</h2>
+<p>Virtual memory allows systems to exceed physical RAM capacity by demand-paging 4KB blocks between disk and memory. When an unmapped page is referenced, the CPU triggers a Page Fault, prompting the kernel to allocate a frame, read from disk, update page tables, and restart the instruction. If physical memory becomes oversubscribed, the system risks thrashing, requiring page replacement (Clock algorithm) or intervention from the Linux Out-Of-Memory (OOM) killer.</p>

@@ -323,3 +323,203 @@ footer a { font-weight: 600; }
 .plan-quote { font-family: var(--font-display); font-size: clamp(19px, 3vw, 25px); color: var(--yellow); line-height: 1.35; margin: 14px 0 0; }
 .day-link.plan-link { border: 2px solid #e2d9c3; margin-bottom: 8px; }
 .day-link.plan-link .idx { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+/* ---------- Homepage Redesign Styles ---------- */
+.hero-kicker {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #d1345b;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  padding: 5px 14px;
+  box-shadow: 2px 2px 0 var(--ink);
+  margin-bottom: 16px;
+}
+.hero-kicker .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #d1345b;
+  display: inline-block;
+}
+.hero-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 28px 0 0;
+}
+.hero-stat-pill {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  background: var(--paper-2);
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  padding: 8px 14px;
+  box-shadow: 2px 2px 0 var(--ink);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.hero-stat-pill b {
+  color: #d1345b;
+}
+
+/* Spotlight: Interview Prep */
+.spotlight-wrap {
+  margin: 40px 0 20px;
+  background: #fffdf6;
+  border: 2.5px solid var(--ink);
+  border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
+  padding: 28px;
+  position: relative;
+  overflow: hidden;
+}
+.spotlight-wrap::before {
+  content: "HOT";
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+  background: var(--yellow);
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  padding: 2px 10px;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+.spotlight-header {
+  max-width: 680px;
+  margin-bottom: 22px;
+}
+.spotlight-header h3 {
+  font-family: var(--font-display);
+  font-size: clamp(24px, 3.5vw, 32px);
+  margin: 6px 0 8px;
+  text-transform: lowercase;
+}
+.spotlight-header p {
+  color: var(--ink-soft);
+  font-size: 15px;
+  line-height: 1.55;
+  margin: 0;
+}
+.spotlight-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+}
+@media (max-width: 780px) {
+  .spotlight-grid { grid-template-columns: 1fr; }
+}
+.spotlight-card {
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  padding: 18px 20px;
+  box-shadow: var(--card-shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: transform 0.12s ease;
+}
+.spotlight-card:hover {
+  transform: translateY(-2px);
+}
+.spotlight-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.spotlight-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--ink);
+}
+.spotlight-card h4 {
+  margin: 2px 0 0;
+  font-size: 18px;
+  font-weight: 800;
+}
+.spotlight-card p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+.spotlight-companies {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+.co-pill {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid var(--ink);
+  border-radius: 6px;
+  padding: 1px 7px;
+  background: var(--paper-2);
+}
+.card-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 4px 0 2px;
+}
+.chip {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid #d4cbb8;
+  border-radius: 6px;
+  padding: 1px 7px;
+  background: var(--paper-2);
+  color: var(--ink-soft);
+}
+.card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.card-actions .open-link {
+  margin: 0;
+}
+.card-actions .quick-q-link {
+  text-decoration: none;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 800;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  padding: 9px 12px;
+  background: #fff;
+  box-shadow: 2px 2px 0 var(--ink);
+  white-space: nowrap;
+  transition: all 0.1s ease;
+}
+.card-actions .quick-q-link:hover {
+  background: var(--yellow);
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+

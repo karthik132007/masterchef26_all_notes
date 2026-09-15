@@ -13,8 +13,8 @@ Day-wise + concept-wise class notes. **Next.js** site, **plain HTML** notes, no 
 | High-Level Design | concepts | `/courses/hld/<slug>` | `public/notes/hld/` |
 
 Current networking concepts: `osi`, `tcp`, `dns`, `gateway`, `http-1-2-3`.
-Current HLD concepts: `monolith`, `load-balancer`, `api-gateway`, `caching`, `db`, `microservices`.
-OS concept list is empty for now — add topics in `lib/courses.js` when ready.
+Current HLD concepts: `monolith`, `load-balancer`, `api-gateway`, `caching`, `db`, `sharding`, `microservices`, `messaging`, `containerization`.
+Current OS concepts: `os-architecture-syscalls`, `processes-and-pcb`, `threads-and-concurrency`, `cpu-scheduling`, `synchronization-and-locks`, `deadlocks`, `memory-management-paging`, `virtual-memory-page-replacement`, `file-systems-and-storage`, `io-management-and-epoll`, `inter-process-communication`, `virtualization-and-containers`, `faang-interview-playbook`.
 
 ## adding notes for a class day (day-wise courses)
 

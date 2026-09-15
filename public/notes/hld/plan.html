@@ -9,8 +9,11 @@
     <li>Scale horizontally: Spread traffic across $N$ servers with Layer 4 &amp; Layer 7 Load Balancers</li>
     <li>Guard the perimeter: API Gateways for edge auth, Token Bucket rate limiting, and BFFs</li>
     <li>Accelerate reads: Sub-millisecond RAM caching (Redis) and beating the 3 Cache Disasters</li>
-    <li>Scale persistent state: SQL vs NoSQL, primary-replica replication lag, and consistent hashing sharding</li>
+    <li>Scale persistent state: SQL vs NoSQL, storage engine internals, and primary-replica replication</li>
+    <li>Shard across hardware: Horizontal partitioning, shard key selection, and Consistent Hashing</li>
     <li>Decompose at organizational scale: Microservices, Database-per-service, Sagas, and Circuit Breakers</li>
+    <li>Decouple &amp; scale asynchronously: Message Queues &amp; Event Streaming (SQS, Kafka &amp; RabbitMQ)</li>
+    <li>Package &amp; isolate at scale: OS virtualization, Linux primitives (Namespaces, Cgroups) &amp; Docker</li>
   </ol>
 </div>
 
@@ -66,18 +69,30 @@
 
 <section class="plan-day">
   <span class="plan-daynum">Topic 05</span>
-  <h2>Databases: SQL vs NoSQL, Replication &amp; Sharding</h2>
+  <h2>Databases: SQL vs NoSQL, Storage Engines &amp; Replication</h2>
   <ul>
     <li>Relational vs Document vs Key-Value vs Wide-Column vs Graph</li>
-    <li>Storage engines: B+ Trees (read-heavy) vs LSM-Trees (write-heavy append log)</li>
-    <li>Primary-Replica replication, replication lag &amp; Read-Your-Own-Writes</li>
-    <li>Horizontal sharding, hotspot avoidance &amp; Consistent Hashing mechanics</li>
+    <li>Storage engine internals: B+ Trees (read-optimized) vs LSM-Trees (write-optimized)</li>
+    <li>Primary-Replica replication, replication lag traps &amp; Read-Your-Own-Writes</li>
+    <li>CAP Theorem vs PACELC Theorem: Consistency vs Latency trade-offs</li>
   </ul>
   <a class="plan-open" href="/courses/hld/db">open database notes →</a>
 </section>
 
 <section class="plan-day">
   <span class="plan-daynum">Topic 06</span>
+  <h2>Database Partitioning &amp; Sharding</h2>
+  <ul>
+    <li>The Library Analogy: Partitioning vs Sharding, Vertical vs Horizontal</li>
+    <li>Range-based vs Hash-based sharding and the catastrophic $N+1$ modulo trap</li>
+    <li>Consistent Hashing with Virtual Nodes (Vnodes) deep visual mechanics</li>
+    <li>Cross-shard joins, distributed transactions, secondary indexes &amp; zero-downtime resharding</li>
+  </ul>
+  <a class="plan-open" href="/courses/hld/sharding">open sharding notes →</a>
+</section>
+
+<section class="plan-day">
+  <span class="plan-daynum">Topic 07</span>
   <h2>Microservices Architecture</h2>
   <ul>
     <li>Domain-Driven Design (DDD) &amp; the golden Database-per-Service rule</li>
@@ -86,6 +101,30 @@
     <li>Transactional Outbox pattern, CDC, and Circuit Breaker state machines</li>
   </ul>
   <a class="plan-open" href="/courses/hld/microservices">open microservices notes →</a>
+</section>
+
+<section class="plan-day">
+  <span class="plan-daynum">Topic 08</span>
+  <h2>Message Queues &amp; Event Streaming</h2>
+  <ul>
+    <li>Async decoupling: Point-to-Point Queues vs Distributed Append-Only Logs</li>
+    <li>Amazon SQS: Standard vs FIFO, Visibility Timeouts, Long Polling &amp; SNS Fanout</li>
+    <li>Apache Kafka: Partitions, Consumer Groups, Zero-Copy mechanics &amp; ISR replication</li>
+    <li>The Ultimate 3-Way Showdown: SQS vs Kafka vs RabbitMQ architectural trade-offs</li>
+  </ul>
+  <a class="plan-open" href="/courses/hld/messaging">open messaging notes →</a>
+</section>
+
+<section class="plan-day">
+  <span class="plan-daynum">Topic 09</span>
+  <h2>Containerization &amp; Docker</h2>
+  <ul>
+    <li>VMs vs Containers: Hardware hypervisors vs OS-level virtualization</li>
+    <li>Under the hood: Linux Namespaces (isolation) &amp; Cgroups (resource throttling)</li>
+    <li>UnionFS, Overlay2, and Copy-on-Write (CoW) image layer mechanics</li>
+    <li>From single Docker daemon to distributed orchestration (Kubernetes / ECS)</li>
+  </ul>
+  <a class="plan-open" href="/courses/hld/containerization">open containerization notes →</a>
 </section>
 
 </div>

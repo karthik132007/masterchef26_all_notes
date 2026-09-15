@@ -1,0 +1,174 @@
+<style>
+.os-sched-gantt {
+  display: flex;
+  margin: 16px 0;
+  border-radius: 8px;
+  overflow: hidden;
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  border: 1.5px solid var(--ink, #1c1a15);
+}
+.os-gantt-block {
+  padding: 12px 4px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border-right: 1px solid var(--ink, #1c1a15);
+}
+.os-gantt-block:last-child {
+  border-right: none;
+}
+.os-gantt-time {
+  font-size: 10px;
+  font-weight: normal;
+  opacity: 0.8;
+  margin-top: 4px;
+}
+.os-p1 { background: #ffcdd2; color: #b71c1c; }
+.os-p2 { background: #c8e6c9; color: #1b5e20; }
+.os-p3 { background: #bbdefb; color: #0d47a1; }
+.os-p4 { background: #fff9c4; color: #f57f17; }
+</style>
+
+<p class="kicker">who gets the cpu next — from convoy effects and round-robin quantums to linux cfs and the mars pathfinder bug.</p>
+
+<h2>the 30-second elevator pitch</h2>
+<p>You have 8 CPU cores, but 250 active processes (Chrome tabs, Spotify, your IDE, background daemons). How does the operating system decide which process gets a CPU core at any millisecond, for how long, and when to kick it off? That is the job of the <b>CPU Scheduler</b>.</p>
+<ul>
+  <li><b>The Supermarket Analogy:</b> Imagine a grocery store with one cashier (CPU). If someone with 5 cartloads gets in line first, and 10 people holding a single bottle of water wait behind them for 45 minutes, that's the <b>Convoy Effect</b>. A smart cashier lets quick shoppers tap out first, or serves each person 3 items before moving to the next.</li>
+  <li><b>Preemptive vs Non-Preemptive:</b>
+    <ul>
+      <li><b>Non-Preemptive:</b> Once a process gets the CPU, it holds it until it either terminates or yields voluntarily for I/O. (Dangerous: an infinite loop freezes the system).</li>
+      <li><b>Preemptive:</b> The OS hardware timer interrupts the process and forcibly takes the CPU away when its allocated time slice expires. Modern general OSes are 100% preemptive.</li>
+    </ul>
+  </li>
+</ul>
+
+<div class="callout remember">
+  <b class="label">🧷 remember: core metrics</b><br />
+  <b>Turnaround Time</b> = Completion Time $-$ Arrival Time (Total time from submit to finish)<br />
+  <b>Waiting Time</b> = Turnaround Time $-$ Burst Time (Time spent waiting in the ready queue)<br />
+  <b>Response Time</b> = First Execution Time $-$ Arrival Time (Crucial for interactive apps!)
+</div>
+
+<h2>classical scheduling algorithms & worked traces</h2>
+
+<h3>1. First-Come, First-Served (FCFS) & the convoy effect</h3>
+<p>Simplest algorithm: processes are executed in strict order of arrival via a standard FIFO queue. Non-preemptive.</p>
+
+<div class="callout try">
+  <b class="label">🔬 trace: the convoy effect</b><br />
+  Three processes arrive at time $t=0$: $P_1$ (burst = 24ms), $P_2$ (burst = 3ms), $P_3$ (burst = 3ms).
+</div>
+
+<div class="os-sched-gantt">
+  <div class="os-gantt-block os-p1" style="flex: 24;">P1 (24ms)<span class="os-gantt-time">0 to 24</span></div>
+  <div class="os-gantt-block os-p2" style="flex: 3;">P2 (3ms)<span class="os-gantt-time">24 to 27</span></div>
+  <div class="os-gantt-block os-p3" style="flex: 3;">P3 (3ms)<span class="os-gantt-time">27 to 30</span></div>
+</div>
+
+<ul>
+  <li>Waiting Times: $P_1 = 0$, $P_2 = 24$, $P_3 = 27$.</li>
+  <li><b>Average Waiting Time:</b> $\frac{0 + 24 + 27}{3} = \mathbf{17\text{ ms}}$.</li>
+  <li><b>If they arrived in reverse order ($P_2, P_3, P_1$):</b> Avg Wait = $\frac{0 + 3 + 6}{3} = \mathbf{3\text{ ms}}$! (A 5.6x improvement).</li>
+</ul>
+
+<h3>2. Shortest Job First (SJF) & Shortest Remaining Time First (SRTF)</h3>
+<p>Executes the process with the shortest CPU burst time first. <b>Provably optimal</b> for minimizing average waiting time.</p>
+<ul>
+  <li><b>Non-preemptive:</b> SJF.</li>
+  <li><b>Preemptive:</b> SRTF (if a new process arrives with a shorter remaining burst than the currently running process, the CPU preempts the current process).</li>
+  <li><b>The Fatal Flaw:</b> <b>Starvation</b>. A continuous stream of short tasks will permanently starve long tasks. Furthermore, the OS cannot predict the exact future CPU burst duration of a user program! (Approximated using exponential smoothing: $\tau_{n+1} = \alpha t_n + (1-\alpha)\tau_n$).</li>
+</ul>
+
+<h3>3. Round Robin (RR) & time quantum sizing</h3>
+<p>Each process is allocated a small slice of CPU time called a <b>Time Quantum ($q$)</b>, typically 10ms to 50ms. If the process is still running when $q$ expires, it is preempted and pushed to the back of the ready queue.</p>
+
+<div class="callout gotcha">
+  <b class="label">⚠️ gotcha: quantum trade-offs</b><br />
+  <b>If quantum $q \to \infty$:</b> Round Robin degenerates into First-Come First-Served.<br />
+  <b>If quantum $q \to 0$:</b> CPU spends 90% of its clock cycles executing context switches instead of useful code (thrashing).<br />
+  <b>Production Rule:</b> The time quantum should be large relative to context switch overhead (~1–2µs), such that <b>~80% of CPU bursts are shorter than $q$</b>.
+</div>
+
+<h3>4. Multilevel Feedback Queue (MLFQ)</h3>
+<p>The foundation of modern general-purpose schedulers. It does not require knowing burst times in advance; it <i>learns</i> process behavior on the fly:</p>
+<ol>
+  <li>Processes start in the highest-priority queue with a short time quantum.</li>
+  <li>If a process uses its entire time slice without yielding (CPU-bound job), it is demoted to a lower-priority queue with a longer quantum.</li>
+  <li>If a process yields voluntarily for I/O before its quantum expires (interactive I/O-bound job like a text editor), it stays in the high-priority queue.</li>
+  <li><b>Priority Boost:</b> To prevent starvation, all processes are periodically boosted back to the top queue (e.g. every 1 second).</li>
+</ol>
+
+<h2>modern real-world: the linux completely fair scheduler (CFS)</h2>
+<p>Since Linux 2.6.23 (and enhanced through modern kernels), the default scheduling class for regular tasks is <b>CFS (Completely Fair Scheduler)</b>. CFS discards traditional fixed time slices entirely and treats the CPU as an "ideal multi-tasking computer" where every process makes equal progress.</p>
+
+<h3>virtual runtime (vruntime) & the red-black tree</h3>
+<ul>
+  <li>Every task in Linux tracks a 64-bit integer called <code>vruntime</code> (virtual runtime). It measures the amount of CPU time the process has consumed, normalized by its priority (nice value).</li>
+  <li>All ready tasks are ordered by their <code>vruntime</code> in a self-balancing <b>Red-Black Tree</b>.</li>
+  <li><b>Scheduling Decision:</b> CFS always picks the <b>leftmost node</b> of the tree (the task that has had the least CPU time, i.e., lowest <code>vruntime</code>) and runs it!</li>
+  <li>As the task executes, its <code>vruntime</code> increases. When it exceeds other tasks, it is re-inserted into the tree, and the new leftmost task takes over. Finding the leftmost task is $O(1)$ (cached pointer), and tree re-insertion is $O(\log N)$.</li>
+</ul>
+
+<h3>nice values & geometric weighting</h3>
+<p>Linux nice values range from <b>-20 (highest priority)</b> to <b>+19 (lowest priority)</b>, with 0 being normal.</p>
+<p>Each nice level represents roughly a <b>10% difference in CPU proportion</b>, mapped via an internal kernel weight array:</p>
+
+$$\Delta \text{vruntime} = \Delta \text{exec\_time} \times \frac{\text{NICE\_0\_LOAD}}{\text{task\_weight}}$$
+
+<ul>
+  <li>If a task has nice 0, $\text{task\_weight} = 1024 = \text{NICE\_0\_LOAD}$. Its <code>vruntime</code> ticks up in exact real-time.</li>
+  <li>If a task has nice -5 (high priority), its weight is large, so its <code>vruntime</code> ticks up <b>very slowly</b>. It gets to stay on the CPU much longer before being re-sorted!</li>
+  <li>If a task has nice +10 (low priority / background job), its weight is small, so its <code>vruntime</code> shoots up rapidly, causing it to yield quickly.</li>
+</ul>
+
+<div class="callout exam">
+  <b class="label">⭐ exam tip: min_vruntime protection</b><br />
+  <i>"If a process sleeps for 3 weeks waiting on network I/O, its vruntime will be tiny compared to active processes. When it wakes up, won't it monopolize the CPU for the next 3 weeks?"</i><br />
+  <b>Answer: NO!</b> Linux CFS tracks a system-wide <code>min_vruntime</code>. When a sleeping process wakes up, its <code>vruntime</code> is reset to <code>min_vruntime - latency_target</code>, giving it just enough boost to handle its immediate I/O packet without starving everyone else.
+</div>
+
+<h2>real-time scheduling & the mars pathfinder priority inversion bug</h2>
+<p>In July 1997, NASA's Mars Pathfinder spacecraft landed on Mars. A few days into the mission, the rover began spontaneously rebooting in the middle of data transmissions, threatening the entire mission.</p>
+
+<figure class="os-fig">
+<svg viewBox="0 0 600 200" role="img" aria-label="Priority Inversion Scenario">
+  <rect x="30" y="30" width="160" height="36" rx="6" fill="#ffebee" stroke="#d1345b" stroke-width="1.5"/>
+  <text x="110" y="53" text-anchor="middle" font-size="12" font-family="monospace" font-weight="700" fill="#d1345b">High: Information Bus</text>
+  
+  <rect x="30" y="85" width="160" height="36" rx="6" fill="#fff8e1" stroke="#b78103" stroke-width="1.5"/>
+  <text x="110" y="108" text-anchor="middle" font-size="12" font-family="monospace" font-weight="700" fill="#b78103">Medium: Comm Task</text>
+  
+  <rect x="30" y="140" width="160" height="36" rx="6" fill="#e8f5e9" stroke="#2e7d32" stroke-width="1.5"/>
+  <text x="110" y="163" text-anchor="middle" font-size="12" font-family="monospace" font-weight="700" fill="#2e7d32">Low: Meteorological</text>
+  
+  <path d="M 200 158 L 290 158 L 290 48 L 350 48" fill="none" stroke="#1c1a15" stroke-width="2" stroke-dasharray="4 4"/>
+  <text x="260" y="148" font-size="10" font-family="monospace">holds lock</text>
+  <text x="360" y="52" font-size="11" font-family="monospace" fill="#d1345b">BLOCKED on lock!</text>
+  
+  <line x1="200" y1="103" x2="520" y2="103" stroke="#b78103" stroke-width="3"/>
+  <text x="360" y="96" font-size="11" font-family="monospace" font-weight="700" fill="#b78103">PREEMPTS Low, starves High!</text>
+</svg>
+<figcaption>Priority Inversion: A medium priority task indirectly blocks a critical high priority task</figcaption>
+</figure>
+
+<ol>
+  <li><b>The Setup:</b> A Low-priority meteorological task acquired a shared mutex lock on the information bus.</li>
+  <li><b>The Preemption:</b> An interrupt caused a Medium-priority communications task (which didn't need the lock) to wake up and preempt the Low-priority task.</li>
+  <li><b>The Inversion:</b> The High-priority attitude control task woke up and needed the information bus lock. It blocked, waiting for Low to finish. But Low couldn't finish because Medium was hogging the CPU! Medium was indirectly starving High. A watchdog timer detected the frozen High task and reset the computer.</li>
+  <li><b>The Fix: Priority Inheritance Protocol</b>. When a High-priority task blocks on a lock held by a Low-priority task, the Low-priority task <b>temporarily inherits the High priority</b> until it releases the lock, preventing any Medium-priority tasks from preempting it!</li>
+</ol>
+
+<h2>quick check</h2>
+<ul>
+  <li><b>Why does Round Robin scheduling favor I/O bound tasks over CPU bound tasks?</b> I/O tasks consume only a tiny fraction of their quantum before yielding, quickly jumping to the front of response queues.</li>
+  <li><b>What data structure does Linux CFS use to store ready tasks?</b> A Red-Black Tree, ordered by <code>vruntime</code>.</li>
+  <li><b>How does Priority Inheritance resolve priority inversion?</b> It elevates the priority of the lock holder to match the highest-priority blocked waiter until the lock is released.</li>
+</ul>
+
+<h2>the 20-second summary</h2>
+<p>CPU scheduling governs how cores are shared across processes. While classical algorithms like SJF are theoretically optimal, they suffer from starvation and unmeasurable burst times. Linux solves real-world fairness using the Completely Fair Scheduler (CFS), indexing tasks by their virtual runtime (<code>vruntime</code>) in a Red-Black tree. Real-time systems require strict preemption safety mechanisms like Priority Inheritance to prevent catastrophic priority inversion.</p>
