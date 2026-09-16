@@ -1,0 +1,859 @@
+<style>
+/* ── GenAI Topic 07: RAG & Vector Search Styling ── */
+.rag-fig { margin: 18px auto 12px; max-width: 680px; text-align: center; }
+.rag-fig svg { width: 100%; height: auto; display: block; }
+.rag-fig figcaption { font-family: var(--font-mono); font-size: 12px; color: var(--ink-soft); margin-top: 6px; line-height: 1.5; }
+.note-body figure.rag-fig { animation: rag-rise .55s ease both; }
+@keyframes rag-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+.pulse-flow { stroke-dasharray: 6 6; animation: flow-move 1.4s linear infinite; }
+@keyframes flow-move { to { stroke-dashoffset: -12; } }
+@media (prefers-reduced-motion: reduce) { .pulse-flow { animation: none; } .note-body figure.rag-fig { animation: none; } }
+
+/* Architecture Pills */
+.pill-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border: 1.2px solid var(--ink);
+  border-radius: 6px;
+  margin-right: 4px;
+}
+.pill-badge.yellow { background: var(--yellow); }
+.pill-badge.pink { background: var(--pink); }
+.pill-badge.mint { background: var(--mint); }
+.pill-badge.blue { background: var(--blue); }
+.pill-badge.orange { background: var(--orange); }
+
+/* Comparison Grid */
+.rag-compare-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+  margin: 18px 0;
+}
+.rag-compare-card {
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  padding: 16px;
+  background: #fff;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+.rag-compare-card h4 {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.rag-compare-card p {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  margin: 0 0 6px;
+}
+
+/* Interactive Lab Card */
+.lab-card {
+  border: 2.5px solid var(--ink);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: var(--card-shadow);
+  padding: 18px 20px;
+  margin: 24px 0;
+}
+.lab-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-bottom: 1.5px dashed #d5cdbd;
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.lab-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+.lab-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 9px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: var(--yellow);
+}
+.sim-controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.sim-btn {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border: 1.8px solid var(--ink);
+  border-radius: 8px;
+  background: var(--paper);
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+.sim-btn:hover {
+  background: var(--yellow);
+  transform: translate(-1px, -1px);
+}
+.sim-btn.active {
+  background: var(--ink);
+  color: #fff;
+  box-shadow: 2px 2px 0 var(--yellow);
+}
+
+/* Range input styled */
+.sim-slider-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  background: var(--paper);
+  padding: 6px 12px;
+  border: 1.5px solid var(--ink);
+  border-radius: 8px;
+}
+.sim-slider {
+  accent-color: var(--ink);
+  cursor: pointer;
+}
+
+/* Chunk preview blocks */
+.chunk-visualizer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 14px 0;
+}
+.chunk-box {
+  border: 1.8px solid var(--ink);
+  border-radius: 8px;
+  padding: 10px 14px;
+  background: #fff;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.6;
+  box-shadow: 2px 2px 0 var(--ink);
+  position: relative;
+}
+.chunk-tag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-right: 6px;
+  border: 1px solid var(--ink);
+}
+.chunk-overlap-highlight {
+  background: #ffe14d77;
+  border-bottom: 2px dashed #ff6b35;
+  padding: 1px 2px;
+  border-radius: 3px;
+  font-weight: 600;
+}
+
+/* Retrieval score bar */
+.rank-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  border: 1.5px solid var(--ink);
+  border-radius: 8px;
+  margin-bottom: 6px;
+  background: #fff;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+.rank-score-pill {
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-weight: 800;
+  border: 1px solid var(--ink);
+  font-size: 11px;
+}
+</style>
+
+<p class="kicker">rag: open-book exams for llms, chunking, embeddings, and hybrid search</p>
+
+<!-- ============================================================ -->
+<!-- 1. THE 30-SECOND IDEA -->
+<!-- ============================================================ -->
+<h2>the 30-second idea</h2>
+<p><b>An LLM without RAG is taking a closed-book medical exam purely from memory. An LLM with RAG has an open library, a high-speed librarian, and precise page citations.</b></p>
+<p>In Topic 06, we learned why LLMs hallucinate: their knowledge is frozen in parametric weights at training cutoff, and they optimize for linguistic plausibility rather than ground truth. Trying to cram an entire company wiki or database into the prompt causes context overflow, costs a fortune, and triggers the "Lost-in-the-Middle" phenomenon.</p>
+<p><b>RAG (Retrieval-Augmented Generation)</b> breaks the problem into two distinct engineering stages:</p>
+<ol>
+  <li><b>Retrieve:</b> Search an external knowledge store to fetch only the top few most relevant document chunks for the user's specific question.</li>
+  <li><b>Generate:</b> Inject those retrieved chunks directly into the LLM's context window as authoritative evidence, instructing the model to generate an answer grounded strictly in that evidence.</li>
+</ol>
+
+<div class="callout remember">
+  <b class="label">🧷 the simple idea behind rag</b><br />
+  <b>RAG = Search + Add to Prompt + Generate Answer.</b><br />
+  <b>Parametric memory</b> (weights) supplies the reasoning and language fluency. <b>Non-parametric memory</b> (your docs index) supplies the fresh, checkable facts.
+</div>
+
+<!-- ============================================================ -->
+<!-- 2. WHAT IS RAG? -->
+<!-- ============================================================ -->
+<h2>what is RAG?</h2>
+<p>Published originally by Lewis et al. (Meta AI, 2020), Retrieval-Augmented Generation transforms how AI systems access truth. Rather than retraining or fine-tuning weights whenever facts change, we decouple <b>reasoning</b> from <b>factual storage</b>.</p>
+
+<div class="rag-compare-grid">
+  <div class="rag-compare-card">
+    <h4><span class="pill-badge pink">Fine-Tuning</span> Adapting Behavior</h4>
+    <p><b>Purpose:</b> Teaches the model a new <i>style</i>, tone, syntax, or task pattern (e.g., talk like a doctor, output strict JSON, code in Rust).</p>
+    <p><b>Weakness:</b> Expensive, slow, risk of catastrophic forgetting, and struggles to memorize granular exact facts reliably.</p>
+  </div>
+  <div class="rag-compare-card">
+    <h4><span class="pill-badge mint">RAG</span> Dynamic Knowledge</h4>
+    <p><b>Purpose:</b> Equips the model with new <i>knowledge</i> (e.g., yesterday's sales figures, internal HR policies, user's private code repo).</p>
+    <p><b>Strength:</b> Instant updates (just insert/delete vectors), zero retraining cost, 100% auditability with citations, and zero data leakage into weights.</p>
+  </div>
+</div>
+
+<h3>the end-to-end rag architecture</h3>
+<p>Every production RAG system runs on two timelines: the offline <b>Ingestion Pipeline</b> and the online <b>Query Pipeline</b>:</p>
+
+<figure class="rag-fig">
+<svg viewBox="0 0 680 380" role="img" aria-label="End-to-End RAG Architecture">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1c1a15"></path>
+    </marker>
+  </defs>
+
+  <!-- TOP SECTION: INGESTION -->
+  <rect x="15" y="15" width="650" height="135" rx="14" fill="#fffdf6" stroke="#1c1a15" stroke-width="2" stroke-dasharray="6 4"></rect>
+  <text x="32" y="38" font-size="12" font-family="monospace" font-weight="800" fill="#ff6b35">OFFLINE INGESTION PIPELINE (Run Once / Continuously)</text>
+
+  <!-- Raw Docs -->
+  <rect x="35" y="55" width="105" height="75" rx="8" fill="#fff" stroke="#1c1a15" stroke-width="1.8"></rect>
+  <text x="87" y="85" text-anchor="middle" font-size="12" font-weight="700">Raw Docs</text>
+  <text x="87" y="103" text-anchor="middle" font-size="10" fill="#575046">PDF, MD, SQL</text>
+
+  <line x1="140" y1="92" x2="175" y2="92" stroke="#1c1a15" stroke-width="2" marker-end="url(#arr)"></line>
+
+  <!-- Chunking -->
+  <rect x="175" y="55" width="125" height="75" rx="8" fill="#ffe14d" stroke="#1c1a15" stroke-width="1.8"></rect>
+  <text x="237" y="83" text-anchor="middle" font-size="12" font-weight="800">1. Chunking</text>
+  <text x="237" y="101" text-anchor="middle" font-size="10" fill="#1c1a15">Split + Overlap</text>
+  <text x="237" y="117" text-anchor="middle" font-size="9.5" font-family="monospace">(500t / 50t)</text>
+
+  <line x1="300" y1="92" x2="335" y2="92" stroke="#1c1a15" stroke-width="2" marker-end="url(#arr)"></line>
+
+  <!-- Embedding Model -->
+  <rect x="335" y="55" width="135" height="75" rx="8" fill="#a8d8ff" stroke="#1c1a15" stroke-width="1.8"></rect>
+  <text x="402" y="83" text-anchor="middle" font-size="12" font-weight="800">2. Embedder</text>
+  <text x="402" y="101" text-anchor="middle" font-size="10" fill="#1c1a15">Transformer Encoder</text>
+  <text x="402" y="117" text-anchor="middle" font-size="9.5" font-family="monospace">text-embed-3</text>
+
+  <line x1="470" y1="92" x2="505" y2="92" stroke="#1c1a15" stroke-width="2" marker-end="url(#arr)"></line>
+
+  <!-- Vector DB -->
+  <rect x="505" y="55" width="140" height="75" rx="8" fill="#7df0b2" stroke="#1c1a15" stroke-width="1.8"></rect>
+  <text x="575" y="83" text-anchor="middle" font-size="12" font-weight="800">3. Vector Index</text>
+  <text x="575" y="101" text-anchor="middle" font-size="10" fill="#1c1a15">HNSW / IVF / BM25</text>
+  <text x="575" y="117" text-anchor="middle" font-size="9.5" font-family="monospace">Chroma, Qdrant</text>
+
+  <!-- BOTTOM SECTION: ONLINE QUERY -->
+  <rect x="15" y="170" width="650" height="195" rx="14" fill="#fffdf6" stroke="#1c1a15" stroke-width="2"></rect>
+  <text x="32" y="195" font-size="12" font-family="monospace" font-weight="800" fill="#2e9e5b">ONLINE INFERENCE PIPELINE (Every User Request)</text>
+
+  <!-- User Query -->
+  <rect x="35" y="215" width="115" height="65" rx="8" fill="#fff4c2" stroke="#1c1a15" stroke-width="1.8"></rect>
+  <text x="92" y="240" text-anchor="middle" font-size="11" font-weight="800">User Query</text>
+  <text x="92" y="258" text-anchor="middle" font-size="10" font-family="monospace">"What is our refund policy?"</text>
+
+  <!-- Query arrow to Embedder -->
+  <path d="M 92 280 L 92 315 L 210 315" fill="none" stroke="#1c1a15" stroke-width="2" marker-end="url(#arr)"></path>
+
+  <!-- Embed Query -->
+  <rect x="210" y="290" width="120" height="52" rx="8" fill="#a8d8ff" stroke="#1c1a15" stroke-width="1.8"></rect>
+  <text x="270" y="312" text-anchor="middle" font-size="11" font-weight="800">Embed Query</text>
+  <text x="270" y="328" text-anchor="middle" font-size="9.5" font-family="monospace">vector: [0.14, -0.88..]</text>
+
+  <!-- Vector DB search arrow -->
+  <path d="M 330 315 L 575 315 L 575 130" fill="none" stroke="#1c1a15" stroke-width="2" stroke-dasharray="5 5" marker-end="url(#arr)" class="pulse-flow"></path>
+  <text x="440" y="308" font-size="10.5" font-family="monospace" font-weight="700">Cosine Match</text>
+
+  <!-- Retrieved Chunks to Prompt Assembler -->
+  <rect x="360" y="205" width="135" height="75" rx="8" fill="#c9b8ff" stroke="#1c1a15" stroke-width="1.8"></rect>
+  <text x="427" y="230" text-anchor="middle" font-size="11" font-weight="800">Prompt Assembler</text>
+  <text x="427" y="248" text-anchor="middle" font-size="10" fill="#1c1a15">System + Retrieved Chunks</text>
+  <text x="427" y="265" text-anchor="middle" font-size="9.5" font-family="monospace">+ User Question</text>
+
+  <!-- Retrieval path up to Assembler -->
+  <path d="M 540 130 L 540 242 L 495 242" fill="none" stroke="#1c1a15" stroke-width="2" marker-end="url(#arr)"></path>
+  <text x="515" y="234" font-size="10" font-family="monospace" font-weight="700">Top-K</text>
+
+  <!-- Direct prompt arrow to Assembler -->
+  <line x1="150" y1="247" x2="360" y2="247" stroke="#1c1a15" stroke-width="2" marker-end="url(#arr)"></line>
+
+  <!-- LLM Generator -->
+  <rect x="525" y="205" width="125" height="75" rx="8" fill="#ff90e8" stroke="#1c1a15" stroke-width="1.8"></rect>
+  <text x="587" y="230" text-anchor="middle" font-size="12" font-weight="800">LLM Generator</text>
+  <text x="587" y="248" text-anchor="middle" font-size="10" fill="#1c1a15">GPT-4o / Claude</text>
+  <text x="587" y="266" text-anchor="middle" font-size="9.5" font-weight="700" fill="#2e9e5b">Grounded Answer ✓</text>
+
+  <line x1="495" y1="242" x2="525" y2="242" stroke="#1c1a15" stroke-width="2" marker-end="url(#arr)"></line>
+</svg>
+<figcaption>the two loops of rag: ingestion loads chunks into vector space; inference retrieves top-k and synthesizes</figcaption>
+</figure>
+
+<!-- ============================================================ -->
+<!-- 3. CHUNKING STRATEGIES -->
+<!-- ============================================================ -->
+<h2>chunking strategies</h2>
+<p>You cannot embed a 200-page PDF into a single vector. Why? Embedding models compress text into a fixed-length vector (e.g., 1536 floats). Trying to squeeze 100,000 words into 1,536 numbers causes <b>semantic dilution</b> — every nuance turns into an uninformative gray blur.</p>
+<p>Conversely, if you embed each individual word, retrieval loses all surrounding context. <b>Chunking</b> is the art of finding the Goldilocks zone:</p>
+
+<div class="rag-compare-grid">
+  <div class="rag-compare-card">
+    <h4>⚠️ Chunks Too Small (e.g. 50 tokens)</h4>
+    <p><b>Problem:</b> Sentences get severed mid-clause. Coreferences lose their subjects (<i>"It crashed due to a timeout"</i> — what is <i>"It"</i>?).</p>
+    <p><b>Impact:</b> LLM receives disconnected fragments and hallucinates the missing connective tissue.</p>
+  </div>
+  <div class="rag-compare-card">
+    <h4>⚠️ Chunks Too Large (e.g. 2,000 tokens)</h4>
+    <p><b>Problem:</b> Embedding averages out multiple topics into one vector. Highly specific facts become invisible in vector space.</p>
+    <p><b>Impact:</b> Top results return noisy irrelevant paragraphs, exhausting token budgets.</p>
+  </div>
+</div>
+
+<h3>the core chunking strategies</h3>
+
+<h4>1. Fixed-Size Character &amp; Token Chunking</h4>
+<p>The simplest approach: cut text strictly every N characters or tokens (for example, every 500 characters). While trivial to implement, it frequently cuts right through sentences, words, and code blocks.</p>
+
+<h4>2. Recursive Character Splitting (Industry Standard)</h4>
+<p>Instead of cutting blindly, recursive splitters use a hierarchy of natural document delimiters:</p>
+<pre>separators = ["\n\n", "\n", " ", ""]</pre>
+<p>It first attempts to split by paragraphs (<code>\n\n</code>). If a paragraph exceeds the target chunk size, it splits that paragraph by lines (<code>\n</code>). If a line is still too long, it splits by words (<code>" "</code>), and only as a last resort splits characters. This keeps semantic units (paragraphs and sentences) intact wherever possible.</p>
+
+<h4>3. Semantic Chunking</h4>
+<p>Rather than relying on fixed character counts, semantic chunking watches for topic changes between sentences:</p>
+<ol>
+  <li>Split the document into individual sentences.</li>
+  <li>Compare the meaning of each sentence with the next one.</li>
+  <li>When the topic clearly shifts, start a new chunk there.</li>
+</ol>
+<p>Result: Every chunk holds one clear thought, no matter how long or short it is.</p>
+
+<h4>4. Sentence-Window &amp; Parent-Document Retrieval</h4>
+<p>Addresses the retrieval-generation paradox: <b>small chunks are best for search</b> (high embedding precision), but <b>large chunks are best for generation</b> (rich context for the LLM).</p>
+<ul>
+  <li><b>Sentence-Window:</b> Search using only 1 sentence. When that sentence matches the query, give the LLM a few sentences before and after it for context.</li>
+  <li><b>Parent-Document Retrieval:</b> Keep big parent sections (around 1500 tokens) and small child pieces (around 200-300 tokens). Search over the small children. When a child matches, return its full <b>parent</b> to the LLM!</li>
+</ul>
+
+<table class="compare-table">
+  <thead>
+    <tr>
+      <th>Strategy</th>
+      <th>Chunk Size</th>
+      <th>Compute Overhead</th>
+      <th>Best Used For</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>Fixed-Size</b></td>
+      <td>300–500 tokens</td>
+      <td>Minimal (Zero model calls)</td>
+      <td>Quick prototypes, uniform raw text dumps</td>
+    </tr>
+    <tr>
+      <td><b>Recursive Character</b></td>
+      <td>400–800 tokens</td>
+      <td>Very low (Regex only)</td>
+      <td>General markdown, documentation, articles</td>
+    </tr>
+    <tr>
+      <td><b>Semantic Chunking</b></td>
+      <td>Variable</td>
+      <td>High (1 embedding call per sentence)</td>
+      <td>Long analytical essays, transcripts, legal contracts</td>
+    </tr>
+    <tr>
+      <td><b>Parent-Document</b></td>
+      <td>Child: 200t, Parent: 1500t</td>
+      <td>Low–Medium</td>
+      <td>Enterprise manuals, technical documentation, policies</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ============================================================ -->
+<!-- 4. CHUNK OVERLAP -->
+<!-- ============================================================ -->
+<h2>chunk overlap</h2>
+<p>Imagine reading a mystery novel where page 42 ends with: <i>"The detective discovered the murderer was"</i>, and page 43 starts with: <i>"because of the fingerprints on the dagger."</i> The crucial name was cut right across the page boundary!</p>
+<p>This is <b>the boundary problem</b>. If a user asks <i>"Who was the murderer?"</i>, neither page 42 nor page 43 has the complete semantic answer. The query vector will miss both chunks.</p>
+
+<figure class="rag-fig">
+<svg viewBox="0 0 660 190" role="img" aria-label="Chunk Overlap Sliding Window">
+  <defs>
+    <marker id="arr2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1c1a15"></path>
+    </marker>
+  </defs>
+
+  <!-- Document Timeline -->
+  <line x1="30" y1="40" x2="630" y2="40" stroke="#d5cdbd" stroke-width="4"></line>
+  <text x="30" y="28" font-size="11" font-family="monospace" font-weight="700">DOCUMENT STREAM</text>
+
+  <!-- Chunk 1 -->
+  <rect x="30" y="55" width="280" height="48" rx="8" fill="#fff4c2" stroke="#1c1a15" stroke-width="2"></rect>
+  <text x="45" y="78" font-size="12" font-weight="800">Chunk 1 (tokens 0 → 500)</text>
+  <text x="45" y="93" font-size="10.5" fill="#575046">"Acme Corp allows refund within..."</text>
+
+  <!-- Overlap Region 1-2 -->
+  <rect x="230" y="55" width="80" height="48" rx="0" fill="#ffe14d" stroke="#ff6b35" stroke-width="2" stroke-dasharray="3 3"></rect>
+  <text x="270" y="118" text-anchor="middle" font-size="10.5" font-weight="800" fill="#ff6b35">Overlap (50t)</text>
+
+  <!-- Chunk 2 -->
+  <rect x="230" y="115" width="280" height="48" rx="8" fill="#e3f1ff" stroke="#1c1a15" stroke-width="2"></rect>
+  <text x="325" y="138" font-size="12" font-weight="800">Chunk 2 (tokens 450 → 950)</text>
+  <text x="325" y="153" font-size="10.5" fill="#575046">"...within 30 days if unopened."</text>
+
+  <!-- Overlap Region 2-3 -->
+  <rect x="430" y="115" width="80" height="48" rx="0" fill="#a8d8ff" stroke="#ff6b35" stroke-width="2" stroke-dasharray="3 3"></rect>
+
+  <!-- Chunk 3 -->
+  <rect x="430" y="55" width="200" height="48" rx="8" fill="#dcf9e8" stroke="#1c1a15" stroke-width="2"></rect>
+  <text x="515" y="78" font-size="12" font-weight="800">Chunk 3 (tokens 900+)</text>
+  <text x="515" y="93" font-size="10.5" fill="#575046">"Exceptions apply to digital..."</text>
+</svg>
+<figcaption>the sliding window: chunk overlap prevents semantic severing across chunk borders</figcaption>
+</figure>
+
+<h3>how overlap works in practice</h3>
+<p>Chunk overlap uses a <b>sliding window</b>: each new chunk reuses a little text from the end of the previous chunk.</p>
+<p>If your chunk size is 500 tokens with a 50-token overlap, Chunk 1 covers tokens 0 to 500, Chunk 2 covers tokens 450 to 950, and so on. That repeated 50-token part protects sentences that sit on the border.</p>
+
+<div class="callout exam">
+  <b class="label">⭐ the 10%–20% golden rule</b><br />
+  In practice, keeping overlap around <b>10% to 20% of the chunk size</b> works well:
+  <ul>
+    <li><b>Too little overlap (under 5%):</b> Sentences split across chunks still lose their context.</li>
+    <li><b>Too much overlap (over 30%):</b> Storage grows, search returns duplicates, and embedding costs go up.</li>
+  </ul>
+</div>
+
+<!-- ============================================================ -->
+<!-- 5. EMBEDDINGS & VECTOR SPACE -->
+<!-- ============================================================ -->
+<h2>embeddings &amp; vector space</h2>
+<p>In Topic 02, we saw embeddings as coordinates for meaning. In RAG, embeddings make semantic search possible.</p>
+<p>An embedding model turns any text into a long list of numbers (a vector). For example, OpenAI's small model returns 1536 numbers per text. Texts with similar meaning get similar number-lists, even if they use completely different words.</p>
+
+<div class="callout remember">
+  <b class="label">🧷 semantic closeness</b><br />
+  Sentences that mean the same thing end up close together in vector space, even if they share <b>zero common words</b>:
+  <ul>
+    <li><code>"The customer wants their money back"</code></li>
+    <li><code>"Initiate policy return reimbursement"</code></li>
+  </ul>
+  Both point in almost the same direction, so search treats them as a match.
+</div>
+
+<h3>fast search over millions of chunks (ann indexing)</h3>
+<p>When your store holds millions of chunks, checking every single one is too slow for chat. Vector databases use <b>smart shortcuts (ANN indexes)</b> to find close matches in milliseconds:</p>
+<ul>
+  <li><b>HNSW:</b> A layered graph. Top layers jump quickly across topics; bottom layers fine-tune locally. Very fast, uses more memory.</li>
+  <li><b>IVF-PQ:</b> Groups vectors into clusters and stores compressed versions. Very memory-friendly for huge collections.</li>
+</ul>
+
+<!-- ============================================================ -->
+<!-- 6. COSINE SIMILARITY VS DISTANCE METRICS -->
+<!-- ============================================================ -->
+<h2>how similarity works: meaning vs length</h2>
+<p>Once the query and the chunks are both turned into vectors, we need a simple way to decide which chunk is the closest match.</p>
+
+<h3>1. Compare direction, not length (cosine similarity)</h3>
+<p>Think of each vector as an arrow pointing in some direction. <b>Cosine similarity</b> simply asks: do these two arrows point the same way?</p>
+<ul>
+  <li>Same direction = same meaning = high score (close to 1).</li>
+  <li>Different direction = different meaning = low score.</li>
+</ul>
+<p>Length is ignored on purpose, so a short summary and a long explanation of the same idea still match.</p>
+
+<h3>2. Why this beats plain distance for text</h3>
+<div class="rag-compare-grid">
+  <div class="rag-compare-card">
+    <h4>📐 Plain Distance</h4>
+    <p>Measures straight-line distance between points.</p>
+    <p><b>Problem for text:</b> Longer documents look farther away, even when they mean the same thing.</p>
+  </div>
+  <div class="rag-compare-card">
+    <h4>🎯 Direction Match</h4>
+    <p>Measures only whether arrows point the same way.</p>
+    <p><b>Why it helps:</b> A short summary and a long page about refunds point the same way, so they match well.</p>
+  </div>
+</div>
+
+<div class="callout gotcha">
+  <b class="label">⚠️ handy shortcut used by databases</b><br />
+  If vectors are pre-adjusted to the same length, this direction check becomes a simple fast multiply-and-add. That is why tools like Qdrant, Pinecone, and Chroma are so quick.
+</div>
+
+<!-- ============================================================ -->
+<!-- 7. LEXICAL SEARCH: BM25 & TF-IDF -->
+<!-- ============================================================ -->
+<h2>keyword search: TF-IDF &amp; BM25</h2>
+<p>Dense vector search feels like magic until you search for an exact code. <b>Vector search is weak at exact keywords.</b></p>
+<p>If a customer searches for <code>"ERR_404_SOCKET_RESET"</code> or <code>"SKU-99214-X"</code>, embedding models blur those into general ideas like "network error". They may return other socket errors and miss the exact code! This is where <b>keyword (lexical) search</b> wins.</p>
+
+<h3>1. TF-IDF idea in plain words</h3>
+<p><b>TF-IDF</b> rewards words that are frequent in one doc but rare overall:</p>
+<ol>
+  <li><b>Term Frequency:</b> How often does the word appear in this document? More is better.</li>
+  <li><b>Rarity across docs:</b> How rare is the word overall? Common words like "the" or "is" get almost no points. Rare words like "osteosarcoma" or "EC2" get lots of points.</li>
+</ol>
+
+<h3>2. BM25 (the better TF-IDF)</h3>
+<p>BM25 is the standard keyword scorer used by Elasticsearch and Lucene. It fixes two simple problems:</p>
+<ul>
+  <li><b>Diminishing returns:</b> Seeing "Kubernetes" 20 times is not 10x better than seeing it twice. Extra repeats give smaller and smaller bonus.</li>
+  <li><b>Fairness for length:</b> A very long doc naturally has more matches. BM25 tones that down so long docs do not always win.</li>
+</ul>
+
+<!-- ============================================================ -->
+<!-- 8. HYBRID RETRIEVAL -->
+<!-- ============================================================ -->
+<h2>hybrid retrieval</h2>
+<p>Why choose between semantic intuition and keyword precision when you can run both? <b>Hybrid Retrieval</b> executes Dense Vector Search and Sparse BM25 Search in parallel, then fuses their results into one superior candidate list.</p>
+
+<figure class="rag-fig">
+<svg viewBox="0 0 660 260" role="img" aria-label="Hybrid Retrieval Architecture">
+  <defs>
+    <marker id="arr3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1c1a15"></path>
+    </marker>
+  </defs>
+
+  <!-- Query Box -->
+  <rect x="20" y="95" width="130" height="70" rx="10" fill="#fff4c2" stroke="#1c1a15" stroke-width="2"></rect>
+  <text x="85" y="125" text-anchor="middle" font-size="12" font-weight="800">User Query</text>
+  <text x="85" y="145" text-anchor="middle" font-size="10" font-family="monospace">"fix error 504"</text>
+
+  <!-- Branch to Sparse -->
+  <path d="M 150 115 L 210 55" fill="none" stroke="#1c1a15" stroke-width="2" marker-end="url(#arr3)"></path>
+  <rect x="210" y="20" width="165" height="70" rx="8" fill="#ffe14d" stroke="#1c1a15" stroke-width="2"></rect>
+  <text x="292" y="47" text-anchor="middle" font-size="11.5" font-weight="800">Sparse BM25 Search</text>
+  <text x="292" y="66" text-anchor="middle" font-size="10" fill="#1c1a15">Catches exact "504" &amp; "error"</text>
+
+  <!-- Branch to Dense -->
+  <path d="M 150 145 L 210 205" fill="none" stroke="#1c1a15" stroke-width="2" marker-end="url(#arr3)"></path>
+  <rect x="210" y="170" width="165" height="70" rx="8" fill="#a8d8ff" stroke="#1c1a15" stroke-width="2"></rect>
+  <text x="292" y="197" text-anchor="middle" font-size="11.5" font-weight="800">Dense Vector Search</text>
+  <text x="292" y="216" text-anchor="middle" font-size="10" fill="#1c1a15">Catches "gateway timeout"</text>
+
+  <!-- Arrows to Fusion -->
+  <path d="M 375 55 L 435 115" fill="none" stroke="#1c1a15" stroke-width="2" marker-end="url(#arr3)"></path>
+  <path d="M 375 205 L 435 145" fill="none" stroke="#1c1a15" stroke-width="2" marker-end="url(#arr3)"></path>
+
+  <!-- Fusion Box -->
+  <rect x="435" y="95" width="205" height="70" rx="10" fill="#7df0b2" stroke="#1c1a15" stroke-width="2"></rect>
+  <text x="537" y="125" text-anchor="middle" font-size="12" font-weight="800">Fusion Engine (RRF)</text>
+  <text x="537" y="145" text-anchor="middle" font-size="10" fill="#1c1a15">Merged, Deduped &amp; Balanced Top-K</text>
+</svg>
+<figcaption>hybrid retrieval: parallel branches capture both exact token matches and high-level semantic intent</figcaption>
+</figure>
+
+<h3>how do we combine both lists? (rank fusion)</h3>
+<p>Keyword scores and vector scores are on totally different scales, so we cannot just add them. The simple trick used everywhere is <b>Reciprocal Rank Fusion (RRF)</b>: look only at rank positions, not raw scores.</p>
+
+<p>Example: if Doc A is rank 1 in keyword search and rank 3 in vector search, it gets a high combined score because it did well in <b>both</b> lists. Docs that appear near the top in both lists jump to the very top, fixing the blind spots of each method.</p>
+
+<!-- ============================================================ -->
+<!-- 9. INTERACTIVE LAB: RAG PIPELINE SIMULATOR -->
+<!-- ============================================================ -->
+<h2>interactive lab: RAG pipeline simulator</h2>
+
+<div class="lab-card" id="rag-lab">
+  <div class="lab-head">
+    <h3 class="lab-title"><span>🔬</span> Hands-On: Chunking &amp; Hybrid Search Explorer</h3>
+    <span class="lab-badge">interactive</span>
+  </div>
+
+  <p style="margin-top:0; font-size:13.5px; color:var(--ink-soft);">
+    Experiment with chunk sizing, overlap boundaries, and witness how hybrid search solves the keyword-vs-semantic failure modes.
+  </p>
+
+  <!-- Tab selector -->
+  <div class="sim-controls">
+    <button class="sim-btn active" id="tab-chunk-btn" onclick="switchLabTab('chunking')">1. Chunking &amp; Overlap Visualizer</button>
+    <button class="sim-btn" id="tab-search-btn" onclick="switchLabTab('search')">2. Semantic vs Lexical vs Hybrid</button>
+  </div>
+
+  <!-- TAB 1: CHUNKING -->
+  <div id="tab-chunking">
+    <div class="sim-controls">
+      <div class="sim-slider-wrap">
+        <label for="chunk-size-slider">Chunk Size: <b id="chunk-size-val">120</b> chars</label>
+        <input class="sim-slider" type="range" id="chunk-size-slider" min="60" max="250" step="10" value="120" oninput="updateChunkSimulation()">
+      </div>
+      <div class="sim-slider-wrap">
+        <label for="chunk-overlap-slider">Overlap: <b id="chunk-overlap-val">30</b> chars</label>
+        <input class="sim-slider" type="range" id="chunk-overlap-slider" min="0" max="80" step="5" value="30" oninput="updateChunkSimulation()">
+      </div>
+    </div>
+
+    <div style="font-family:var(--font-mono); font-size:12px; color:var(--ink-soft); margin-bottom:8px;">
+      Sample Text Stream: <span style="color:var(--ink); font-weight:600;">"AcmeCloud charges $0.05 per API call. Refunds must be filed within 30 days of invoice date. Digital downloads and consumed credits are strictly non-refundable. Contact billing@acme.com for disputes."</span>
+    </div>
+
+    <div class="chunk-visualizer" id="chunks-output">
+      <!-- Injected by JS -->
+    </div>
+  </div>
+
+  <!-- TAB 2: RETRIEVAL SIM -->
+  <div id="tab-search" style="display:none;">
+    <div style="font-family:var(--font-mono); font-size:12.5px; margin-bottom:12px;">
+      <b>Test Query:</b> Pick a challenging scenario to see how single-engine retrieval fails and Hybrid + RRF triumphs:
+    </div>
+
+    <div class="sim-controls">
+      <button class="sim-btn active" onclick="simulateSearch('exact_code')">Code: "ERR_404_SOCKET"</button>
+      <button class="sim-btn" onclick="simulateSearch('semantic_intent')">Concept: "money back for downtime"</button>
+      <button class="sim-btn" onclick="simulateSearch('mixed_query')">Mixed: "30 days refund invoice"</button>
+    </div>
+
+    <div id="retrieval-results" style="margin-top:14px;">
+      <!-- Results injected by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 10. SUMMARY & EXAM CHECKLIST -->
+<!-- ============================================================ -->
+<h2>summary &amp; exam checklist</h2>
+
+<div class="callout exam">
+  <b class="label">⭐ top exam &amp; interview checklist</b>
+  <ul>
+    <li><b>Parametric vs Non-Parametric:</b> LLM weights are parametric (static, learned behaviors). Vector databases are non-parametric (dynamic, hot-swappable external facts).</li>
+    <li><b>Chunking Dilemma:</b> Chunks that are too small lack semantic context; chunks that are too large cause vector dilution. Recursive splitting by paragraph and sentence is the standard baseline.</li>
+    <li><b>Chunk Overlap:</b> 10%–20% overlap solves the boundary problem, preventing facts and sentence clauses from being severed across chunk splits.</li>
+    <li><b>Cosine Similarity vs Euclidean:</b> Cosine similarity evaluates angle, making it invariant to document length. For pre-normalized vectors, cosine similarity is identical to dot product.</li>
+    <li><b>BM25 over TF-IDF:</b> BM25 prevents keyword saturation via $k_1$ and prevents long document bias via $b$. Essential for error codes, SKUs, and exact terminology.</li>
+    <li><b>Why Hybrid + RRF:</b> Combines semantic understanding (dense) with exact token match (sparse). RRF merges ranks without requiring brittle score calibration.</li>
+    <li><b>Bi-Encoder vs Cross-Encoder:</b> Bi-encoders compute independent embeddings (fast $O(1)$ vector indexing). Cross-encoders compute full joint token cross-attention (slow $O(N)$, but ultra-accurate). Never search all docs with cross-encoders; use them only to rerank the top candidate pool.</li>
+  </ul>
+</div>
+
+<div class="callout gotcha">
+  <b class="label">⚠️ common production failure mode: the lost-in-the-middle trap</b><br />
+  Even after reranking to top-5 chunks, do not blindly dump them in random order into the prompt! LLMs attend strongest to the very beginning and very end of the prompt context. Place your most critical retrieved evidence at the top and bottom of the context, not buried in the center.
+</div>
+
+<!-- Next topic banner -->
+<div style="margin:28px 0 14px; padding:16px 18px; border:2px solid var(--ink); border-radius:12px; background:var(--paper); box-shadow:var(--card-shadow); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+  <div>
+    <div style="font-size:12px; font-family:var(--font-mono); font-weight:700; color:var(--ink-soft);">UP NEXT · TOPIC 08</div>
+    <div style="font-size:17px; font-weight:800; font-family:var(--font-display); margin-top:2px;">RAG Evaluation: Recall@K, MRR, NDCG &amp; Hallucination Debugging</div>
+  </div>
+  <a class="btn yellow" href="/courses/genai-agentic-ai/rag-evaluation">Go to Topic 8 Notes →</a>
+</div>
+
+<!-- ============================================================ -->
+<!-- INTERACTIVE SCRIPT FOR RAG LAB -->
+<!-- ============================================================ -->
+<script>
+(function() {
+  var sampleCorpus = [
+    { id: 1, title: "Doc 1: Error 504 Documentation", text: "Error 504 Gateway Timeout occurs when an upstream HTTP server fails to respond within the designated time limit. Contact network ops." },
+    { id: 2, title: "Doc 2: Refund Policy Terms", text: "AcmeCloud grants full refunds on invoice charges if filed within 30 days of billing. Digital token credits already consumed cannot be reimbursed." },
+    { id: 3, title: "Doc 3: Service Level Agreement (SLA)", text: "In the event of unscheduled downtime exceeding 99.9%, customers can request billing credits and money back under our SLA terms." },
+    { id: 4, title: "Doc 4: API Error Codes Reference", text: "Internal error catalog: ERR_404_SOCKET_RESET, ERR_502_BAD_GATEWAY, and ERR_504_TIMEOUT. Ensure socket pooling is active." }
+  ];
+
+  window.switchLabTab = function(tabName) {
+    var chunkTab = document.getElementById("tab-chunking");
+    var searchTab = document.getElementById("tab-search");
+    var chunkBtn = document.getElementById("tab-chunk-btn");
+    var searchBtn = document.getElementById("tab-search-btn");
+
+    if (tabName === 'chunking') {
+      chunkTab.style.display = "block";
+      searchTab.style.display = "none";
+      chunkBtn.classList.add("active");
+      searchBtn.classList.remove("active");
+    } else {
+      chunkTab.style.display = "none";
+      searchTab.style.display = "block";
+      chunkBtn.classList.remove("active");
+      searchBtn.classList.add("active");
+      window.simulateSearch('exact_code');
+    }
+  };
+
+  window.updateChunkSimulation = function() {
+    var size = parseInt(document.getElementById("chunk-size-slider").value, 10);
+    var overlap = parseInt(document.getElementById("chunk-overlap-slider").value, 10);
+    if (overlap >= size) {
+      overlap = size - 10;
+      document.getElementById("chunk-overlap-slider").value = overlap;
+    }
+
+    document.getElementById("chunk-size-val").textContent = size;
+    document.getElementById("chunk-overlap-val").textContent = overlap;
+
+    var fullText = "AcmeCloud charges $0.05 per API call. Refunds must be filed within 30 days of invoice date. Digital downloads and consumed credits are strictly non-refundable. Contact billing@acme.com for disputes.";
+    var container = document.getElementById("chunks-output");
+    if (!container) return;
+
+    var stride = size - overlap;
+    var chunks = [];
+    var pos = 0;
+    var count = 1;
+
+    while (pos < fullText.length) {
+      var end = Math.min(pos + size, fullText.length);
+      var chunkStr = fullText.substring(pos, end);
+
+      var overlapStartStr = "";
+      var mainStr = chunkStr;
+      if (pos > 0 && overlap > 0) {
+        var overlapChars = Math.min(overlap, chunkStr.length);
+        overlapStartStr = chunkStr.substring(0, overlapChars);
+        mainStr = chunkStr.substring(overlapChars);
+      }
+
+      chunks.push({
+        num: count,
+        start: pos,
+        end: end,
+        overlapText: overlapStartStr,
+        bodyText: mainStr
+      });
+
+      count++;
+      pos += stride;
+      if (end >= fullText.length) break;
+    }
+
+    var html = "";
+    for (var i = 0; i < chunks.length; i++) {
+      var c = chunks[i];
+      html += '<div class="chunk-box">';
+      html += '<span class="chunk-tag" style="background:var(--yellow);">Chunk ' + c.num + '</span>';
+      html += '<span style="font-size:11px; color:var(--ink-soft); margin-right:8px;">chars [' + c.start + '..' + c.end + ']</span><br/>';
+      if (c.overlapText) {
+        html += '<span class="chunk-overlap-highlight" title="Overlapping from previous chunk">' + c.overlapText + '</span>';
+      }
+      html += '<span>' + c.bodyText + '</span>';
+      html += '</div>';
+    }
+    container.innerHTML = html;
+  };
+
+  window.simulateSearch = function(scenario) {
+    var out = document.getElementById("retrieval-results");
+    if (!out) return;
+
+    var html = "";
+
+    if (scenario === 'exact_code') {
+      html += '<div style="margin-bottom:10px; font-size:13px;"><b>Query:</b> <code>"ERR_404_SOCKET"</code> (Exact technical identifier)</div>';
+      html += '<div class="rag-compare-grid">';
+      
+      // Dense only
+      html += '<div class="rag-compare-card">';
+      html += '<h4 style="color:#d1345b;">❌ Dense Vector Search (Top-2)</h4>';
+      html += '<div class="rank-item"><span>Doc 1: Error 504 Timeout</span><span class="rank-score-pill" style="background:#ffe3ef;">0.81 sim</span></div>';
+      html += '<div class="rank-item"><span>Doc 4: API Error Codes</span><span class="rank-score-pill" style="background:#fff4c2;">0.78 sim</span></div>';
+      html += '<p style="font-size:12px; color:var(--ink-soft); margin-top:6px;">Vector model blurred the exact socket identifier with generic "504 timeout", ranking the wrong doc first!</p>';
+      html += '</div>';
+
+      // Sparse BM25 only
+      html += '<div class="rag-compare-card">';
+      html += '<h4 style="color:#2e9e5b;">✓ BM25 Lexical (Top-2)</h4>';
+      html += '<div class="rank-item"><span>Doc 4: API Error Codes</span><span class="rank-score-pill" style="background:#dcf9e8;">14.2 score</span></div>';
+      html += '<div class="rank-item"><span>Doc 1: Error 504 Timeout</span><span class="rank-score-pill" style="background:#f4efe1;">1.8 score</span></div>';
+      html += '<p style="font-size:12px; color:var(--ink-soft); margin-top:6px;">BM25 nailed the exact keyword match on Doc 4 with a massive score lead.</p>';
+      html += '</div>';
+
+      html += '</div>';
+
+      // Hybrid RRF Winner
+      html += '<div class="callout remember" style="margin-top:10px;">';
+      html += '<b class="label">⭐ Hybrid + RRF Combined Winner</b><br/>';
+      html += '<b>#1 Ranked Doc:</b> Doc 4 (API Error Codes Reference) with RRF Score = 0.0328. <br/>';
+      html += '<span style="font-size:13px; color:var(--ink-soft);">BM25 safeguarded the exact token match while Dense prevented out-of-domain false positives.</span>';
+      html += '</div>';
+
+    } else if (scenario === 'semantic_intent') {
+      html += '<div style="margin-bottom:10px; font-size:13px;"><b>Query:</b> <code>"money back for downtime"</code> (Zero exact words in docs!)</div>';
+      html += '<div class="rag-compare-grid">';
+
+      // Dense only
+      html += '<div class="rag-compare-card">';
+      html += '<h4 style="color:#2e9e5b;">✓ Dense Vector Search (Top-2)</h4>';
+      html += '<div class="rank-item"><span>Doc 3: SLA Downtime Credit</span><span class="rank-score-pill" style="background:#dcf9e8;">0.89 sim</span></div>';
+      html += '<div class="rank-item"><span>Doc 2: Refund Policy</span><span class="rank-score-pill" style="background:#fff4c2;">0.74 sim</span></div>';
+      html += '<p style="font-size:12px; color:var(--ink-soft); margin-top:6px;">Vector model understood "money back" = "billing credits/reimbursement" and "downtime" = "unscheduled downtime".</p>';
+      html += '</div>';
+
+      // Sparse BM25 only
+      html += '<div class="rag-compare-card">';
+      html += '<h4 style="color:#d1345b;">❌ BM25 Lexical (Top-2)</h4>';
+      html += '<div class="rank-item"><span>Doc 3: SLA Downtime Credit</span><span class="rank-score-pill" style="background:#ffe3ef;">4.1 score</span></div>';
+      html += '<div class="rank-item"><span>(No other match)</span><span class="rank-score-pill" style="background:#f4efe1;">0.0 score</span></div>';
+      html += '<p style="font-size:12px; color:var(--ink-soft); margin-top:6px;">BM25 failed on Doc 2 because Doc 2 uses the word "refund", not "money back".</p>';
+      html += '</div>';
+
+      html += '</div>';
+
+      // Hybrid RRF Winner
+      html += '<div class="callout remember" style="margin-top:10px;">';
+      html += '<b class="label">⭐ Hybrid + RRF Combined Winner</b><br/>';
+      html += '<b>#1 Ranked Doc:</b> Doc 3 (Service Level Agreement - SLA). Both engines agreed on relevance, producing maximum confidence for the LLM.';
+      html += '</div>';
+
+    } else {
+      html += '<div style="margin-bottom:10px; font-size:13px;"><b>Query:</b> <code>"30 days refund invoice"</code> (Contains both exact numbers &amp; semantic policy meaning)</div>';
+      html += '<div class="callout remember">';
+      html += '<b class="label">🏆 Perfect Hybrid Synergy</b><br/>';
+      html += '<b>#1 Ranked:</b> Doc 2: Refund Policy Terms (Rank 1 in BM25 + Rank 1 in Vector Search $\\to$ RRF = 0.0328)<br/>';
+      html += 'Both BM25 (catching "30 days" &amp; "invoice") and Vector Search (catching refund context) aligned perfectly.';
+      html += '</div>';
+    }
+
+    out.innerHTML = html;
+    if (window.renderKaTeX) window.renderKaTeX(out);
+  };
+
+  // Initialize simulation
+  setTimeout(function() {
+    window.updateChunkSimulation();
+  }, 100);
+})();
+</script>
