@@ -25,6 +25,7 @@ export default function Home() {
       <Navbar
         links={[
           { href: "#courses", label: "tracks" },
+          { href: "/roadmaps", label: "roadmaps 🗺️" },
           { href: "#interview-prep", label: "interview drills" },
           { href: "#method", label: "how to revise" },
         ]}
@@ -50,7 +51,10 @@ export default function Home() {
             <a className="btn dark" href="#courses">
               explore tracks ↓
             </a>
-            <a className="btn yellow" href="#interview-prep">
+            <Link className="btn yellow" href="/roadmaps">
+              roadmaps 🗺️
+            </Link>
+            <a className="btn pink" href="#interview-prep">
               interview drills →
             </a>
           </div>
@@ -59,11 +63,16 @@ export default function Home() {
             <div className="hero-stat-pill">
               <b>6</b> Core Tracks
             </div>
+            <Link href="/roadmaps/ai-engineer" style={{ textDecoration: "none" }}>
+              <div
+                className="hero-stat-pill"
+                style={{ background: "var(--yellow)", cursor: "pointer" }}
+              >
+                🗺️ <b>New:</b> AI Engineer Roadmap →
+              </div>
+            </Link>
             <div className="hero-stat-pill">
               <b>FAANG & AI</b> Interview Prep
-            </div>
-            <div className="hero-stat-pill">
-              <b>0%</b> Jargon Fluff
             </div>
             <div className="hero-stat-pill">
               <b>100%</b> Intuition First
@@ -140,6 +149,72 @@ export default function Home() {
                 </Link>
               </div>
             </article>
+          </div>
+        </section>
+
+        {/* Spotlight: Engineering Roadmaps */}
+        <section style={{ marginTop: 40 }}>
+          <div
+            className="spotlight-card"
+            style={{
+              borderLeft: "6px solid var(--yellow)",
+              background: "#fff",
+              display: "flex",
+              flexDirection: "column",
+              gap: 12,
+            }}
+          >
+            <div className="spotlight-card-top">
+              <span
+                className="spotlight-tag"
+                style={{ background: "var(--yellow)", color: "var(--ink)" }}
+              >
+                🗺️ Engineering Curriculum
+              </span>
+              <span
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: 12,
+                  fontWeight: 700,
+                }}
+              >
+                Interactive 8-Stage Blueprint
+              </span>
+            </div>
+            <h3 style={{ margin: "4px 0 0", fontSize: 24 }}>
+              AI Engineer Career Roadmap (2025–2026)
+            </h3>
+            <p style={{ margin: 0, color: "var(--ink-soft)", lineHeight: 1.5 }}>
+              From Python & C++ fundamentals to SQL, Classical ML, Deep Learning & PyTorch,
+              Transformer internals, Advanced RAG, Autonomous Agents, and High-Level AI System Design.
+              Includes verified links to Andrew Ng&apos;s Coursera ML Specialization, DeepLearning.AI RAG & Multi-Agent courses, and PyTorch docs.
+            </p>
+            <div className="card-chips">
+              <span className="chip">Python & C++</span>
+              <span className="chip">SQL</span>
+              <span className="chip">Machine Learning</span>
+              <span className="chip">Deep Learning & PyTorch</span>
+              <span className="chip">GenAI</span>
+              <span className="chip">Advanced RAG</span>
+              <span className="chip">Agentic AI</span>
+              <span className="chip">AI System Design (HLD)</span>
+            </div>
+            <div style={{ marginTop: 6, display: "flex", gap: 10, flexWrap: "wrap" }}>
+              <Link
+                className="btn dark"
+                style={{ fontSize: 14 }}
+                href="/roadmaps/ai-engineer"
+              >
+                Open AI Engineer Roadmap →
+              </Link>
+              <Link
+                className="btn"
+                style={{ fontSize: 14 }}
+                href="/roadmaps"
+              >
+                View All Roadmaps 🗺️
+              </Link>
+            </div>
           </div>
         </section>
 
@@ -257,6 +332,7 @@ export default function Home() {
           </span>
           <span>
             <a href="#courses">tracks</a> ·{" "}
+            <Link href="/roadmaps">roadmaps</Link> ·{" "}
             <a href="#interview-prep">interview drills</a> ·{" "}
             <a
               href="https://github.com/karthik132007/masterchef26_all_notes"
