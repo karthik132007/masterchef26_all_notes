@@ -1,0 +1,750 @@
+{
+  "title": "Top 80 Recent Machine Learning Interview Questions",
+  "period": "2025-2026",
+  "scope": "Machine Learning Engineer, Applied Scientist, Data Scientist, Research Engineer and AI/ML Engineer interviews",
+  "methodology": "Questions are taken or closely paraphrased from publicly reported interview-question databases and candidate-report-based interview guides. Company tags are retained only where the source explicitly attributes the question to that company. Questions may have multiple company tags when independently reported across companies.",
+  "questions": [
+    {
+      "id": 1,
+      "question": "Vectorize 1-nearest-neighbor classification and express the forward pass using NumPy-style operations.",
+      "companies": ["OpenAI", "Meta"],
+      "category": "ML Coding / Neural Networks",
+      "difficulty": "Medium",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 2,
+      "question": "Implement numerically stable masked cross-entropy with label smoothing and optional temperature scaling.",
+      "companies": ["OpenAI"],
+      "category": "ML Coding / Loss Functions",
+      "difficulty": "Medium",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 3,
+      "question": "Compute entropy and implement a 1-nearest-neighbor classifier.",
+      "companies": ["OpenAI"],
+      "category": "ML Coding / Probability",
+      "difficulty": "Medium",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 4,
+      "question": "How would you improve training when the training labels come from noisy or unreliable annotators?",
+      "companies": ["OpenAI"],
+      "category": "Data Quality / ML Evaluation",
+      "difficulty": "Hard",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 5,
+      "question": "Derive sharded matrix multiplication and its backpropagation when the computation is distributed across multiple devices.",
+      "companies": ["OpenAI"],
+      "category": "Deep Learning / Distributed Training",
+      "difficulty": "Medium",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 6,
+      "question": "Implement a 1-nearest-neighbor classifier efficiently with NumPy and vectorized distance computation.",
+      "companies": ["OpenAI"],
+      "category": "ML Coding",
+      "difficulty": "Medium",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 7,
+      "question": "Compute prefix products of matrices and derive the corresponding gradients.",
+      "companies": ["OpenAI"],
+      "category": "ML Coding / Linear Algebra",
+      "difficulty": "Hard",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 8,
+      "question": "Given multiple human labels for each example, design a method for improving a classifier trained on noisy multi-annotator labels.",
+      "companies": ["OpenAI"],
+      "category": "Annotation / Model Evaluation",
+      "difficulty": "Hard",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 9,
+      "question": "Implement backpropagation for a tiny neural network and handle numerical stability in softmax cross-entropy.",
+      "companies": ["OpenAI"],
+      "category": "Deep Learning / Backpropagation",
+      "difficulty": "Hard",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 10,
+      "question": "Debug a broken Transformer implementation and determine why its training behavior is incorrect.",
+      "companies": ["OpenAI"],
+      "category": "Transformers / Debugging",
+      "difficulty": "Hard",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+
+    {
+      "id": 11,
+      "question": "How do you decide whether generative AI belongs in a software product or workflow, and how would you evaluate its usefulness and accuracy?",
+      "companies": ["Amazon"],
+      "category": "GenAI / Product ML",
+      "difficulty": "Medium",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 12,
+      "question": "Explain how NLP evolved from sparse lexical representations to modern learned embeddings and LLM embeddings.",
+      "companies": ["Amazon"],
+      "category": "NLP / Embeddings",
+      "difficulty": "Medium",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 13,
+      "question": "Implement a Bayesian classifier and explain the reasoning behind the model.",
+      "companies": ["Amazon"],
+      "category": "Probabilistic ML",
+      "difficulty": "Medium",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 14,
+      "question": "Implement numerically stable sigmoid, softmax and scaled dot-product attention using basic arithmetic and loops.",
+      "companies": ["Amazon"],
+      "category": "ML Coding / Transformers",
+      "difficulty": "Medium",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 15,
+      "question": "Explain the core machine-learning concepts you would expect in an ML Engineer or Applied Scientist interview.",
+      "companies": ["Amazon"],
+      "category": "ML Fundamentals",
+      "difficulty": "Hard",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 16,
+      "question": "Explain GRPO, critic-free reinforcement learning, parallelism, MLA and reward design for reasoning LLMs.",
+      "companies": ["Amazon"],
+      "category": "RL / LLM Post-training",
+      "difficulty": "Hard",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 17,
+      "question": "How would you evaluate an NLP classification model, and which metrics would you choose?",
+      "companies": ["Amazon"],
+      "category": "NLP / Evaluation",
+      "difficulty": "Easy",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 18,
+      "question": "Use a fitted line to predict a future data point and determine whether the extrapolation is statistically meaningful.",
+      "companies": ["Amazon"],
+      "category": "Regression / Statistics",
+      "difficulty": "Hard",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 19,
+      "question": "Explain Transformer and Mixture-of-Experts fundamentals and their differences.",
+      "companies": ["Amazon"],
+      "category": "Transformers / MoE",
+      "difficulty": "Medium",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 20,
+      "question": "Design and evaluate a retrieval-augmented generation system for an internal question-answering application.",
+      "companies": ["Amazon"],
+      "category": "RAG / ML System Design",
+      "difficulty": "Easy",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+
+    {
+      "id": 21,
+      "question": "Implement self-attention and discuss its computational complexity and efficient variants.",
+      "companies": ["Meta"],
+      "category": "Transformers / ML Coding",
+      "difficulty": "Hard",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 22,
+      "question": "Explain optimizers, neural scaling laws and clustering methods.",
+      "companies": ["Meta"],
+      "category": "ML Fundamentals",
+      "difficulty": "Hard",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 23,
+      "question": "Implement a 1-nearest-neighbor embedding model and its vectorized forward pass.",
+      "companies": ["Meta"],
+      "category": "ML Coding / Embeddings",
+      "difficulty": "Hard",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 24,
+      "question": "Derive the solution for one-dimensional linear regression from the mean-squared-error objective.",
+      "companies": ["Meta"],
+      "category": "Regression / Mathematics",
+      "difficulty": "Medium",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 25,
+      "question": "Design a recommendation system for local restaurant or place profiles in a social feed.",
+      "companies": ["Meta"],
+      "category": "Recommendation Systems",
+      "difficulty": "Hard",
+      "reported": "2025",
+      "source": "PracHub"
+    },
+    {
+      "id": 26,
+      "question": "Explain confusion-matrix metrics and other important machine-learning evaluation techniques.",
+      "companies": ["Meta"],
+      "category": "ML Evaluation",
+      "difficulty": "Medium",
+      "reported": "2025",
+      "source": "PracHub"
+    },
+    {
+      "id": 27,
+      "question": "Design an end-to-end text classifier for detecting harmful content.",
+      "companies": ["Meta"],
+      "category": "NLP / ML System Design",
+      "difficulty": "Medium",
+      "reported": "2025",
+      "source": "PracHub"
+    },
+    {
+      "id": 28,
+      "question": "Design an ad recommendation and ranking system for a content feed.",
+      "companies": ["Meta"],
+      "category": "Recommendation / Ranking",
+      "difficulty": "Medium",
+      "reported": "2025",
+      "source": "PracHub"
+    },
+    {
+      "id": 29,
+      "question": "Evaluate a harmful-content classifier using precision, recall and fairness metrics.",
+      "companies": ["Meta"],
+      "category": "Evaluation / Fairness",
+      "difficulty": "Medium",
+      "reported": "2025",
+      "source": "PracHub"
+    },
+    {
+      "id": 30,
+      "question": "How would you select a clustering algorithm for grouping users of a social product?",
+      "companies": ["Meta"],
+      "category": "Unsupervised Learning",
+      "difficulty": "Medium",
+      "reported": "2025",
+      "source": "PracHub"
+    },
+
+    {
+      "id": 31,
+      "question": "Explain a variational autoencoder, derive the ELBO and explain the role of KL divergence and reparameterization.",
+      "companies": ["Google"],
+      "category": "Generative Models / Mathematics",
+      "difficulty": "Hard",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 32,
+      "question": "How does reward hacking appear during language-model post-training, and how would you detect and prevent it?",
+      "companies": ["Google"],
+      "category": "RL / LLM Evaluation",
+      "difficulty": "Hard",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 33,
+      "question": "Explain importance sampling and how it can be used during LLM training.",
+      "companies": ["Google"],
+      "category": "Statistics / LLM Training",
+      "difficulty": "Hard",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 34,
+      "question": "Compare major language-model post-training methods and explain the training signal used by each.",
+      "companies": ["Google"],
+      "category": "LLM Post-training",
+      "difficulty": "Hard",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 35,
+      "question": "Explain KL divergence, including its directionality, support requirements and use in language models.",
+      "companies": ["Google"],
+      "category": "Probability / LLMs",
+      "difficulty": "Hard",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 36,
+      "question": "Define language-model perplexity and derive its relationship with average negative log-likelihood.",
+      "companies": ["Google"],
+      "category": "LLM Evaluation / Mathematics",
+      "difficulty": "Hard",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 37,
+      "question": "Explain the complete lifecycle of a modern LLM, from data collection and filtering through pretraining, adaptation and deployment.",
+      "companies": ["Google"],
+      "category": "LLM Fundamentals",
+      "difficulty": "Medium",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 38,
+      "question": "Explain Transformer architecture and important Transformer variants.",
+      "companies": ["Google"],
+      "category": "Transformers",
+      "difficulty": "Hard",
+      "reported": "2025",
+      "source": "PracHub"
+    },
+    {
+      "id": 39,
+      "question": "How would you handle cold-start problems for users and items in a recommendation system?",
+      "companies": ["Google"],
+      "category": "Recommendation Systems",
+      "difficulty": "Medium",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 40,
+      "question": "Compare logistic regression, random forests and gradient boosting for a binary classification problem.",
+      "companies": ["Google"],
+      "category": "Classical ML",
+      "difficulty": "Hard",
+      "reported": "2025",
+      "source": "PracHub"
+    },
+
+    {
+      "id": 41,
+      "question": "Implement masked multi-head self-attention from scratch.",
+      "companies": ["Apple"],
+      "category": "Transformers / ML Coding",
+      "difficulty": "Easy",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 42,
+      "question": "Analyze failures in a computer-vision model and identify the ML fundamentals responsible for those failures.",
+      "companies": ["Apple"],
+      "category": "Computer Vision / Debugging",
+      "difficulty": "Medium",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 43,
+      "question": "Compare DCN v1 and DCN v2 and explain how you would A/B test the models.",
+      "companies": ["Apple"],
+      "category": "Deep Learning / Experimentation",
+      "difficulty": "Medium",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 44,
+      "question": "Explain the trade-offs involving dataset size, generalization and U-Net skip connections.",
+      "companies": ["Apple"],
+      "category": "Computer Vision / Generalization",
+      "difficulty": "Medium",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 45,
+      "question": "Implement multi-head self-attention correctly from scratch.",
+      "companies": ["Apple"],
+      "category": "Transformers / Coding",
+      "difficulty": "Hard",
+      "reported": "2025",
+      "source": "PracHub"
+    },
+    {
+      "id": 46,
+      "question": "Explain the ML classification lifecycle and how you would build a CTR prediction model.",
+      "companies": ["Apple"],
+      "category": "Classification / Recommendation",
+      "difficulty": "Medium",
+      "reported": "2025",
+      "source": "PracHub"
+    },
+    {
+      "id": 47,
+      "question": "Build a leakage-safe scikit-learn model with probability calibration.",
+      "companies": ["Apple"],
+      "category": "Model Evaluation / Data Leakage",
+      "difficulty": "Medium",
+      "reported": "2025",
+      "source": "PracHub"
+    },
+    {
+      "id": 48,
+      "question": "Design a model that decides whether a natural-language query should be routed to Siri or a GPT-based system.",
+      "companies": ["Apple"],
+      "category": "NLP / Routing",
+      "difficulty": "Medium",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+
+    {
+      "id": 49,
+      "question": "Compare common audio preprocessing techniques and explain their effect on training a voice-assistant model.",
+      "companies": ["Apple"],
+      "category": "Speech / Audio ML",
+      "difficulty": "Medium",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 50,
+      "question": "What is a vision encoder, and what are the major bottlenecks when connecting vision encoders to LLMs?",
+      "companies": ["Apple"],
+      "category": "Multimodal ML",
+      "difficulty": "Medium",
+      "reported": "2025",
+      "source": "PracHub"
+    },
+
+    {
+      "id": 51,
+      "question": "Given a CSV during a live interview, build a useful baseline predictive model and defend your choices.",
+      "companies": ["Microsoft"],
+      "category": "Applied ML",
+      "difficulty": "Medium",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 52,
+      "question": "How do you choose a machine-learning model based on the task, data properties and production constraints?",
+      "companies": ["Microsoft"],
+      "category": "Model Selection",
+      "difficulty": "Medium",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 53,
+      "question": "Explain the bias-variance trade-off and how you would evaluate a classifier.",
+      "companies": ["Microsoft"],
+      "category": "ML Fundamentals",
+      "difficulty": "Easy",
+      "reported": "2025",
+      "source": "PracHub"
+    },
+    {
+      "id": 54,
+      "question": "Explain SHAP and how it fits into an end-to-end ML system.",
+      "companies": ["Microsoft"],
+      "category": "Explainability",
+      "difficulty": "Medium",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 55,
+      "question": "Explain normalization, regularization, CTR modeling and class-imbalance handling.",
+      "companies": ["Microsoft"],
+      "category": "ML Fundamentals",
+      "difficulty": "Medium",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 56,
+      "question": "Explain K-nearest neighbors and how you would tune its hyperparameters.",
+      "companies": ["Microsoft"],
+      "category": "Classical ML",
+      "difficulty": "Easy",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 57,
+      "question": "For binary classification, explain precision, recall, regularization and ablation studies and when each is useful.",
+      "companies": ["Microsoft"],
+      "category": "Evaluation / Experimentation",
+      "difficulty": "Medium",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 58,
+      "question": "Clean OCR data and construct a high-quality dataset for LLM fine-tuning.",
+      "companies": ["Microsoft"],
+      "category": "Data Engineering / LLMs",
+      "difficulty": "Medium",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 59,
+      "question": "Compare KNN and PCA and discuss the important trade-offs.",
+      "companies": ["Microsoft"],
+      "category": "Classical ML / Dimensionality Reduction",
+      "difficulty": "Easy",
+      "reported": "2025",
+      "source": "PracHub"
+    },
+    {
+      "id": 60,
+      "question": "Compare CNNs, RNNs and LSTMs and implement K-means clustering.",
+      "companies": ["Microsoft"],
+      "category": "Deep Learning / Clustering",
+      "difficulty": "Hard",
+      "reported": "2025",
+      "source": "PracHub"
+    },
+
+    {
+      "id": 61,
+      "question": "Explain bias-variance trade-off, probability calibration and model drift.",
+      "companies": ["NVIDIA"],
+      "category": "ML Fundamentals / Monitoring",
+      "difficulty": "Medium",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 62,
+      "question": "Analyze overfitting, DenseNet versus ResNet, preprocessing, hyperparameter tuning and cross-validation in an image-classification pipeline.",
+      "companies": ["NVIDIA"],
+      "category": "Computer Vision",
+      "difficulty": "Hard",
+      "reported": "2025",
+      "source": "PracHub"
+    },
+    {
+      "id": 63,
+      "question": "Explain Transformer self-attention, including Q, K, V, multi-head attention and positional encoding.",
+      "companies": ["NVIDIA"],
+      "category": "Transformers",
+      "difficulty": "Medium",
+      "reported": "2025",
+      "source": "PracHub"
+    },
+    {
+      "id": 64,
+      "question": "Explain deep-learning optimization techniques and compare tensor parallelism with pipeline parallelism.",
+      "companies": ["NVIDIA"],
+      "category": "Distributed Training",
+      "difficulty": "Hard",
+      "reported": "2025",
+      "source": "PracHub"
+    },
+    {
+      "id": 65,
+      "question": "Discuss current deep-learning framework trends and the engineering implications of choosing one framework over another.",
+      "companies": ["NVIDIA"],
+      "category": "Deep Learning Engineering",
+      "difficulty": "Medium",
+      "reported": "2025",
+      "source": "PracHub"
+    },
+    {
+      "id": 66,
+      "question": "Derive MLP tensor shapes and explain PyTorch broadcasting semantics.",
+      "companies": ["NVIDIA"],
+      "category": "Deep Learning / PyTorch",
+      "difficulty": "Medium",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+
+    {
+      "id": 67,
+      "question": "Design an RL reward function for an autonomous-driving agent controlling speed limits.",
+      "companies": ["Tesla"],
+      "category": "Reinforcement Learning / Autonomous Driving",
+      "difficulty": "Hard",
+      "reported": "2026",
+      "source": "PracHub"
+    },
+    {
+      "id": 68,
+      "question": "Implement scaled dot-product attention and a Transformer block with a backward pass and no automatic differentiation.",
+      "companies": ["Tesla"],
+      "category": "Transformers / ML Coding",
+      "difficulty": "Hard",
+      "reported": "2025",
+      "source": "PracHub"
+    },
+    {
+      "id": 69,
+      "question": "Compute the number of parameters in a 2D convolution layer.",
+      "companies": ["Tesla"],
+      "category": "CNN / Deep Learning",
+      "difficulty": "Easy",
+      "reported": "2025",
+      "source": "PracHub"
+    },
+    {
+      "id": 70,
+      "question": "Compare RNNs, LSTMs, Transformers and model-predictive control for sequence modeling.",
+      "companies": ["Tesla"],
+      "category": "Sequence Modeling / Autonomous Systems",
+      "difficulty": "Hard",
+      "reported": "2025",
+      "source": "PracHub"
+    },
+
+    {
+      "id": 71,
+      "question": "Walk through RLHF and explain the trade-offs between PPO and alternatives such as DPO.",
+      "companies": ["Anthropic"],
+      "category": "RLHF / Alignment",
+      "difficulty": "Hard",
+      "reported": "2026",
+      "source": "Candidate-report-based Anthropic guide"
+    },
+    {
+      "id": 72,
+      "question": "Design an evaluation suite to determine whether a model becomes more or less aligned after fine-tuning.",
+      "companies": ["Anthropic"],
+      "category": "Alignment / Evaluation",
+      "difficulty": "Hard",
+      "reported": "2026",
+      "source": "Candidate-report-based Anthropic guide"
+    },
+    {
+      "id": 73,
+      "question": "Describe how you would identify and fix a training instability in a large ML model.",
+      "companies": ["Anthropic"],
+      "category": "Training / Debugging",
+      "difficulty": "Hard",
+      "reported": "2026",
+      "source": "Candidate-report-based Anthropic guide"
+    },
+    {
+      "id": 74,
+      "question": "Explain Constitutional AI and discuss its limitations.",
+      "companies": ["Anthropic"],
+      "category": "AI Safety / Alignment",
+      "difficulty": "Hard",
+      "reported": "2026",
+      "source": "Candidate-report-based Anthropic guide"
+    },
+    {
+      "id": 75,
+      "question": "How would you configure distributed training for a very large model, and what failure modes would you plan for?",
+      "companies": ["Anthropic"],
+      "category": "Distributed Training",
+      "difficulty": "Hard",
+      "reported": "2026",
+      "source": "Candidate-report-based Anthropic guide"
+    },
+    {
+      "id": 76,
+      "question": "A model confidently produces factually incorrect outputs. Walk through your debugging process.",
+      "companies": ["Anthropic"],
+      "category": "LLM Evaluation / Debugging",
+      "difficulty": "Hard",
+      "reported": "2026",
+      "source": "Candidate-report-based Anthropic guide"
+    },
+
+    {
+      "id": 77,
+      "question": "Explain reinforcement learning and when it is actually the right tool rather than supervised learning or a bandit.",
+      "companies": ["Google DeepMind", "OpenAI", "Meta"],
+      "category": "Reinforcement Learning",
+      "difficulty": "Hard",
+      "reported": "2026",
+      "source": "FDEInterviews"
+    },
+    {
+      "id": 78,
+      "question": "What loss functions would you choose for a multimodal generation task, and how do they affect gradient flow?",
+      "companies": ["Google DeepMind"],
+      "category": "Multimodal ML / Optimization",
+      "difficulty": "Hard",
+      "reported": "2026",
+      "source": "Google DeepMind Research Engineer guide"
+    },
+    {
+      "id": 79,
+      "question": "How do attention mechanisms scale in modern Transformer architectures, and what are the practical training and inference bottlenecks?",
+      "companies": ["Google DeepMind"],
+      "category": "Transformers / Systems",
+      "difficulty": "Hard",
+      "reported": "2026",
+      "source": "Google DeepMind Research Engineer guide"
+    },
+    {
+      "id": 80,
+      "question": "Walk through what happens to gradient flow when a deep Transformer is trained with unstable initialization.",
+      "companies": ["Google DeepMind"],
+      "category": "Deep Learning / Optimization",
+      "difficulty": "Hard",
+      "reported": "2026",
+      "source": "Google DeepMind Research Engineer guide"
+    }
+  ],
+  "source_notes": {
+    "OpenAI": "PracHub reports 28 ML questions for OpenAI overall and 22 specifically for Machine Learning Engineer roles, with multiple 2026 questions including 1NN, cross-entropy, noisy labels, matrix gradients and Transformer debugging.",
+    "Amazon": "PracHub reports 81 ML questions for Amazon and 80 for Machine Learning Engineer roles, including several 2026 questions on embeddings, GRPO, Transformers, RAG and model evaluation.",
+    "Meta": "PracHub reports 56 ML questions for Meta and 101 questions for Meta Machine Learning Engineer roles, including recent self-attention, embeddings, ranking and recommendation questions.",
+    "Google": "PracHub reports 44 ML questions for Google, including recent 2026 questions on VAEs, reward hacking, importance sampling, KL divergence, perplexity and LLM lifecycle.",
+    "Apple": "PracHub reports 14 ML questions for Apple, including 2026 questions on masked attention, vision failures, DCN v1/v2, dataset size and Siri/GPT routing.",
+    "Microsoft": "PracHub reports 20 ML questions for Microsoft, including 2026 questions on model selection, SHAP, OCR/LLM datasets, evaluation and preference alignment.",
+    "NVIDIA": "PracHub reports 7 ML questions for NVIDIA, including questions on calibration, drift, Transformers, parallelism and PyTorch tensor behavior.",
+    "Tesla": "PracHub reports 5 ML questions for Tesla, including RL for autonomous driving, Transformer backward passes, convolution parameter counts and sequence modeling.",
+    "Anthropic": "The 2026 Anthropic guide reviewed publicly shared candidate experiences and lists recurring questions on RLHF/DPO, alignment evaluation, training instability, Constitutional AI, distributed training and hallucination debugging.",
+    "Google DeepMind": "Dedicated 2026 sources report DeepMind ML questions involving reinforcement learning, optimization, attention scaling, loss functions, Bayes/probabilistic modeling and gradient-flow reasoning."
+  }
+}

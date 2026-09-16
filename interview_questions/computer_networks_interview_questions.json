@@ -1,0 +1,1035 @@
+{
+  "metadata": {
+    "total_questions": 80,
+    "topic": "Computer Networks",
+    "target_companies": [
+      "OpenAI",
+      "Anthropic",
+      "Google DeepMind",
+      "Meta FAIR",
+      "Apple",
+      "Amazon",
+      "Microsoft",
+      "NVIDIA",
+      "Tesla",
+      "Red Hat",
+      "Google",
+      "Meta",
+      "Netflix",
+      "Uber",
+      "Databricks"
+    ],
+    "difficulty_levels": [
+      "Basic",
+      "Intermediate",
+      "Advanced",
+      "Expert"
+    ],
+    "last_updated": "2026-09-16",
+    "source": "Aggregated from recent interview experiences (2025-2026)"
+  },
+  "questions": [
+    {
+      "id": 1,
+      "question": "Walk me through the OSI seven layer model and map each layer to something you actually touch in a modern web stack.",
+      "difficulty": "Basic",
+      "topic": "OSI and TCP/IP Models",
+      "companies": [
+        "Google",
+        "Amazon",
+        "Microsoft",
+        "Meta"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 2,
+      "question": "Trace the encapsulation of a single HTTP POST as it goes down the stack from your browser to the wire, naming every header that gets added.",
+      "difficulty": "Basic",
+      "topic": "OSI and TCP/IP Models",
+      "companies": [
+        "Amazon",
+        "Google",
+        "Microsoft"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 3,
+      "question": "What happens end to end when you type a URL in a browser and press Enter? Take it all the way to pixels on screen.",
+      "difficulty": "Basic",
+      "topic": "DNS and Application Layer",
+      "companies": [
+        "Google",
+        "Meta",
+        "Amazon",
+        "Microsoft",
+        "Apple"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 4,
+      "question": "TCP or UDP: pick one for a video call, for DNS, for a multiplayer game, and for a UPI payment, and defend each choice.",
+      "difficulty": "Basic",
+      "topic": "Transport Layer",
+      "companies": [
+        "Meta",
+        "Google",
+        "Amazon",
+        "Tesla"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 5,
+      "question": "Explain the TCP three way handshake segment by segment, including what each side learns from it.",
+      "difficulty": "Basic",
+      "topic": "Transport Layer",
+      "companies": [
+        "Amazon",
+        "Microsoft",
+        "Google",
+        "Meta"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 6,
+      "question": "What exactly do TCP sequence and acknowledgement numbers count, and what does a duplicate ACK tell the sender?",
+      "difficulty": "Intermediate",
+      "topic": "Transport Layer",
+      "companies": [
+        "Google",
+        "Amazon",
+        "Microsoft"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 7,
+      "question": "Walk through TCP connection termination. Why does it take four segments and which side ends up in TIME_WAIT?",
+      "difficulty": "Intermediate",
+      "topic": "Transport Layer",
+      "companies": [
+        "Amazon",
+        "Google",
+        "Meta"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 8,
+      "question": "What identifies a TCP connection uniquely? Explain how one server on port 443 handles fifty thousand simultaneous clients.",
+      "difficulty": "Intermediate",
+      "topic": "Transport Layer",
+      "companies": [
+        "Google",
+        "Amazon",
+        "Microsoft",
+        "Meta"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 9,
+      "question": "Explain the structure of an IPv4 address, why address classes are obsolete, and what CIDR notation actually means.",
+      "difficulty": "Basic",
+      "topic": "Subnetting and Addressing",
+      "companies": [
+        "Amazon",
+        "Microsoft",
+        "Google"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 10,
+      "question": "My laptop says 192.168.1.7 but an IP checker site shows 49.36.180.24. Explain what is happening, and the difference between NAT and PAT.",
+      "difficulty": "Basic",
+      "topic": "Subnetting and Addressing",
+      "companies": [
+        "Amazon",
+        "Google",
+        "Microsoft"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 11,
+      "question": "Subnet 192.168.10.0/24 into blocks that each support at least 50 hosts. Give the mask, network, broadcast and usable range for every subnet.",
+      "difficulty": "Intermediate",
+      "topic": "Subnetting and Addressing",
+      "companies": [
+        "Amazon",
+        "Microsoft",
+        "Cisco"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 12,
+      "question": "What is ARP, what lives in the ARP cache, and what is gratuitous ARP used for?",
+      "difficulty": "Basic",
+      "topic": "IP and Routing",
+      "companies": [
+        "Google",
+        "Amazon",
+        "Microsoft"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 13,
+      "question": "Explain the DHCP DORA process and what goes wrong when a client ends up with a 169.254.x.x address.",
+      "difficulty": "Basic",
+      "topic": "IP and Routing",
+      "companies": [
+        "Amazon",
+        "Microsoft",
+        "Google"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 14,
+      "question": "Read me a Linux routing table and explain exactly how the kernel decides where to send a packet destined for 8.8.8.8.",
+      "difficulty": "Intermediate",
+      "topic": "IP and Routing",
+      "companies": [
+        "Google",
+        "Amazon",
+        "Red Hat"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 15,
+      "question": "Hub, switch and router: explain the difference in terms of collision domains and broadcast domains.",
+      "difficulty": "Basic",
+      "topic": "Network Devices",
+      "companies": [
+        "Cisco",
+        "Amazon",
+        "Microsoft"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 16,
+      "question": "What is the difference between a Layer 2 switch and a Layer 3 switch?",
+      "difficulty": "Intermediate",
+      "topic": "Network Devices",
+      "companies": [
+        "Cisco",
+        "Amazon",
+        "Google"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 17,
+      "question": "Explain the difference between the OSI model and the TCP/IP model, and why do we use both?",
+      "difficulty": "Basic",
+      "topic": "OSI and TCP/IP Models",
+      "companies": [
+        "Google",
+        "Amazon",
+        "Microsoft",
+        "Meta"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 18,
+      "question": "What are the most common DNS record types (A, AAAA, CNAME, MX, TXT) and what do they do?",
+      "difficulty": "Basic",
+      "topic": "DNS and Application Layer",
+      "companies": [
+        "Google",
+        "Amazon",
+        "Microsoft",
+        "Meta"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 19,
+      "question": "Walk through what happens during a DNS lookup from browser cache to authoritative server.",
+      "difficulty": "Intermediate",
+      "topic": "DNS and Application Layer",
+      "companies": [
+        "Google",
+        "Amazon",
+        "Cloudflare"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 20,
+      "question": "What is the difference between HTTP and HTTPS? Explain the TLS handshake process.",
+      "difficulty": "Basic",
+      "topic": "Application Layer",
+      "companies": [
+        "Google",
+        "Amazon",
+        "Microsoft",
+        "Meta"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 21,
+      "question": "What are the differences between HTTP/1.1, HTTP/2, and HTTP/3?",
+      "difficulty": "Intermediate",
+      "topic": "Application Layer",
+      "companies": [
+        "Google",
+        "Meta",
+        "Amazon",
+        "Cloudflare"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 22,
+      "question": "What is the role of the Host header in an HTTP request?",
+      "difficulty": "Basic",
+      "topic": "Application Layer",
+      "companies": [
+        "Amazon",
+        "Google",
+        "Microsoft"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 23,
+      "question": "What are the categories of HTTP status codes (1xx \u2013 5xx) and give an example of each?",
+      "difficulty": "Basic",
+      "topic": "Application Layer",
+      "companies": [
+        "Amazon",
+        "Google",
+        "Meta"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 24,
+      "question": "How is an HTTP request structured (request line, headers, and body)?",
+      "difficulty": "Basic",
+      "topic": "Application Layer",
+      "companies": [
+        "Amazon",
+        "Microsoft",
+        "Google"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 25,
+      "question": "What is the difference between a forward proxy and a reverse proxy?",
+      "difficulty": "Intermediate",
+      "topic": "Application Layer",
+      "companies": [
+        "Google",
+        "Amazon",
+        "Cloudflare"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 26,
+      "question": "Explain how a CDN works and what problems it solves.",
+      "difficulty": "Intermediate",
+      "topic": "Application Layer",
+      "companies": [
+        "Amazon",
+        "Google",
+        "Netflix",
+        "Cloudflare"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 27,
+      "question": "What is the difference between REST and gRPC in networking?",
+      "difficulty": "Intermediate",
+      "topic": "Application Layer",
+      "companies": [
+        "Google",
+        "Amazon",
+        "Microsoft",
+        "Uber"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 28,
+      "question": "How does load balancing work, and what's the difference between L4 and L7 load balancing?",
+      "difficulty": "Intermediate",
+      "topic": "Network Architecture",
+      "companies": [
+        "Google",
+        "Amazon",
+        "Meta",
+        "Netflix"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 29,
+      "question": "How would you design a system to handle millions of requests per second?",
+      "difficulty": "Advanced",
+      "topic": "Network Architecture",
+      "companies": [
+        "Google",
+        "Meta",
+        "Amazon",
+        "Microsoft"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 30,
+      "question": "What is the difference between bandwidth, throughput, and latency?",
+      "difficulty": "Basic",
+      "topic": "Network Performance",
+      "companies": [
+        "Amazon",
+        "Google",
+        "Microsoft",
+        "Netflix"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 31,
+      "question": "Explain the conceptual difference between latency and throughput. Can you have high throughput with high latency?",
+      "difficulty": "Intermediate",
+      "topic": "Network Performance",
+      "companies": [
+        "Google",
+        "Amazon",
+        "Microsoft"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 32,
+      "question": "How does TCP congestion control actually work?",
+      "difficulty": "Advanced",
+      "topic": "Transport Layer",
+      "companies": [
+        "Google",
+        "Amazon",
+        "Microsoft",
+        "Meta"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 33,
+      "question": "What is the difference between flow control and congestion control in TCP?",
+      "difficulty": "Intermediate",
+      "topic": "Transport Layer",
+      "companies": [
+        "Google",
+        "Amazon",
+        "Microsoft"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 34,
+      "question": "Why is TCP not used in live streaming or gaming?",
+      "difficulty": "Intermediate",
+      "topic": "Transport Layer",
+      "companies": [
+        "Netflix",
+        "Meta",
+        "Google",
+        "Amazon"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 35,
+      "question": "What is QUIC and why was it created?",
+      "difficulty": "Advanced",
+      "topic": "Transport Layer",
+      "companies": [
+        "Google",
+        "Meta",
+        "Amazon",
+        "Cloudflare"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 36,
+      "question": "How does packet loss affect performance and how is it handled?",
+      "difficulty": "Intermediate",
+      "topic": "Transport Layer",
+      "companies": [
+        "Amazon",
+        "Google",
+        "Netflix"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 37,
+      "question": "What is the difference between a collision domain and a broadcast domain?",
+      "difficulty": "Basic",
+      "topic": "Network Fundamentals",
+      "companies": [
+        "Cisco",
+        "Amazon",
+        "Microsoft"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 38,
+      "question": "What is the difference between Unicast, Broadcast, Multicast, and Anycast?",
+      "difficulty": "Intermediate",
+      "topic": "Network Fundamentals",
+      "companies": [
+        "Google",
+        "Amazon",
+        "Cisco"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 39,
+      "question": "Explain the difference between full-duplex and half-duplex communication.",
+      "difficulty": "Basic",
+      "topic": "Network Fundamentals",
+      "companies": [
+        "Amazon",
+        "Microsoft",
+        "Cisco"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 40,
+      "question": "What is the structure of a MAC address, and what is the significance of the OUI portion?",
+      "difficulty": "Basic",
+      "topic": "Network Fundamentals",
+      "companies": [
+        "Amazon",
+        "Microsoft",
+        "Google"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 41,
+      "question": "What is the difference between a MAC address and an IP address?",
+      "difficulty": "Basic",
+      "topic": "Network Fundamentals",
+      "companies": [
+        "Amazon",
+        "Google",
+        "Microsoft",
+        "Meta"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 42,
+      "question": "What is a network socket, and what is the relationship between an IP address, a port, and a socket?",
+      "difficulty": "Intermediate",
+      "topic": "Network Fundamentals",
+      "companies": [
+        "Google",
+        "Amazon",
+        "Microsoft"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 43,
+      "question": "What are some well-known port numbers, and why are ports below 1024 treated specially?",
+      "difficulty": "Basic",
+      "topic": "Network Fundamentals",
+      "companies": [
+        "Amazon",
+        "Google",
+        "Microsoft"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 44,
+      "question": "What is the difference between a connection-oriented and a connectionless protocol?",
+      "difficulty": "Basic",
+      "topic": "Network Fundamentals",
+      "companies": [
+        "Amazon",
+        "Google",
+        "Microsoft"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 45,
+      "question": "What is the 'TTL' (Time to Live) field in an IP packet and what happens when it reaches zero?",
+      "difficulty": "Basic",
+      "topic": "IP and Routing",
+      "companies": [
+        "Google",
+        "Amazon",
+        "Microsoft"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 46,
+      "question": "How does a router decide where to send a packet? Explain the concept of a routing table.",
+      "difficulty": "Intermediate",
+      "topic": "IP and Routing",
+      "companies": [
+        "Google",
+        "Amazon",
+        "Cisco"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 47,
+      "question": "What is a default gateway, and what role does it play when a host sends traffic off its local network?",
+      "difficulty": "Basic",
+      "topic": "IP and Routing",
+      "companies": [
+        "Amazon",
+        "Microsoft",
+        "Google"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 48,
+      "question": "What is the difference between OSPF and BGP?",
+      "difficulty": "Intermediate",
+      "topic": "IP and Routing",
+      "companies": [
+        "Google",
+        "Amazon",
+        "Cisco"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 49,
+      "question": "What is the purpose of a subnet mask and CIDR notation?",
+      "difficulty": "Basic",
+      "topic": "Subnetting and Addressing",
+      "companies": [
+        "Amazon",
+        "Microsoft",
+        "Google"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 50,
+      "question": "What is the difference between a public IP and a private IP (RFC 1918)? How do they communicate with each other?",
+      "difficulty": "Basic",
+      "topic": "Subnetting and Addressing",
+      "companies": [
+        "Amazon",
+        "Google",
+        "Microsoft",
+        "Meta"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 51,
+      "question": "What is NAT and why is it used?",
+      "difficulty": "Basic",
+      "topic": "Subnetting and Addressing",
+      "companies": [
+        "Amazon",
+        "Google",
+        "Microsoft"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 52,
+      "question": "How does the ping command work? Which protocol does it use and at which layer?",
+      "difficulty": "Basic",
+      "topic": "Network Tools",
+      "companies": [
+        "Amazon",
+        "Google",
+        "Microsoft"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 53,
+      "question": "What is ICMP, and how do ping and traceroute use it?",
+      "difficulty": "Intermediate",
+      "topic": "Network Tools",
+      "companies": [
+        "Google",
+        "Amazon",
+        "Microsoft"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 54,
+      "question": "Walk me through how you'd diagnose a 'website won't load' problem.",
+      "difficulty": "Advanced",
+      "topic": "Network Troubleshooting",
+      "companies": [
+        "Google",
+        "Amazon",
+        "Meta",
+        "Microsoft"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 55,
+      "question": "What is the difference between a hub, a switch, and a router?",
+      "difficulty": "Basic",
+      "topic": "Network Devices",
+      "companies": [
+        "Amazon",
+        "Google",
+        "Microsoft",
+        "Cisco"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 56,
+      "question": "What is a firewall, and what are stateful vs stateless firewalls?",
+      "difficulty": "Intermediate",
+      "topic": "Network Security",
+      "companies": [
+        "Google",
+        "Amazon",
+        "Microsoft",
+        "Palo Alto"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 57,
+      "question": "How does a VPN work?",
+      "difficulty": "Intermediate",
+      "topic": "Network Security",
+      "companies": [
+        "Google",
+        "Amazon",
+        "Microsoft"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 58,
+      "question": "What are common network attacks and how do you defend against them?",
+      "difficulty": "Advanced",
+      "topic": "Network Security",
+      "companies": [
+        "Google",
+        "Amazon",
+        "Microsoft",
+        "Cloudflare"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 59,
+      "question": "What is the role of a Certificate Authority (CA) and a digital certificate in network security?",
+      "difficulty": "Intermediate",
+      "topic": "Network Security",
+      "companies": [
+        "Google",
+        "Amazon",
+        "Microsoft",
+        "Meta"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 60,
+      "question": "What happens during a TLS handshake?",
+      "difficulty": "Intermediate",
+      "topic": "Network Security",
+      "companies": [
+        "Google",
+        "Amazon",
+        "Microsoft",
+        "Cloudflare"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 61,
+      "question": "How does rate limiting protect a system?",
+      "difficulty": "Intermediate",
+      "topic": "Network Security",
+      "companies": [
+        "Google",
+        "Amazon",
+        "Meta",
+        "Cloudflare"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 62,
+      "question": "What is the role of API Gateway in networking?",
+      "difficulty": "Intermediate",
+      "topic": "Network Architecture",
+      "companies": [
+        "Amazon",
+        "Google",
+        "Microsoft",
+        "Uber"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 63,
+      "question": "How do microservices communicate in a distributed system?",
+      "difficulty": "Advanced",
+      "topic": "Network Architecture",
+      "companies": [
+        "Amazon",
+        "Google",
+        "Meta",
+        "Netflix",
+        "Uber"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 64,
+      "question": "How does WebSocket differ from HTTP, and when do you use them?",
+      "difficulty": "Intermediate",
+      "topic": "Application Layer",
+      "companies": [
+        "Google",
+        "Amazon",
+        "Meta",
+        "Slack"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 65,
+      "question": "How do HTTP cookies keep a stateless protocol stateful?",
+      "difficulty": "Intermediate",
+      "topic": "Application Layer",
+      "companies": [
+        "Google",
+        "Amazon",
+        "Meta"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 66,
+      "question": "What is the difference between HTTP GET and POST?",
+      "difficulty": "Basic",
+      "topic": "Application Layer",
+      "companies": [
+        "Amazon",
+        "Google",
+        "Microsoft",
+        "Meta"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 67,
+      "question": "Explain the process of data encapsulation and decapsulation as a packet moves from the Application layer down to the Physical layer.",
+      "difficulty": "Intermediate",
+      "topic": "OSI and TCP/IP Models",
+      "companies": [
+        "Google",
+        "Amazon",
+        "Microsoft",
+        "Cisco"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 68,
+      "question": "What are the key differences between TCP and UDP, and when would you choose one over the other?",
+      "difficulty": "Basic",
+      "topic": "Transport Layer",
+      "companies": [
+        "Google",
+        "Amazon",
+        "Microsoft",
+        "Meta",
+        "Netflix"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 69,
+      "question": "What is a computer network?",
+      "difficulty": "Basic",
+      "topic": "Network Fundamentals",
+      "companies": [
+        "Amazon",
+        "Google",
+        "Microsoft",
+        "Meta"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 70,
+      "question": "What are LAN, MAN, and WAN?",
+      "difficulty": "Basic",
+      "topic": "Network Fundamentals",
+      "companies": [
+        "Amazon",
+        "Google",
+        "Microsoft",
+        "Cisco"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 71,
+      "question": "What are the common network topologies (star, bus, ring, mesh) and their tradeoffs?",
+      "difficulty": "Basic",
+      "topic": "Network Fundamentals",
+      "companies": [
+        "Amazon",
+        "Microsoft",
+        "Cisco"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 72,
+      "question": "What is the difference between client-server and peer-to-peer network architecture?",
+      "difficulty": "Basic",
+      "topic": "Network Architecture",
+      "companies": [
+        "Google",
+        "Amazon",
+        "Microsoft",
+        "Meta"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 73,
+      "question": "What is a protocol in networking?",
+      "difficulty": "Basic",
+      "topic": "Network Fundamentals",
+      "companies": [
+        "Amazon",
+        "Google",
+        "Microsoft"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 74,
+      "question": "What is the difference between a packet, a frame, and a segment?",
+      "difficulty": "Basic",
+      "topic": "OSI and TCP/IP Models",
+      "companies": [
+        "Amazon",
+        "Google",
+        "Microsoft",
+        "Cisco"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 75,
+      "question": "What is a NIC (Network Interface Card), and at which layers does it operate?",
+      "difficulty": "Basic",
+      "topic": "Network Devices",
+      "companies": [
+        "Amazon",
+        "Microsoft",
+        "Intel"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 76,
+      "question": "What is the difference between a repeater, a bridge, and a switch?",
+      "difficulty": "Intermediate",
+      "topic": "Network Devices",
+      "companies": [
+        "Cisco",
+        "Amazon",
+        "Microsoft"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 77,
+      "question": "What is SSH, and what does it provide at the application layer?",
+      "difficulty": "Basic",
+      "topic": "Application Layer",
+      "companies": [
+        "Google",
+        "Amazon",
+        "Microsoft",
+        "Red Hat"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 78,
+      "question": "What is Telnet, and why is it considered insecure compared to SSH?",
+      "difficulty": "Basic",
+      "topic": "Application Layer",
+      "companies": [
+        "Amazon",
+        "Google",
+        "Microsoft"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 79,
+      "question": "How does WhatsApp (or chat app) send a message over network?",
+      "difficulty": "Advanced",
+      "topic": "Application Layer",
+      "companies": [
+        "Meta",
+        "Google",
+        "Amazon",
+        "WhatsApp"
+      ],
+      "year": 2026
+    },
+    {
+      "id": 80,
+      "question": "How would you implement a load-balancing algorithm for a high-throughput fabric?",
+      "difficulty": "Expert",
+      "topic": "Network Architecture",
+      "companies": [
+        "NVIDIA",
+        "Google",
+        "Amazon",
+        "Meta"
+      ],
+      "year": 2026
+    }
+  ]
+}

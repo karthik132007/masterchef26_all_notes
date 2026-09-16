@@ -5,134 +5,96 @@ import { getAllRoadmaps } from "../../lib/roadmaps";
 export const metadata = {
   title: "Engineering Roadmaps — Nexora",
   description:
-    "Curated, battle-tested curriculum roadmaps for AI Engineering, Backend Development, Systems, and Software Engineering with verified resources.",
+    "Opinionated, step-by-step curriculum roadmaps for AI Engineering, Backend, Systems and Software Engineering with verified resources.",
 };
 
 export default function RoadmapsIndexPage() {
   const roadmaps = getAllRoadmaps();
-  const activeRoadmaps = roadmaps.filter((r) => r.status === "active");
-  const upcomingRoadmaps = roadmaps.filter((r) => r.status !== "active");
 
   return (
     <>
       <Navbar
         links={[
           { href: "/#courses", label: "tracks" },
-          { href: "/roadmaps", label: "roadmaps 🗺️" },
-          { href: "/#interview-prep", label: "interview drills" },
+          { href: "/roadmaps", label: "roadmaps" },
+          { href: "/interview", label: "interview drills" },
         ]}
       />
 
-      <header className="hero">
+      <header className="rd-hero">
         <div className="wrap">
-          <div className="hero-kicker">
-            <span className="dot"></span>
-            engineering curriculum & study plans
-          </div>
-          <h1>
-            engineering
-            <br />
-            <span className="hl">roadmaps</span>{" "}
-            <span className="scribble">& mental models.</span>
+          <h1 className="rd-h1">
+            Engineering <span className="rd-hl">roadmaps</span>
           </h1>
-          <p className="hero-sub">
-            Clear, step-by-step paths from first principles to production systems.
-            Curated with high-yield concepts, capstone projects, interview traps, and
-            direct links to authoritative industry resources.
+          <p className="rd-lede">
+            Step-by-step paths from fundamentals to production — core
+            mechanics plus verified resources, no fluff.
           </p>
-
-          <div className="hero-stats" style={{ marginTop: 24 }}>
-            <div className="hero-stat-pill">
-              <b>8</b> Sequential Stages
-            </div>
-            <div className="hero-stat-pill">
-              <b>0</b> Fluff or Paywalls
-            </div>
-            <div className="hero-stat-pill">
-              <b>Top Tier</b> Curated Resources
-            </div>
-          </div>
         </div>
       </header>
 
-      <main className="wrap" style={{ paddingBottom: 60 }}>
-        {/* Active Featured Roadmaps */}
-        <section style={{ marginTop: 20 }}>
-          <h2 className="section-title">available roadmap</h2>
-          <p className="section-sub">
-            Complete curriculum with deep-dive topics, capstone drills, and verified links.
-          </p>
-
-          <div className="roadmaps-grid">
-            {activeRoadmaps.map((r) => (
-              <article key={r.id} className="roadmap-featured-card">
-                <div className="featured-top-row">
-                  <div className="featured-badge" style={{ background: r.accentColor }}>
-                    🔥 {r.badge}
+      <main className="wrap rd-main">
+        <div className="rd-grid">
+          {roadmaps.map((r) => {
+            const isLive = r.status === "active";
+            const body = (
+              <>
+                <div className="rd-grid-top">
+                  <span
+                    className={isLive ? "rd-track-live" : "rd-track-soon"}
+                  >
+                    {isLive ? "Active track" : "Coming soon"}
+                  </span>
+                  <span className="rd-grid-meta">
+                    {r.totalStages} stages · {r.estimatedWeeks}
+                  </span>
+                </div>
+                <h2>{r.title}</h2>
+                <p className="rd-grid-tag">{r.tagline}</p>
+                {isLive && r.stages ? (
+                  <ol className="rd-grid-stages">
+                    {r.stages.map((st) => (
+                      <li key={st.slug}>
+                        <b>{String(st.number).padStart(2, "0")}</b>
+                        {st.title.split(":")[0]}
+                      </li>
+                    ))}
+                  </ol>
+                ) : (
+                  <div className="rd-chip-row">
+                    {r.chips?.map((c) => (
+                      <span key={c} className="rd-chip">
+                        {c}
+                      </span>
+                    ))}
                   </div>
-                  <div className="featured-meta">
-                    <span>{r.totalStages} Stages</span>
-                    <span>·</span>
-                    <span>{r.estimatedWeeks}</span>
-                  </div>
-                </div>
+                )}
+                <span className={isLive ? "rd-track-go" : "rd-track-go soon"}>
+                  {isLive ? `Open ${r.shortTitle} roadmap →` : "Coming soon"}
+                </span>
+              </>
+            );
 
-                <div className="featured-body">
-                  <h3 className="featured-title">{r.title}</h3>
-                  <div className="featured-role">{r.role}</div>
-                  <p className="featured-tagline">{r.tagline}</p>
-
-                  <div className="featured-stages-preview">
-                    <div className="preview-label">Curriculum Milestones:</div>
-                    <div className="preview-chips">
-                      {r.chips?.map((chip, idx) => (
-                        <span key={chip} className="preview-chip">
-                          <b>{idx + 1}.</b> {chip}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="featured-footer">
-                  <Link href={`/roadmaps/${r.id}`} className="btn dark" style={{ width: "100%", justifyContent: "center" }}>
-                    Open AI Engineer Roadmap →
-                  </Link>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        {/* Upcoming Roadmaps Section */}
-        <section style={{ marginTop: 60 }}>
-          <h2 className="section-title">upcoming roadmaps</h2>
-          <p className="section-sub">
-            Curated tracks currently in development for full-cycle platform mastery.
-          </p>
-
-          <div className="upcoming-cards-grid">
-            {upcomingRoadmaps.map((ur) => (
-              <article key={ur.id} className="upcoming-card">
-                <div className="upcoming-card-top">
-                  <span className="upcoming-badge">⏳ {ur.badge}</span>
-                  <span className="upcoming-stages">{ur.totalStages} Stages planned</span>
-                </div>
-                <h4 className="upcoming-title">{ur.title}</h4>
-                <div className="upcoming-role">{ur.role}</div>
-                <p className="upcoming-desc">{ur.tagline}</p>
-
-                <div className="card-chips" style={{ marginTop: "auto", paddingTop: 14 }}>
-                  {ur.chips?.map((c) => (
-                    <span key={c} className="chip">
-                      {c}
-                    </span>
-                  ))}
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
+            return isLive ? (
+              <Link
+                key={r.id}
+                href={`/roadmaps/${r.id}`}
+                className="rd-grid-card"
+                aria-label={`Open ${r.title}`}
+              >
+                {body}
+              </Link>
+            ) : (
+              <div
+                key={r.id}
+                className="rd-grid-card soon"
+                aria-label={`${r.title} — coming soon`}
+              >
+                {body}
+              </div>
+            );
+          })}
+        </div>
       </main>
 
       <footer>

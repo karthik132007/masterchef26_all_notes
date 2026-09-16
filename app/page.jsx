@@ -26,8 +26,7 @@ export default function Home() {
         links={[
           { href: "#courses", label: "tracks" },
           { href: "/roadmaps", label: "roadmaps 🗺️" },
-          { href: "#interview-prep", label: "interview drills" },
-          { href: "#method", label: "how to revise" },
+          { href: "/interview", label: "interview drills" },
         ]}
       />
 
@@ -54,9 +53,9 @@ export default function Home() {
             <Link className="btn yellow" href="/roadmaps">
               roadmaps 🗺️
             </Link>
-            <a className="btn pink" href="#interview-prep">
+            <Link className="btn pink" href="/interview">
               interview drills →
-            </a>
+            </Link>
           </div>
 
           <div className="hero-stats">
@@ -117,7 +116,7 @@ export default function Home() {
                 <span className="co-pill">NVIDIA</span>
               </div>
               <div style={{ marginTop: "auto", paddingTop: 10 }}>
-                <Link className="btn pink" style={{ width: "100%", justifyContent: "center", fontSize: 14 }} href="/courses/os/top-50-interview-questions">
+                <Link className="btn pink" style={{ width: "100%", justifyContent: "center", fontSize: 14 }} href="/interview/os">
                   Open OS Interview Drills →
                 </Link>
               </div>
@@ -144,7 +143,7 @@ export default function Home() {
                 <span className="co-pill">Tesla</span>
               </div>
               <div style={{ marginTop: "auto", paddingTop: 10 }}>
-                <Link className="btn" style={{ width: "100%", justifyContent: "center", fontSize: 14, background: "var(--lavender)" }} href="/courses/ml/top-50-interview-questions">
+                <Link className="btn" style={{ width: "100%", justifyContent: "center", fontSize: 14, background: "var(--lavender)" }} href="/interview/ml">
                   Open ML Interview Drills →
                 </Link>
               </div>
@@ -190,14 +189,9 @@ export default function Home() {
               Includes verified links to Andrew Ng&apos;s Coursera ML Specialization, DeepLearning.AI RAG & Multi-Agent courses, and PyTorch docs.
             </p>
             <div className="card-chips">
-              <span className="chip">Python & C++</span>
-              <span className="chip">SQL</span>
-              <span className="chip">Machine Learning</span>
-              <span className="chip">Deep Learning & PyTorch</span>
-              <span className="chip">GenAI</span>
-              <span className="chip">Advanced RAG</span>
-              <span className="chip">Agentic AI</span>
-              <span className="chip">AI System Design (HLD)</span>
+              <span className="chip">8 Sequential Stages</span>
+              <span className="chip">Python to Distributed Serving</span>
+              <span className="chip">Coursera & DeepLearning.AI Links</span>
             </div>
             <div style={{ marginTop: 6, display: "flex", gap: 10, flexWrap: "wrap" }}>
               <Link
@@ -333,7 +327,7 @@ export default function Home() {
           <span>
             <a href="#courses">tracks</a> ·{" "}
             <Link href="/roadmaps">roadmaps</Link> ·{" "}
-            <a href="#interview-prep">interview drills</a> ·{" "}
+            <Link href="/interview">interview drills</Link> ·{" "}
             <a
               href="https://github.com/karthik132007/masterchef26_all_notes"
               target="_blank"
