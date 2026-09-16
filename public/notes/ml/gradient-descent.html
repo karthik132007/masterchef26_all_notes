@@ -146,7 +146,7 @@ plt.show()
 
 <div class="callout exam"><b class="label">⭐ exam tip</b><br/>If asked to "write gradient descent for linear regression", give <b>all three blocks: model + cost + both updates with expanded sums</b> and mention <b>simultaneous update</b>. Two update lines without the cost = half marks. Bonus: add "convex → one global minimum".</div>
 
-<div class="callout gotcha"><b class="label">⚠️ gotcha</b><br/><b>Update w and b simultaneously</b> from the <i>old</i> values each iteration. Code pattern wrong: $w -= \alpha\cdot dw; dj_db = ... using new w \to bug$. Always compute <code>dj_dw, dj_db</code> first, then update both.</div>
+<div class="callout gotcha"><b class="label">⚠️ gotcha</b><br/><b>Update w and b simultaneously</b> from the <i>old</i> values each iteration. Code pattern wrong: $w \mathrel{-}= \alpha\cdot dw$; computing <code>dj_db</code> using the new $w$ causes a bug. Always compute <code>dj_dw, dj_db</code> first, then update both.</div>
 
 <details class="ml-try"><summary>🔬 try it: one step by hand</summary>
 <p>One dot (x=2, y=4). Start w=0, b=0, α=0.1. f=0, miss=−4. ∂J/∂w = −4·2 = −8 → w := 0 − 0.1·(−8) = <b>0.8</b>. ∂J/∂b = −4 → b := 0 − 0.1·(−4) = <b>0.4</b>. New f(2) = 2.0 — miss shrank from 4 to 2 in <b>one step</b>. Try α=1.0 → w=8 → f=16 → miss 12 → worse! Feel α.</p>

@@ -166,7 +166,7 @@
   <line x1="435" y1="175" x2="685" y2="175" stroke="#eee" stroke-width="1.5"/>
 
   <text x="435" y="195" font-size="11" font-weight="700" fill="#2b8a3e">✓ Adding / Removing a Server:</text>
-  <text x="435" y="213" font-size="10" fill="#555">Only $\mathbf{1/N}$ of keys migrate!</text>
+  <text x="435" y="213" font-size="10" fill="#555">Only 1/N of keys migrate!</text>
   <text x="435" y="230" font-size="10" fill="#555">All other servers remain 100% untouched.</text>
   <text x="435" y="247" font-size="10" fill="#d9480f">Zero full-cluster data reshuffling.</text>
 </svg>
@@ -225,7 +225,7 @@
     <p>If you shard <code>users</code> by <code>user_id</code>, how do you handle login: <code>SELECT * WHERE email = 'alice@gmail.com'</code>?</p>
     <p><b>Defenses:</b><br />
     • <b>Scatter-Gather (Anti-pattern at scale):</b> Broadcast the query to all 50 shards in parallel. Latency equals the slowest shard in the cluster.<br />
-    • <b>Global Index Lookup Table:</b> Maintain a separate key-value table mapping <code>email $\to$ user_id</code> cached in Redis. Look up the ID first, then do a direct single-shard lookup.</p>
+    • <b>Global Index Lookup Table:</b> Maintain a separate key-value table mapping <code>email → user_id</code> cached in Redis. Look up the ID first, then do a direct single-shard lookup.</p>
   </div>
   <div class="sh-card">
     <h4>4. Online Zero-Downtime Resharding</h4>

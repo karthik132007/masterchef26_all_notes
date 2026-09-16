@@ -70,7 +70,7 @@ $$J(w,b) = -\frac{1}{m}\sum_{i=1}^{m}\left[y^{(i)}\log f^{(i)} + (1-y^{(i)})\log
 $$\begin{aligned} w &:= w - \alpha\frac{1}{m}\sum_{i}\left(f^{(i)}-y^{(i)}\right)x^{(i)} \\ b &:= b - \alpha\frac{1}{m}\sum_{i}\left(f^{(i)}-y^{(i)}\right) \quad \text{(same as linear, }f\text{ is sigmoid)}\end{aligned}$$
 <table>
   <tr><th></th><th>linear</th><th>logistic</th></tr>
-  <tr><td><b>f</b></td><td>$w\cdot x + b$</td><td>$1/(1+e^(-(w\cdot x+b)))$</td></tr>
+  <tr><td><b>f</b></td><td>$w\cdot x + b$</td><td>$\frac{1}{1+e^{-(w\cdot x+b)}}$</td></tr>
   <tr><td><b>outputs</b></td><td>any number</td><td>0 → 1 (probability)</td></tr>
   <tr><td><b>loss</b></td><td>squared error</td><td>log loss (cross-entropy)</td></tr>
   <tr><td><b>update</b></td><td colspan="2" style="text-align:center;">$- \alpha\cdot avg(miss\cdot x)$ — same skeleton!</td></tr>

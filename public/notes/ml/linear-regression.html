@@ -69,7 +69,7 @@ details.ml-try summary{font-weight:700;cursor:pointer}
 <div class="callout remember"><b class="label">🧷 remember</b><br/><b>w tilts, b lifts.</b> Say it while looking at the two graphs above and you will never mix them again.</div>
 
 <h2>why a straight line? when does it work, when does it break?</h2>
-<p>Linear regression assumes the true relationship is <b>roughly linear</b> plus noise: $y = w_true\cdot x + b_true + \epsilon$. When that's true (house price vs size, temperature vs ice-cream sales), it's near-optimal and beautifully interpretable. When the truth is curved (circles, S-shapes), it underfits — that's your cue for polynomial features, trees or SVM kernels later in the track.</p>
+<p>Linear regression assumes the true relationship is <b>roughly linear</b> plus noise: $y = w_{\text{true}}\cdot x + b_{\text{true}} + \epsilon$. When that's true (house price vs size, temperature vs ice-cream sales), it's near-optimal and beautifully interpretable. When the truth is curved (circles, S-shapes), it underfits — that's your cue for polynomial features, trees or SVM kernels later in the track.</p>
 <table>
 <tr><th>works great</th><th>fails / underfits</th></tr>
 <tr><td>price ∝ size, salary ∝ experience, weight ∝ height</td><td>ring data (inside vs outside circle), XOR, S-curves</td></tr>

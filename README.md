@@ -61,6 +61,25 @@ npm run dev     # http://localhost:3000
 npm run build   # verify production build
 ```
 
+## writing and checking math
+
+Use `$...$` or `\(...\)` for inline math and `$$...$$` or `\[...\]`
+for display equations. Keep each complete expression in one HTML element;
+do not wrap parts of a formula in HTML tags. Escape HTML characters such as
+`<` as `&lt;`, and group multi-character subscripts/exponents with braces.
+
+Code blocks and SVG text are not processed by KaTeX. Use literal symbols
+there (for example, `φ`, `τ`, and `→`), or move equations into surrounding
+HTML. Wrap currency text in `<span class="katex-ignore">$0.05</span>`.
+
+The browser regression suite audits every HTML note with the frontend renderer
+and checks that formulas survive filtering, scrolling, navigation, and widgets:
+
+```bash
+npx playwright install chromium   # once
+npm run test:math                 # starts/reuses the local dev server
+```
+
 ## deploy (vercel)
 
 Import the repo → framework preset: **Next.js** → defaults. No env vars, no backend.
