@@ -61,12 +61,12 @@ $$F_{1}=\frac{2PR}{P+R}\qquad \frac{1}{F_{1}}=\tfrac12\!\left(\tfrac1P+\tfrac1R\
 <p>Straight from your page 21: <b>algo 1 wins on F1</b> even though algo 3 has shiniest precision. F1 drags show-offs back to earth. If you care more about recall (disease) you can weight it → <code>Fβ</code>, but F1 is default.</p>
 
 <h2>threshold trade-off — moving the 0.5 line</h2>
-<p>Logistic/SVM give scores/probabilities; threshold <code>\tau</code> turns them into labels ($\ge \tau \to 1$). Sliding \tau traces the <b>Precision-Recall curve</b>:</p>
+<p>Logistic/SVM give scores/probabilities; threshold $\tau$ turns them into labels ($\ge \tau \to 1$). Sliding $\tau$ traces the <b>Precision-Recall curve</b>:</p>
 <div class="split-grid">
-  <div class="mini-card"><h4>\tau high (e.g. 0.8)</h4><p style="margin:0;font-size:14px;line-height:1.5">Only very confident → <b>precision ↑, recall ↓</b>. Few alarms, mostly correct, many missed.</p></div>
-  <div class="mini-card"><h4>\tau low (e.g. 0.2)</h4><p style="margin:0;font-size:14px;line-height:1.5">Even unsure → alarm → <b>recall ↑, precision ↓</b>. Catches everyone, many false alarms.</p></div>
+  <div class="mini-card"><h4>$\tau$ high (e.g. 0.8)</h4><p style="margin:0;font-size:14px;line-height:1.5">Only very confident → <b>precision ↑, recall ↓</b>. Few alarms, mostly correct, many missed.</p></div>
+  <div class="mini-card"><h4>$\tau$ low (e.g. 0.2)</h4><p style="margin:0;font-size:14px;line-height:1.5">Even unsure → alarm → <b>recall ↑, precision ↓</b>. Catches everyone, many false alarms.</p></div>
 </div>
-<p>Pick \tau on <b>validation</b> to maximize F1 (or business cost). That is why your notes' 3-algo table is really a 3-threshold story.</p>
+<p>Pick $\tau$ on <b>validation</b> to maximize F1 (or business cost). That is why your notes' 3-algo table is really a 3-threshold story.</p>
 
 <h2>python from scratch — no sklearn.metrics needed</h2>
 
@@ -103,7 +103,7 @@ y_lazy = np.zeros(<span class="tok-num">100</span>, dtype=<span class="tok-built
 <span class="tok-cmt"># P=0.5 R=0.9 → F1=0.643 ★ winner (balanced)</span>
 </code></pre></div>
 
-<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — sweep threshold → best F1</span></div><pre><code><span class="tok-cmt"># logistic scores → pick \tau that maximizes F1</span>
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — sweep threshold → best F1</span></div><pre><code><span class="tok-cmt"># logistic scores → pick τ that maximizes F1</span>
 y_true = np.array([<span class="tok-num">1</span>,<span class="tok-num">0</span>,<span class="tok-num">1</span>,<span class="tok-num">1</span>,<span class="tok-num">0</span>,<span class="tok-num">0</span>,<span class="tok-num">1</span>,<span class="tok-num">0</span>])
 scores = np.array([<span class="tok-num">0.92</span>,<span class="tok-num">0.45</span>,<span class="tok-num">0.60</span>,<span class="tok-num">0.81</span>,<span class="tok-num">0.30</span>,<span class="tok-num">0.55</span>,<span class="tok-num">0.70</span>,<span class="tok-num">0.10</span>])
 
@@ -111,9 +111,9 @@ best_f1, best_t = <span class="tok-num">0</span>, <span class="tok-num">0.5</spa
 <span class="tok-kw">for</span> t <span class="tok-kw">in</span> np.linspace(<span class="tok-num">0.1</span>,<span class="tok-num">0.9</span>,<span class="tok-num">9</span>):
     pred = (scores &gt;= t).astype(<span class="tok-builtin">int</span>)
     _,_,f1 = <span class="tok-fn">precision_recall_f1</span>(y_true, pred)
-    <span class="tok-builtin">print</span>(<span class="tok-str">f"\tau={t:.1f} → F1={f1:.3f}"</span>)
+    <span class="tok-builtin">print</span>(<span class="tok-str">f"τ={t:.1f} → F1={f1:.3f}"</span>)
     <span class="tok-kw">if</span> f1 &gt; best_f1: best_f1, best_t = f1, t
-<span class="tok-builtin">print</span>(<span class="tok-str">f"★ best \tau={best_t:.2f} (F1={best_f1:.3f})"</span>)
+<span class="tok-builtin">print</span>(<span class="tok-str">f"★ best τ={best_t:.2f} (F1={best_f1:.3f})"</span>)
 
 <span class="tok-cmt"># also: sklearn's roc_auc_score, average_precision_score do similar — but now you know what's inside</span>
 </code></pre></div>
@@ -130,7 +130,7 @@ best_f1, best_t = <span class="tok-num">0</span>, <span class="tok-num">0.5</spa
 
 <h2>quick check</h2>
 <ul>
-  <li><b>FP vs FN — which kills in disease screening?</b> FN (missed sick). Recall is life-saver there → you'd lower \tau.</li>
+  <li><b>FP vs FN — which kills in disease screening?</b> FN (missed sick). Recall is life-saver there → you'd lower $\tau$.</li>
   <li><b>Perfect model — P,R,F1?</b> All 1.0. Only TP+TN, no FP/FN.</li>
   <li><b>Why harmonic not plain mean?</b> Plain mean rewards "great at one, awful at other". Harmonic demands both.</li>
   <li><b>When to weight recall over precision?</b> Disease, fraud, safety — where missing a positive is catastrophic.</li>

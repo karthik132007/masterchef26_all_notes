@@ -96,7 +96,7 @@
     <td>Malicious or rogue traffic requests keys that <b>do not exist in the DB</b> (e.g. <code>user_id = -99999</code>). The cache misses every time, forwarding 100% of queries directly to the DB, causing database CPU starvation.</td>
     <td>
       1. <b>Bloom Filter:</b> Place a space-efficient Bloom Filter in front of the cache. If the filter says the key does not exist, reject it immediately ($O(1)$ bit check).<br/>
-      2. <b>Cache Null Objects:</b> On a DB miss, store <code>key $\to$ null</code> in Redis with a short TTL (e.g. 30 seconds).
+      2. <b>Cache Null Objects:</b> On a DB miss, store <code>key → null</code> in Redis with a short TTL (e.g. 30 seconds).
     </td>
   </tr>
   <tr>

@@ -48,6 +48,11 @@ export default function CourseView({ course, day, hasPlan }) {
   const [query, setQuery] = useState("");
   const [drawer, setDrawer] = useState(false);
 
+  // React compares this object by identity. Recreating it on scroll/filter
+  // updates resets innerHTML and removes KaTeX's DOM (and widget state),
+  // even though the note HTML itself has not changed.
+  const noteMarkup = useMemo(() => ({ __html: html }), [html]);
+
   const clickedIdRef = useRef(null);
   const clickTimerRef = useRef(null);
   const tocRef = useRef(null);
@@ -229,6 +234,10 @@ export default function CourseView({ course, day, hasPlan }) {
     const el = articleRef.current || document.querySelector(".note-body, .plan-body");
     if (!el) return;
 
+    // Install before note scripts run so widgets can render their initial output.
+    const renderNoteMath = (target) => applyKaTeX(target || el);
+    window.renderKaTeX = renderNoteMath;
+
     // Execute any script tags inside note HTML so interactive widgets work
     el.querySelectorAll("script").forEach((oldScript) => {
       const newScript = document.createElement("script");
@@ -241,9 +250,6 @@ export default function CourseView({ course, day, hasPlan }) {
 
     // Apply KaTeX immediately across the full article
     applyKaTeX(el);
-
-    // Expose globally so interactive widgets can re-trigger math rendering if needed
-    window.renderKaTeX = (target) => applyKaTeX(target || el);
 
     // Capture toggle events on <details> (toggle event doesn't bubble, so capture: true is mandatory)
     const handleToggle = (e) => {
@@ -261,6 +267,9 @@ export default function CourseView({ course, day, hasPlan }) {
     return () => {
       cancelAnimationFrame(raf);
       el.removeEventListener("toggle", handleToggle, true);
+      if (window.renderKaTeX === renderNoteMath) {
+        delete window.renderKaTeX;
+      }
     };
   }, [html]);
 
@@ -399,7 +408,7 @@ export default function CourseView({ course, day, hasPlan }) {
               <article
                 ref={articleRef}
                 className={day === "plan" ? "plan-body" : "note-body"}
-                dangerouslySetInnerHTML={{ __html: html }}
+                dangerouslySetInnerHTML={noteMarkup}
               />
             )}
           </div>

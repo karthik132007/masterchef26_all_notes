@@ -126,7 +126,7 @@ X_toy = (X_toy - X_toy.mean(axis=<span class="tok-num">0</span>)) / X_toy.std(ax
 </code></pre></div>
 
 <h2>how to pick λ — validation curve intuition</h2>
-<p>Try $\lambda \in {0, 0.01, 0.1, 1, 10, 100}$, train on train, score F1/accuracy on validation, pick the sweet spot where validation is best (the demo above shows it ≈1). Rule:</p>
+<p>Try $\lambda \in \{0, 0.01, 0.1, 1, 10, 100\}$, train on train, score F1/accuracy on validation, pick the sweet spot where validation is best (the demo above shows it ≈1). Rule:</p>
 <ul>
   <li>train error low + val error high → λ too small (overfit) → increase λ.</li>
   <li>train and val both high → λ too big (underfit) → decrease λ.</li>
