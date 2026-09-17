@@ -3,7 +3,7 @@ import Navbar from "../../components/Navbar";
 import { interviewTracks } from "../../lib/interview";
 
 export const metadata = {
-  title: "Interview Prep — Nexora",
+  title: "Interview Prep — Riviso",
   description:
     "FAANG & Frontier AI interview drills for Operating Systems and Machine Learning. Pause, reason, then open the breakdown.",
 };
@@ -63,7 +63,7 @@ export default function InterviewIndexPage() {
       <footer>
         <div className="wrap">
           <span>
-            <b>Nexora</b> · interview drills & revision
+            <b>Riviso</b> · interview drills & revision
           </span>
           <span>
             <a href="/">home</a> · <a href="/roadmaps">roadmaps</a> ·{" "}

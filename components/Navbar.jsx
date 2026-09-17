@@ -16,10 +16,10 @@ export default function Navbar({ links }) {
   return (
     <nav className="nav">
       <div className="nav-inner">
-        <Link className="logo" href="/" aria-label="Nexora home">
-          <span className="logo-mark">N</span>
+        <Link className="logo" href="/" aria-label="Riviso home">
+          <span className="logo-mark">R</span>
           <span className="logo-text">
-            <b>Nexora</b>
+            <b>Riviso</b>
             <span>field notes for sharper minds</span>
           </span>
         </Link>

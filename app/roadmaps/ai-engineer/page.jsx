@@ -5,7 +5,7 @@ import { getRoadmap } from "../../../lib/roadmaps";
 import { notFound } from "next/navigation";
 
 export const metadata = {
-  title: "AI Engineer Roadmap — Nexora",
+  title: "AI Engineer Roadmap — Riviso",
   description:
     "8-stage curriculum for AI Engineers: Python & C++, SQL, ML, Deep Learning & PyTorch, GenAI, RAG, Agentic AI and AI System Design with verified resources.",
 };
@@ -83,7 +83,7 @@ export default function AiEngineerRoadmapPage() {
       <footer>
         <div className="wrap">
           <span>
-            <b>Nexora</b> · AI Engineer Roadmap · clean engineering curriculum
+            <b>Riviso</b> · AI Engineer Roadmap · clean engineering curriculum
           </span>
           <span>
             <a href="/">home</a> · <a href="/roadmaps">roadmaps</a> ·{" "}

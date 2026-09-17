@@ -17,7 +17,7 @@ export async function generateMetadata({ params }) {
   const track = getInterviewTrack(id);
   if (!track) return {};
   return {
-    title: `${track.title} Interview Drills — Nexora`,
+    title: `${track.title} Interview Drills — Riviso`,
     description: `Top ${track.questions} ${track.title} interview questions with breakdowns. ${track.tagline}`,
   };
 }
@@ -78,7 +78,7 @@ export default async function InterviewTrackPage({ params }) {
         <footer>
           <div className="wrap">
             <span>
-              <b>Nexora</b> · {track.short} interview bank · {year}
+              <b>Riviso</b> · {track.short} interview bank · {year}
             </span>
             <span>
               <a href="/">home</a> · <a href="/interview">all drills</a> ·{" "}
@@ -106,7 +106,7 @@ export default async function InterviewTrackPage({ params }) {
       <footer>
         <div className="wrap">
           <span>
-            <b>Nexora</b> · {track.short} interview drills · {year}
+            <b>Riviso</b> · {track.short} interview drills · {year}
           </span>
           <span>
             <a href="/">home</a> · <a href="/interview">all drills</a> ·{" "}

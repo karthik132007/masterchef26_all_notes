@@ -6,10 +6,10 @@ export default function SiteFooter() {
       <div className="wrap nx-footer-grid">
         {/* Left: Brand */}
         <div className="nx-footer-brand">
-          <Link className="nx-logo" href="/" aria-label="Nexora home">
-            <span className="nx-logo-mark">N</span>
+          <Link className="nx-logo" href="/" aria-label="Riviso home">
+            <span className="nx-logo-mark">R</span>
             <span className="nx-logo-text">
-              <b>Nexora</b>
+              <b>Riviso</b>
               <span>field notes for sharper minds</span>
             </span>
           </Link>

@@ -1,4 +1,4 @@
-# Nexora — engineering notes & rapid revision 📓
+# Riviso — engineering notes & rapid revision 📓
 
 Day-wise + concept-wise class notes. **Next.js** site, **plain HTML** notes, no backend. Deploys on Vercel as-is.
 

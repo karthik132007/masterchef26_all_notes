@@ -3,7 +3,7 @@ import Navbar from "../../components/Navbar";
 import { getAllRoadmaps } from "../../lib/roadmaps";
 
 export const metadata = {
-  title: "Engineering Roadmaps — Nexora",
+  title: "Engineering Roadmaps — Riviso",
   description:
     "Opinionated, step-by-step curriculum roadmaps for AI Engineering, Backend, Systems and Software Engineering with verified resources.",
 };
@@ -100,7 +100,7 @@ export default function RoadmapsIndexPage() {
       <footer>
         <div className="wrap">
           <span>
-            <b>Nexora</b> · engineering roadmaps & revision
+            <b>Riviso</b> · engineering roadmaps & revision
           </span>
           <span>
             <a href="/">home</a> · <a href="/#courses">tracks</a> ·{" "}

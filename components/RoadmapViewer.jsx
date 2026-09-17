@@ -295,7 +295,7 @@ export default function RoadmapViewer({ roadmap }) {
                     className="rdv-nexora"
                   >
                     <span>
-                      <b>Nexora field notes</b>
+                      <b>Riviso field notes</b>
                       {active.nexoraCourseLink.title}
                     </span>
                     <span className="rdv-open">

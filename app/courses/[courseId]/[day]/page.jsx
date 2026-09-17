@@ -28,8 +28,8 @@ export async function generateMetadata({ params }) {
   const course = getCourse(courseId);
   if (!course) return {};
   return {
-    title: `${entryLabel(course, day)} · ${course.title} — Nexora`,
-    description: `${entryLabel(course, day)} notes for ${course.title}. High-velocity engineering revision.`,
+    title: `${entryLabel(course, day)} · ${course.title} — Riviso`,
+    description: `Rapid revision notes for ${entryLabel(course, day)}: ${course.title}.`,
   };
 }
 
@@ -74,7 +74,7 @@ export default async function DayPage({ params }) {
       <footer>
         <div className="wrap">
           <span>
-            <b>Nexora</b> · {course.short} · {year} · spotted an error?
+            <b>Riviso</b> · {course.short} · {year} · spotted an error?
             fix the html, push, done.
           </span>
           <span>
