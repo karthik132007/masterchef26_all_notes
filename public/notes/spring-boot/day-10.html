@@ -1,0 +1,61 @@
+<p class="kicker">production readiness is a collection of small decisions that make failure visible and recoverable.</p>
+
+<h2>today's outcome</h2>
+<p>Review the complete Spring Boot path and prepare a service that can be tested, configured, monitored, packaged, and operated safely.</p>
+<figure style="margin:18px 0;text-align:center;"><img src="/notes/spring-boot/resources/day-10-01-spring-production-map.png" alt="Complete Spring Boot production map from client and gateway to service and database" style="width:100%;height:auto;border:2px solid var(--ink);border-radius:14px;box-shadow:4px 4px 0 var(--ink);" /><figcaption>The full path connects HTTP, Spring, persistence, and production operations.</figcaption></figure>
+
+<h2>the full mental model</h2>
+<pre>Client
+  ↓
+Gateway
+  ↓
+Discovery → logical service name → instance selection
+  ↓
+Controller → Service → Repository
+  ↓
+Spring Data JPA → Hibernate → JDBC → Database</pre>
+
+<h2>production checklist</h2>
+<ul>
+  <li>Use DTOs and validate request data at the HTTP boundary.</li>
+  <li>Keep business rules in services, not controllers.</li>
+  <li>Keep database credentials and environment values outside Git.</li>
+  <li>Use transactions around coherent database operations.</li>
+  <li>Set timeouts for network calls.</li>
+  <li>Expose only the actuator endpoints that operators need.</li>
+  <li>Log enough context to trace a request without logging secrets.</li>
+  <li>Paginate collection endpoints and index common database lookups.</li>
+</ul>
+
+<h2>testing layers</h2>
+<table>
+  <tr><th>Test</th><th>What it protects</th></tr>
+  <tr><td>Unit test</td><td>One class or business rule in isolation.</td></tr>
+  <tr><td>Web slice test</td><td>Controller serialization, validation, and HTTP behavior.</td></tr>
+  <tr><td>Repository test</td><td>Queries and entity mappings against a database.</td></tr>
+  <tr><td>Integration test</td><td>Several application layers working together.</td></tr>
+  <tr><td>End-to-end test</td><td>A realistic client journey through the running system.</td></tr>
+</table>
+<p>Use the official <a href="https://docs.spring.io/spring-boot/reference/testing/" target="_blank" rel="noopener">Spring Boot testing documentation</a> as the detailed reference. Start with one test at the layer where a failure would be easiest to diagnose.</p>
+
+<h2>package and run</h2>
+<pre>./mvnw test
+./mvnw package
+java -jar target/app.jar
+
+# override configuration without editing source
+java -jar target/app.jar --server.port=8081</pre>
+<p>Spring Boot applications can run as executable JARs. The <a href="https://docs.spring.io/spring-boot/reference/using/build-systems.html" target="_blank" rel="noopener">official build systems guide</a> explains Maven and Gradle integration.</p>
+
+<h2>trade-offs to remember</h2>
+<ul>
+  <li>JPA increases productivity but does not eliminate SQL knowledge.</li>
+  <li>Microservices increase independent deployment but add network and operational failure modes.</li>
+  <li>Eureka teaches discovery; it is not the only discovery mechanism used in production.</li>
+  <li>A gateway centralizes traffic policy; it should not become a second monolith.</li>
+</ul>
+
+<div class="callout try"><b class="label">🔬 final exercise</b><br />Explain the request path from Postman to the database without looking at the code. Then identify where validation, business logic, persistence, discovery, load balancing, timeout handling, and observability happen.</div>
+
+<h2>next two classes</h2>
+<p>Days 11 and 12 are reserved for the final project. Their notes will stay as placeholders until the project requirements are decided.</p>
