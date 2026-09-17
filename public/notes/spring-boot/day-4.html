@@ -1,0 +1,72 @@
+<p class="kicker">an HTTP request becomes useful when we give it a route, a contract, and a meaningful status code.</p>
+
+<h2>today's outcome</h2>
+<p>Build a first REST API and trace a request through Spring MVC: client → DispatcherServlet → controller → service → response.</p>
+
+<h2>create the project</h2>
+<p>Open <a href="https://start.spring.io" target="_blank" rel="noopener">Spring Initializr</a>. Select Maven, Java, Java 17 or later, add <b>Spring Web</b>, generate the ZIP, extract it, and open the folder in IntelliJ. The official <a href="https://spring.io/guides/gs/rest-service/" target="_blank" rel="noopener">Building a RESTful Web Service guide</a> follows the same path.</p>
+<figure style="margin:18px 0;text-align:center;"><img src="/notes/spring-boot/resources/day-4-01-spring-initializr-steps.png" alt="Three steps for creating a Spring Boot project with Spring Initializr" style="width:100%;height:auto;border:2px solid var(--ink);border-radius:14px;box-shadow:4px 4px 0 var(--ink);" /><figcaption>Choose the build options, add Spring Web, generate, and open the project.</figcaption></figure>
+<ol>
+  <li>Run the generated application.</li>
+  <li>Confirm the embedded server starts on port 8080.</li>
+  <li>Use Postman or a browser to call the first endpoint.</li>
+</ol>
+
+<h2>the request pipeline</h2>
+<figure style="margin:18px 0;text-align:center;"><img src="/notes/spring-boot/resources/day-4-02-spring-mvc-flow.png" alt="Spring MVC request flow from client through DispatcherServlet, controller, and service" style="width:100%;height:auto;border:2px solid var(--ink);border-radius:14px;box-shadow:4px 4px 0 var(--ink);" /><figcaption>Spring MVC routes an HTTP request to the right controller method.</figcaption></figure>
+<pre>HTTP request
+    ↓
+DispatcherServlet
+    ↓
+Controller method
+    ↓
+Service method
+    ↓
+JSON response + HTTP status</pre>
+
+<h2>first controller</h2>
+<pre>@RestController
+@RequestMapping("/students")
+public class StudentController {
+    @GetMapping("/{id}")
+    public StudentResponse getStudent(@PathVariable Long id) {
+        return new StudentResponse(id, "Anurag", "anurag@example.com");
+    }
+}
+
+public record StudentResponse(
+    Long id,
+    String name,
+    String email
+) {}
+</pre>
+
+<h2>the endpoint vocabulary</h2>
+<table>
+  <tr><th>Annotation</th><th>Use</th></tr>
+  <tr><td><code>@GetMapping</code></td><td>Read a resource.</td></tr>
+  <tr><td><code>@PostMapping</code></td><td>Create a resource.</td></tr>
+  <tr><td><code>@PutMapping</code></td><td>Replace a resource.</td></tr>
+  <tr><td><code>@PatchMapping</code></td><td>Partially update a resource.</td></tr>
+  <tr><td><code>@DeleteMapping</code></td><td>Delete a resource.</td></tr>
+  <tr><td><code>@RequestBody</code></td><td>Read JSON from the request body.</td></tr>
+  <tr><td><code>@RequestParam</code></td><td>Read a query parameter such as <code>?branch=CSE</code>.</td></tr>
+  <tr><td><code>@PathVariable</code></td><td>Read a path value such as <code>/students/12</code>.</td></tr>
+</table>
+
+<h2>status codes are part of the API</h2>
+<ul>
+  <li><code>200 OK</code> for a successful read or update.</li>
+  <li><code>201 Created</code> after creating a resource.</li>
+  <li><code>204 No Content</code> when success has no response body.</li>
+  <li><code>400 Bad Request</code> when the client sends invalid input.</li>
+  <li><code>404 Not Found</code> when the resource does not exist.</li>
+</ul>
+<div class="callout remember"><b class="label">🧷 remember</b><br />A REST endpoint is a contract: method, URL, request shape, response shape, and status code.</div>
+
+<h2>practice</h2>
+<ol>
+  <li>Add list, create, update, and delete endpoints using an in-memory list.</li>
+  <li>Test every endpoint in Postman and record request/response examples.</li>
+  <li>Move the list operations into a separate <code>@Service</code> class.</li>
+</ol>

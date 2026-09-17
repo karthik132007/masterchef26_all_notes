@@ -6,9 +6,9 @@ import {
   courses,
   getCourse,
   getEntrySlugs,
-  entryLabel,
   isConceptCourse,
 } from "../../../../lib/courses";
+import { displayEntryLabel } from "../../../../lib/courseLabels";
 
 function planPath(courseId) {
   return join(process.cwd(), "public", "notes", courseId, "plan.html");
@@ -28,8 +28,8 @@ export async function generateMetadata({ params }) {
   const course = getCourse(courseId);
   if (!course) return {};
   return {
-    title: `${entryLabel(course, day)} · ${course.title} — Riviso`,
-    description: `Rapid revision notes for ${entryLabel(course, day)}: ${course.title}.`,
+    title: `${displayEntryLabel(course, day)} · ${course.title} — Riviso`,
+    description: `Rapid revision notes for ${displayEntryLabel(course, day)}: ${course.title}.`,
   };
 }
 

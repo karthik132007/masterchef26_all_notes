@@ -1,0 +1,75 @@
+<p class="kicker">Spring's main feature is not an annotation; it is letting the container manage relationships.</p>
+
+<h2>today's outcome</h2>
+<p>You will understand Spring IoC, dependency injection, beans, component scanning, and what Spring Boot adds on top of the Spring Framework.</p>
+<figure style="margin:18px 0;text-align:center;"><img src="/notes/spring-boot/resources/day-3-01-spring-ioc-di.png" alt="Spring IoC container creating beans and injecting dependencies" style="width:100%;height:auto;border:2px solid var(--ink);border-radius:14px;box-shadow:4px 4px 0 var(--ink);" /><figcaption>The container creates beans and supplies their required dependencies.</figcaption></figure>
+
+<h2>the problem without Spring</h2>
+<pre>public class OrderService {
+    private final PaymentService paymentService = new PaymentService();
+}
+</pre>
+<p>This class chooses the concrete dependency, constructs it, and owns its lifecycle. Testing and replacing that dependency becomes harder.</p>
+
+<h2>inversion of control</h2>
+<p>With IoC, your application does not create every object itself. The Spring container creates configured objects, called <b>beans</b>, and supplies their dependencies.</p>
+<pre>Spring container
+  PaymentService bean
+          ↓
+  OrderService bean
+          ↓
+  OrderController bean</pre>
+
+<h2>constructor injection</h2>
+<pre>@Service
+public class OrderService {
+    private final PaymentService paymentService;
+
+    public OrderService(PaymentService paymentService) {
+        this.paymentService = paymentService;
+    }
+}
+</pre>
+<p>Constructor injection makes required dependencies explicit, supports immutable fields, and makes unit tests straightforward.</p>
+<div class="callout gotcha"><b class="label">⚠️ gotcha</b><br />Do not add <code>new PaymentService()</code> inside a Spring-managed class when you expect Spring configuration, proxies, or injected dependencies to apply.</div>
+
+<h2>common bean annotations</h2>
+<table>
+  <tr><th>Annotation</th><th>Role</th></tr>
+  <tr><td><code>@Component</code></td><td>General Spring-managed component.</td></tr>
+  <tr><td><code>@Service</code></td><td>Component whose role is application/business logic.</td></tr>
+  <tr><td><code>@Repository</code></td><td>Component used for persistence access.</td></tr>
+  <tr><td><code>@Controller</code></td><td>MVC controller that returns a view.</td></tr>
+  <tr><td><code>@RestController</code></td><td>Controller whose return values become response bodies.</td></tr>
+  <tr><td><code>@Configuration</code> + <code>@Bean</code></td><td>Explicit Java configuration.</td></tr>
+</table>
+
+<h2>what spring boot adds</h2>
+<pre>Spring Framework
+       +
+Auto-configuration
+       +
+Starter dependencies
+       +
+Embedded server
+       +
+Opinionated defaults
+       =
+Spring Boot</pre>
+<p>Boot aims to create stand-alone, production-grade Spring applications with minimal configuration. Read the official <a href="https://docs.spring.io/spring-boot/reference/" target="_blank" rel="noopener">Spring Boot reference</a> for the full feature map.</p>
+
+<h2>springapplication</h2>
+<pre>@SpringBootApplication
+public class StudentApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(StudentApplication.class, args);
+    }
+}</pre>
+<p>Conceptually, <code>@SpringBootApplication</code> combines configuration, auto-configuration, and component scanning. It is a convenient starting point, not magic that replaces understanding.</p>
+
+<h2>practice</h2>
+<ol>
+  <li>Create an interface <code>PaymentGateway</code> and inject it into <code>OrderService</code>.</li>
+  <li>Create two implementations and select one with a qualifier or configuration.</li>
+  <li>Write a unit test that supplies a fake payment gateway without starting the Spring server.</li>
+</ol>
