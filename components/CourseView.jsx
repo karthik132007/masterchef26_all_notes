@@ -4,10 +4,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   getEntrySlugs,
-  entryLabel,
   entryNumber,
   isConceptCourse,
 } from "../lib/courses";
+import { displayEntryLabel } from "../lib/courseLabels";
 import renderMathInElement from "katex/contrib/auto-render";
 
 // Give every h2 in a note fragment a stable id and return the
@@ -37,6 +37,69 @@ function withHeadingIds(fragment) {
     items.push({ id: slug, label });
   });
   return { html: tpl.innerHTML, items };
+}
+
+function escapeCodeHtml(value) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function highlightCode(source) {
+  const tokenPattern = /(\"(?:\\.|[\"\\])*\"|'(?:\\.|[^'\\])*'|\/\/[^\n]*|#[^\n]*|--[^\n]*|\/\*[\s\S]*?\*\/|@\w+|\b\d+(?:\.\d+)?\b|\b(?:abstract|ALTER|ArrayList|boolean|class|const|CREATE|DELETE|DROP|else|extends|final|findAll|findById|FROM|for|GET|if|implements|import|INSERT|interface|int|new|null|Optional|package|POST|private|protected|public|PUT|return|SELECT|static|String|throw|try|UPDATE|void|WHERE|while)\b)/g;
+  let output = "";
+  let cursor = 0;
+
+  for (const match of source.matchAll(tokenPattern)) {
+    const token = match[0];
+    const index = match.index ?? 0;
+    output += escapeCodeHtml(source.slice(cursor, index));
+
+    let type = "keyword";
+    if (/^(\/\/|#|--|\/\*)/.test(token)) type = "comment";
+    else if (/^[\"']/.test(token)) type = "string";
+    else if (/^@/.test(token)) type = "annotation";
+    else if (/^\d/.test(token)) type = "number";
+
+    output += `<span class="tok-${type}">${escapeCodeHtml(token)}</span>`;
+    cursor = index + token.length;
+  }
+
+  return output + escapeCodeHtml(source.slice(cursor));
+}
+
+function enhanceCodeBlocks(root) {
+  root.querySelectorAll("pre").forEach((pre) => {
+    if (pre.dataset.codeEnhanced === "true") return;
+
+    const source = pre.textContent || "";
+    const code = document.createElement("code");
+    code.innerHTML = highlightCode(source);
+
+    const copyButton = document.createElement("button");
+    copyButton.type = "button";
+    copyButton.className = "copy-code";
+    copyButton.textContent = "copy";
+    copyButton.setAttribute("aria-label", "Copy code");
+    copyButton.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(source);
+        copyButton.textContent = "copied!";
+        setTimeout(() => {
+          copyButton.textContent = "copy";
+        }, 1400);
+      } catch {
+        copyButton.textContent = "select + copy";
+      }
+    });
+
+    pre.replaceChildren(code, copyButton);
+    pre.classList.add("code-block");
+    pre.dataset.codeEnhanced = "true";
+  });
 }
 
 export default function CourseView({ course, day, hasPlan }) {
@@ -248,6 +311,8 @@ export default function CourseView({ course, day, hasPlan }) {
       oldScript.parentNode?.replaceChild(newScript, oldScript);
     });
 
+    enhanceCodeBlocks(el);
+
     // Apply KaTeX immediately across the full article
     applyKaTeX(el);
 
@@ -285,7 +350,7 @@ export default function CourseView({ course, day, hasPlan }) {
   };
 
   const visible = days.filter((d) =>
-    entryLabel(course, d).toLowerCase().includes(query.trim().toLowerCase())
+    displayEntryLabel(course, d).toLowerCase().includes(query.trim().toLowerCase())
   );
 
   const idx = days.indexOf(day);
@@ -304,7 +369,7 @@ export default function CourseView({ course, day, hasPlan }) {
             ← home
           </Link>
           <span className="course-title-sm">
-            {course.title} <small>· {entryLabel(course, day)}</small>
+            {course.title} <small>· {displayEntryLabel(course, day)}</small>
           </span>
           <button
             className="btn burger"
@@ -351,7 +416,7 @@ export default function CourseView({ course, day, hasPlan }) {
                 <span className="idx">
                   {String(entryNumber(course, d)).padStart(2, "0")}
                 </span>
-                <span>{entryLabel(course, d)}</span>
+                <span>{displayEntryLabel(course, d)}</span>
               </Link>
             ))}
             {visible.length === 0 && (
@@ -390,7 +455,7 @@ export default function CourseView({ course, day, hasPlan }) {
             {html === false && (
               <div className="soon">
                 <h2>
-                  {entryLabel(course, day).toLowerCase()} notes{" "}
+                  {displayEntryLabel(course, day).toLowerCase()} notes{" "}
                   <span className="u">coming soon</span>
                 </h2>
                 <p>
@@ -416,7 +481,7 @@ export default function CourseView({ course, day, hasPlan }) {
           <div className="day-nav">
             {prev ? (
               <Link className="btn" href={`/courses/${course.id}/${prev}`}>
-                ← {entryLabel(course, prev)}
+                ← {displayEntryLabel(course, prev)}
               </Link>
             ) : (
               <Link className="btn" href="/">
@@ -426,7 +491,7 @@ export default function CourseView({ course, day, hasPlan }) {
             <span className="spacer"></span>
             {nextLink && (
               <Link className="btn dark" href={`/courses/${course.id}/${nextLink}`}>
-                {entryLabel(course, nextLink)} →
+                {displayEntryLabel(course, nextLink)} →
               </Link>
             )}
           </div>

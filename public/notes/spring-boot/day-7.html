@@ -1,0 +1,63 @@
+<p class="kicker">microservices solve organizational and scaling problems, while introducing distributed-systems problems.</p>
+
+<h2>today's outcome</h2>
+<p>Understand when a monolith is useful, what changes when services are split, and how service boundaries affect data, failures, and deployment.</p>
+<figure style="margin:18px 0;text-align:center;"><img src="/notes/spring-boot/resources/day-7-01-monolith-vs-microservices.png" alt="Comparison of a modular monolith and independently deployed microservices" style="width:100%;height:auto;border:2px solid var(--ink);border-radius:14px;box-shadow:4px 4px 0 var(--ink);" /><figcaption>Microservices trade one deployable unit for independently deployable services.</figcaption></figure>
+
+<h2>start with the monolith</h2>
+<pre>One application
+  ├── student module
+  ├── course module
+  ├── payment module
+  └── notification module
+
+One deployment · often one database</pre>
+<p>A modular monolith can be an excellent starting point: simple local calls, simple transactions, and one deployment.</p>
+
+<h2>then split deliberately</h2>
+<pre>Student Service       Product Service
+      │                     │
+      └──── HTTP calls ─────┘
+
+Each service can have its own deployment and data ownership.</pre>
+<ul>
+  <li><b>Benefits:</b> independent deployment, team ownership, targeted scaling, and failure isolation.</li>
+  <li><b>Costs:</b> network failures, latency, distributed debugging, data consistency, and operational complexity.</li>
+</ul>
+<div class="callout gotcha"><b class="label">⚠️ architecture warning</b><br />Microservices are not automatically better. A badly split system can become a distributed monolith with more failure modes and no real independence.</div>
+
+<h2>service boundaries</h2>
+<p>Choose boundaries around business capabilities and ownership, not around every Java class. A service should own its data and expose a stable contract.</p>
+<table>
+  <tr><th>Question</th><th>Good signal</th></tr>
+  <tr><td>Who owns this data?</td><td>One service is responsible for writes and rules.</td></tr>
+  <tr><td>How often does it change?</td><td>Related concepts change and deploy together.</td></tr>
+  <tr><td>What happens when it is unavailable?</td><td>The caller has a timeout, fallback, or explicit failure path.</td></tr>
+</table>
+
+<h2>first service-to-service call</h2>
+<pre>Order Service
+    ↓ GET http://localhost:8081/products/1
+Product Service
+    ↓
+Product JSON</pre>
+<p>Start with a fixed URL to make the network boundary visible. Then ask: what happens when there are ten product instances, or the port changes?</p>
+
+<h2>distributed request checklist</h2>
+<ul>
+  <li>Set a connection timeout and a response timeout.</li>
+  <li>Use an idempotent request when retries are possible.</li>
+  <li>Propagate a correlation ID for debugging.</li>
+  <li>Decide whether failure should be retried, cached, or returned immediately.</li>
+  <li>Do not pretend two service-local transactions are one global transaction.</li>
+</ul>
+
+<h2>official reading</h2>
+<p>Use the <a href="https://spring.io/microservices" target="_blank" rel="noopener">official Spring microservices page</a> as a map of Spring Cloud capabilities. Treat it as a toolbox, not a requirement to adopt every component.</p>
+
+<h2>practice</h2>
+<ol>
+  <li>Split a simple classroom domain into Student Service and Course Service on paper.</li>
+  <li>Write the endpoint contract for one cross-service call.</li>
+  <li>Run two local instances of the same service on different ports and list what must change to call them.</li>
+</ol>

@@ -1,0 +1,97 @@
+<p class="kicker">Spring Data JPA removes repetition, but it does not remove the database.</p>
+
+<h2>today's outcome</h2>
+<p>Replace the manual DAO with a Spring Data JPA repository and connect a REST API to a real database.</p>
+<figure style="margin:18px 0;text-align:center;"><img src="/notes/spring-boot/resources/day-5-01-spring-data-repository.png" alt="Spring Data JPA repository connecting application code to Hibernate, JDBC, and a database" style="width:100%;height:auto;border:2px solid var(--ink);border-radius:14px;box-shadow:4px 4px 0 var(--ink);" /><figcaption>Declare repository behavior; Spring Data JPA supplies the implementation.</figcaption></figure>
+
+<h2>the complete application shape</h2>
+<pre>Client
+  ↓
+Controller  — HTTP concerns
+  ↓
+Service     — business rules
+  ↓
+Repository  — persistence operations
+  ↓
+JPA → Hibernate → JDBC → Database</pre>
+
+<h2>dependencies</h2>
+<p>Generate a project with <b>Spring Web</b>, <b>Spring Data JPA</b>, and your database driver. For local experiments, H2 is convenient; for realistic persistence, use MySQL or PostgreSQL and keep credentials in configuration.</p>
+<p>Read the official <a href="https://docs.spring.io/spring-data/jpa/reference/" target="_blank" rel="noopener">Spring Data JPA reference</a> for repository interfaces, query methods, and configuration.</p>
+
+<h2>the repository interface</h2>
+<pre>public interface StudentRepository
+        extends JpaRepository&lt;Student, Long&gt; {
+
+    Optional&lt;Student&gt; findByEmail(String email);
+
+    List&lt;Student&gt; findByNameContainingIgnoreCase(String name);
+}
+</pre>
+<p>Spring creates the implementation at runtime. You declare the behavior; the framework supplies common persistence code.</p>
+
+<h2>built-in operations</h2>
+<pre>findById(id)
+findAll()
+save(student)
+deleteById(id)
+existsById(id)
+count()</pre>
+
+<h2>service and controller</h2>
+<pre>@Service
+public class StudentService {
+    private final StudentRepository repository;
+
+    public StudentService(StudentRepository repository) {
+        this.repository = repository;
+    }
+
+    public Student getRequired(Long id) {
+        return repository.findById(id)
+            .orElseThrow(() -&gt; new StudentNotFoundException(id));
+    }
+}
+
+@RestController
+@RequestMapping("/students")
+public class StudentController {
+    private final StudentService service;
+
+    @GetMapping("/{id}")
+    public Student get(@PathVariable Long id) {
+        return service.getRequired(id);
+    }
+}
+</pre>
+
+<h2>entity is not automatically a DTO</h2>
+<p>Returning an entity directly can expose database structure, relationships, and fields that clients should not control. Prefer separate request and response objects:</p>
+<pre>public record StudentRequest(
+    String name,
+    String email,
+    String branch
+) {}
+
+public record StudentResponse(
+    Long id,
+    String name,
+    String email,
+    String branch
+) {}
+</pre>
+
+<h2>pagination and sorting</h2>
+<pre>Page&lt;Student&gt; page = repository.findAll(
+    PageRequest.of(0, 20, Sort.by("name").ascending())
+);</pre>
+<p>Never return an unbounded table to an API client. Pagination protects the database and gives clients predictable response sizes.</p>
+
+<div class="callout gotcha"><b class="label">⚠️ gotcha</b><br />A repository method can look harmless while producing many queries. Learn to inspect SQL and watch for the N+1 problem when loading relationships.</div>
+
+<h2>practice</h2>
+<ol>
+  <li>Replace the in-memory list from Day 4 with PostgreSQL or MySQL.</li>
+  <li>Add a case-insensitive name search and a paginated endpoint.</li>
+  <li>Return DTOs instead of exposing the entity from the controller.</li>
+</ol>
