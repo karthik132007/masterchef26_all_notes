@@ -1,0 +1,121 @@
+<p class="kicker">the five architectural invariants of clean object-oriented design and fighting software rot.</p>
+
+<h2>the 30-second elevator pitch</h2>
+<p>Software does not rust, but it rots. As requirements evolve, without deliberate design discipline, clean codebases degrade into tangled webs of dependencies where a one-line bug fix breaks three unrelated systems in production.</p>
+<p>In the early 2000s, <b>Robert C. Martin ("Uncle Bob")</b> consolidated five core design principles into the acronym <b>SOLID</b>. They are not language syntax or framework features; they are <b>architectural invariants</b> designed to keep software maintainable, testable, and adaptable over multi-year lifecycles.</p>
+
+<div class="callout remember">
+  <b class="label">🧷 the twin goals of solid</b><br />
+  Every SOLID principle drives toward two fundamental engineering outcomes:
+  <b>High Cohesion</b> (code that changes together stays together) and <b>Loose Coupling</b> (components interact through narrow, stable boundaries rather than internal implementation details).
+</div>
+
+<h2>the 4 mechanical symptoms of software rot</h2>
+<p>Before studying the remedies, recognize the four failure modes that indicate a codebase is rotting:</p>
+
+<table>
+  <tr><th>Symptom</th><th>What You Experience in the Codebase</th><th>Root Cause</th></tr>
+  <tr>
+    <td><b>1. Rigidity</b></td>
+    <td>A small feature request requires modifying dozens of files across multiple modules. Managers say: <i>"Why does adding a discount code take three weeks?"</i></td>
+    <td>Tight coupling. Modules know too much about each other's internal structure.</td>
+  </tr>
+  <tr>
+    <td><b>2. Fragility</b></td>
+    <td>You fix a bug in the billing service, and suddenly user notifications stop sending or inventory calculations crash.</td>
+    <td>Hidden dependencies and side effects violating encapsulation and single responsibility.</td>
+  </tr>
+  <tr>
+    <td><b>3. Immobility</b></td>
+    <td>You want to reuse an existing data export module in a new microservice, but you can't extract it without dragging in half the monolith.</td>
+    <td>High-level business logic is hardwired directly to concrete low-level infrastructure.</td>
+  </tr>
+  <tr>
+    <td><b>4. Viscosity</b></td>
+    <td>Doing things the "clean way" requires navigating 15 layers of boilerplate, so developers resort to hacks, global state, and copy-paste shortcuts.</td>
+    <td>Poorly conceived abstractions that fight the natural grain of the language and domain.</td>
+  </tr>
+</table>
+
+<h2>the solid summary matrix</h2>
+<p>Each principle addresses a specific pressure point in the lifecycle of a class, interface, or module:</p>
+
+<table>
+  <tr><th>Principle</th><th>Core Tenet</th><th>Classic Anti-Pattern</th><th>Clean Architectural Solution</th></tr>
+  <tr>
+    <td><b>S</b> — Single Responsibility</td>
+    <td>A class should have only <b>one reason to change</b> (one actor/stakeholder).</td>
+    <td><b>God Object:</b> An <code>Order</code> class that calculates tax, prints invoices, and executes database SQL.</td>
+    <td>Separate into distinct domain services: <code>Order</code>, <code>TaxCalculator</code>, <code>InvoiceRenderer</code>, <code>OrderRepository</code>.</td>
+  </tr>
+  <tr>
+    <td><b>O</b> — Open / Closed</td>
+    <td>Entities should be <b>open for extension</b>, but <b>closed for modification</b>.</td>
+    <td><b>Conditional Sprawl:</b> Cascades of <code>if payment_type == "credit_card" ... elif payment_type == "paypal"</code>.</td>
+    <td>Polymorphism / Strategy Pattern: Define an abstract interface and add new payment classes without touching existing callers.</td>
+  </tr>
+  <tr>
+    <td><b>L</b> — Liskov Substitution</td>
+    <td>Subtypes must be substitutable for their base types without breaking program correctness.</td>
+    <td><b>Broken Invariants:</b> <code>Square</code> subclassing <code>Rectangle</code>, or a derived class raising <code>NotImplementedError</code>.</td>
+    <td>Model by <b>behavior</b>, not nominal real-world taxonomy. Prefer composition or narrower interface contracts.</td>
+  </tr>
+  <tr>
+    <td><b>I</b> — Interface Segregation</td>
+    <td>Clients should never be forced to depend on methods they do not consume.</td>
+    <td><b>Fat Interface:</b> A 10-method <code>Worker</code> interface with <code>code()</code>, <code>eat()</code>, and <code>sleep()</code> forced onto robotic workers.</td>
+    <td>Split into fine-grained role interfaces (e.g. <code>Printable</code>, <code>Scannable</code>) composed via multiple inheritance or protocols.</td>
+  </tr>
+  <tr>
+    <td><b>D</b> — Dependency Inversion</td>
+    <td>High-level policies must not depend on low-level details; both must depend on abstractions.</td>
+    <td><b>Hardwired Concretions:</b> A business service instantiating <code>MySQLDatabase()</code> or <code>SendGridClient()</code> directly inside <code>__init__</code>.</td>
+    <td><b>Dependency Injection:</b> Inject abstract contracts (e.g. <code>DatabaseGateway</code>, <code>NotificationClient</code>) at runtime.</td>
+  </tr>
+</table>
+
+<h2>why solid is language-independent</h2>
+<p>While SOLID was originally popularized in statically typed object-oriented languages like C++ and Java, the principles are <b>paradigm-level rules of decomposition</b>. They apply identically whether you write:</p>
+<ul>
+  <li><b>Go:</b> Implicit interfaces and composition over inheritance.</li>
+  <li><b>TypeScript:</b> Structural interfaces, union types, and dependency injection tokens.</li>
+  <li><b>Rust:</b> Traits, generics, and algebraic data types.</li>
+  <li><b>Python:</b> Duck typing, Abstract Base Classes (<code>abc.ABC</code>), and modern Static Protocols (<code>typing.Protocol</code>).</li>
+</ul>
+
+<h2>how python expresses abstractions</h2>
+<p>Python offers two distinct tools to enforce clean boundaries without sacrificing idiomatic expressiveness:</p>
+
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — abstractions via abc & protocols</span></div><pre><code><span class="tok-kw">from</span> abc <span class="tok-kw">import</span> <span class="tok-builtin">ABC</span>, <span class="tok-builtin">abstractmethod</span>
+<span class="tok-kw">from</span> typing <span class="tok-kw">import</span> <span class="tok-builtin">Protocol</span>
+
+<span class="tok-cmt"># Approach 1: Nominal Subtyping via Abstract Base Classes (ABC)</span>
+<span class="tok-cmt"># Enforces interface contracts at instantiation time.</span>
+<span class="tok-kw">class</span> <span class="tok-cls">PaymentGateway</span>(<span class="tok-builtin">ABC</span>):
+    <span class="tok-deco">@</span><span class="tok-deco">abstractmethod</span>
+    <span class="tok-kw">def</span> <span class="tok-fn">charge</span>(<span class="tok-self">self</span>, amount_cents: <span class="tok-builtin">int</span>) -&gt; <span class="tok-builtin">bool</span>:
+        <span class="tok-str">&quot;&quot;&quot;Process a transaction for the given amount.&quot;&quot;&quot;</span>
+        <span class="tok-kw">pass</span>
+
+<span class="tok-cmt"># Approach 2: Structural Subtyping via Protocols (PEP 544)</span>
+<span class="tok-cmt"># Pythonic &quot;duck typing with compile-time type checker support&quot;.</span>
+<span class="tok-cmt"># Classes do NOT need to explicitly inherit from PaymentProtocol!</span>
+<span class="tok-kw">class</span> <span class="tok-cls">PaymentProtocol</span>(<span class="tok-builtin">Protocol</span>):
+    <span class="tok-kw">def</span> <span class="tok-fn">charge</span>(<span class="tok-self">self</span>, amount_cents: <span class="tok-builtin">int</span>) -&gt; <span class="tok-builtin">bool</span>:
+        ...
+</code></pre></div>
+
+<div class="callout gotcha">
+  <b class="label">⚠️ common gotcha: over-engineering &amp; solid zealotry</b><br />
+  SOLID is a set of guidelines to manage complexity, not a dogmatic checklist. Creating 8 interfaces, 5 abstract factories, and 12 adapter files for a 30-line CLI script is an anti-pattern known as <b>Speculative Generality</b>. Apply SOLID when code has multiple reasons to change, high collaboration among team members, or complex business invariants.
+</div>
+
+<div class="callout exam">
+  <b class="label">⭐ senior interview takeaway</b><br />
+  In LLD / Machine Coding rounds at top tech companies, interviewers rarely grade your speed of typing code. They evaluate:
+  <ol>
+    <li>Did you identify the core actors and domain boundaries?</li>
+    <li>Can your design accommodate a surprise requirement (e.g. <i>"Now add support for UPI and Bitcoin"</i>) without modifying existing tested classes?</li>
+    <li>Are your dependencies injectable and mockable for unit testing?</li>
+  </ol>
+</div>

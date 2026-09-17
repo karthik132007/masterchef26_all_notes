@@ -11,9 +11,11 @@ Day-wise + concept-wise class notes. **Next.js** site, **plain HTML** notes, no 
 | Networking | concepts | `/courses/networking/<slug>` | `public/notes/networking/` |
 | Operating Systems | concepts | `/courses/os/<slug>` | `public/notes/os/` |
 | High-Level Design | concepts | `/courses/hld/<slug>` | `public/notes/hld/` |
+| Low-Level Design | concepts | `/courses/lld/<slug>` | `public/notes/lld/` |
 
 Current networking concepts: `osi`, `tcp`, `dns`, `gateway`, `http-1-2-3`.
 Current HLD concepts: `monolith`, `load-balancer`, `api-gateway`, `caching`, `db`, `sharding`, `microservices`, `messaging`, `containerization`.
+Current LLD concepts: `solid-overview`, `single-responsibility`, `open-closed`, `liskov-substitution`, `interface-segregation`, `dependency-inversion`.
 Current OS concepts: `os-architecture-syscalls`, `processes-and-pcb`, `threads-and-concurrency`, `cpu-scheduling`, `synchronization-and-locks`, `deadlocks`, `memory-management-paging`, `virtual-memory-page-replacement`, `file-systems-and-storage`, `io-management-and-epoll`, `inter-process-communication`, `virtualization-and-containers`, `faang-interview-playbook`.
 
 ## adding notes for a class day (day-wise courses)

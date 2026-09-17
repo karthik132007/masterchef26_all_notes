@@ -1,0 +1,165 @@
+<p class="kicker">open for extension, closed for modification — plug new capabilities into existing architectures without modifying tested code.</p>
+
+<h2>the core intuition</h2>
+<p>The <b>Open/Closed Principle (OCP)</b> was originally defined by <b>Bertrand Meyer</b> in 1988 and later refined by Robert C. Martin. It states:</p>
+<blockquote>
+  <b>"Software entities (classes, modules, functions) should be open for extension, but closed for modification."</b>
+</blockquote>
+
+<div class="callout remember">
+  <b class="label">🧷 the hardware plug mental model</b><br />
+  Consider the electrical wall socket in your home or the USB-C port on your laptop:
+  <ul>
+    <li>The socket interface is <b>closed for modification</b>: you never rip open your drywall or solder your laptop's motherboard to plug in a new device.</li>
+    <li>It is <b>open for extension</b>: you can plug in a phone charger, a lamp, a monitor, or an electric guitar without altering the socket's physical circuitry.</li>
+  </ul>
+  In software, abstractions (interfaces, base classes, protocols) serve as the sockets; new features serve as the plugs.
+</div>
+
+<h2>code smells: how to spot ocp violations</h2>
+<ul>
+  <li><b>The Infinite Switch / Conditional Cascade:</b> Chains of <code>if/elif/else</code> or <code>switch</code> statements checking a type tag or enum:
+    <div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — code smell: branching on type tags</span></div><pre><code><span class="tok-kw">if</span> payment_type == <span class="tok-str">&quot;credit_card&quot;</span>:
+    ...
+<span class="tok-kw">elif</span> payment_type == <span class="tok-str">&quot;paypal&quot;</span>:
+    ...
+<span class="tok-kw">elif</span> payment_type == <span class="tok-str">&quot;crypto&quot;</span>:
+    ...
+</code></pre></div>
+  </li>
+  <li><b>High Regression Testing Burden:</b> Adding support for "Apple Pay" requires modifying a core class that has been running bug-free in production for two years, forcing a full QA regression test on Credit Card and PayPal.</li>
+  <li><b>Merge Conflicts Across Squads:</b> Team A adding Crypto and Team B adding UPI both edit the same <code>PaymentProcessor.process()</code> method simultaneously.</li>
+</ul>
+
+<h2>the violation: branching payment processor</h2>
+<p>In this naive implementation, adding a new payment gateway forces us to open and edit the existing <code>PaymentProcessor</code> class:</p>
+
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — anti-pattern: branching payment processor</span></div><pre><code><span class="tok-cmt"># ANTI-PATTERN: Violates Open/Closed Principle</span>
+<span class="tok-kw">class</span> <span class="tok-cls">PaymentProcessor</span>:
+    <span class="tok-kw">def</span> <span class="tok-fn">process_payment</span>(<span class="tok-self">self</span>, payment_type: <span class="tok-builtin">str</span>, amount: <span class="tok-builtin">float</span>, **kwargs) -&gt; <span class="tok-builtin">bool</span>:
+        <span class="tok-kw">if</span> payment_type == <span class="tok-str">&quot;credit_card&quot;</span>:
+            card_number = kwargs.<span class="tok-fn">get</span>(<span class="tok-str">&quot;card_number&quot;</span>)
+            cvv = kwargs.<span class="tok-fn">get</span>(<span class="tok-str">&quot;cvv&quot;</span>)
+            <span class="tok-builtin">print</span>(f&quot;[CreditCard] Debiting ${amount} from card ending in {card_number[-<span class="tok-num">4</span>:]} with CVV {cvv}&quot;)
+            <span class="tok-kw">return</span> <span class="tok-kw">True</span>
+        <span class="tok-kw">elif</span> payment_type == <span class="tok-str">&quot;paypal&quot;</span>:
+            email = kwargs.<span class="tok-fn">get</span>(<span class="tok-str">&quot;email&quot;</span>)
+            <span class="tok-builtin">print</span>(f&quot;[PayPal] Debiting ${amount} from PayPal account {email}&quot;)
+            <span class="tok-kw">return</span> <span class="tok-kw">True</span>
+        <span class="tok-kw">elif</span> payment_type == <span class="tok-str">&quot;crypto&quot;</span>:
+            wallet = kwargs.<span class="tok-fn">get</span>(<span class="tok-str">&quot;wallet_address&quot;</span>)
+            <span class="tok-builtin">print</span>(f&quot;[Crypto] Transferring {amount} USD equivalent to wallet {wallet}&quot;)
+            <span class="tok-kw">return</span> <span class="tok-kw">True</span>
+        <span class="tok-cmt"># Tomorrow: what happens when product managers ask for Apple Pay, UPI, Klarna, or Stripe?</span>
+        <span class="tok-cmt"># You must EDIT this method, re-test credit card, and risk breaking production payments!</span>
+        <span class="tok-kw">else</span>:
+            <span class="tok-kw">raise</span> <span class="tok-cls">ValueError</span>(f&quot;Unsupported payment type: {payment_type}&quot;)
+</code></pre></div>
+
+<h2>the clean architecture refactor (strategy pattern)</h2>
+<p>We invert the design by establishing a stable contract (the socket) using Python's <code>abc.ABC</code> (or <code>typing.Protocol</code>) and implement concrete payment strategies (the plugs):</p>
+
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — clean architecture: strategy pattern with abstract base classes</span></div><pre><code><span class="tok-cmt"># CLEAN ARCHITECTURE: Open for Extension, Closed for Modification</span>
+<span class="tok-kw">from</span> abc <span class="tok-kw">import</span> <span class="tok-builtin">ABC</span>, <span class="tok-builtin">abstractmethod</span>
+<span class="tok-kw">from</span> dataclasses <span class="tok-kw">import</span> <span class="tok-builtin">dataclass</span>
+
+<span class="tok-cmt"># 1. The Stable Abstraction (Closed for Modification)</span>
+<span class="tok-kw">class</span> <span class="tok-cls">PaymentStrategy</span>(<span class="tok-builtin">ABC</span>):
+    <span class="tok-deco">@</span><span class="tok-deco">abstractmethod</span>
+    <span class="tok-kw">def</span> <span class="tok-fn">pay</span>(<span class="tok-self">self</span>, amount: <span class="tok-builtin">float</span>) -&gt; <span class="tok-builtin">bool</span>:
+        <span class="tok-str">&quot;&quot;&quot;Process payment of amount. Returns True on success.&quot;&quot;&quot;</span>
+        <span class="tok-kw">pass</span>
+
+<span class="tok-cmt"># 2. Concrete Extensions (Open for Extension: add as many as you need!)</span>
+<span class="tok-deco">@</span><span class="tok-deco">dataclass</span>
+<span class="tok-kw">class</span> <span class="tok-cls">CreditCardPayment</span>(<span class="tok-cls">PaymentStrategy</span>):
+    card_number: <span class="tok-builtin">str</span>
+    cvv: <span class="tok-builtin">str</span>
+    expiry: <span class="tok-builtin">str</span>
+
+    <span class="tok-kw">def</span> <span class="tok-fn">pay</span>(<span class="tok-self">self</span>, amount: <span class="tok-builtin">float</span>) -&gt; <span class="tok-builtin">bool</span>:
+        masked = <span class="tok-self">self</span>.card_number[-<span class="tok-num">4</span>:] <span class="tok-kw">if</span> <span class="tok-builtin">len</span>(<span class="tok-self">self</span>.card_number) &gt;= <span class="tok-num">4</span> <span class="tok-kw">else</span> <span class="tok-str">&quot;****&quot;</span>
+        <span class="tok-builtin">print</span>(f&quot;[CreditCard] Successfully charged ${amount:.2f} to card ending in {masked}&quot;)
+        <span class="tok-kw">return</span> <span class="tok-kw">True</span>
+
+<span class="tok-deco">@</span><span class="tok-deco">dataclass</span>
+<span class="tok-kw">class</span> <span class="tok-cls">PayPalPayment</span>(<span class="tok-cls">PaymentStrategy</span>):
+    email: <span class="tok-builtin">str</span>
+
+    <span class="tok-kw">def</span> <span class="tok-fn">pay</span>(<span class="tok-self">self</span>, amount: <span class="tok-builtin">float</span>) -&gt; <span class="tok-builtin">bool</span>:
+        <span class="tok-builtin">print</span>(f&quot;[PayPal] Successfully charged ${amount:.2f} to account {<span class="tok-self">self</span>.email}&quot;)
+        <span class="tok-kw">return</span> <span class="tok-kw">True</span>
+
+<span class="tok-deco">@</span><span class="tok-deco">dataclass</span>
+<span class="tok-kw">class</span> <span class="tok-cls">CryptoPayment</span>(<span class="tok-cls">PaymentStrategy</span>):
+    wallet_address: <span class="tok-builtin">str</span>
+
+    <span class="tok-kw">def</span> <span class="tok-fn">pay</span>(<span class="tok-self">self</span>, amount: <span class="tok-builtin">float</span>) -&gt; <span class="tok-builtin">bool</span>:
+        <span class="tok-builtin">print</span>(f&quot;[Crypto] Successfully transferred ${amount:.2f} to wallet {<span class="tok-self">self</span>.wallet_address}&quot;)
+        <span class="tok-kw">return</span> <span class="tok-kw">True</span>
+
+<span class="tok-cmt"># 3. New Requirement Added 6 Months Later: Apple Pay!</span>
+<span class="tok-cmt"># Notice: ZERO lines of existing payment code are touched or re-tested.</span>
+<span class="tok-deco">@</span><span class="tok-deco">dataclass</span>
+<span class="tok-kw">class</span> <span class="tok-cls">ApplePayPayment</span>(<span class="tok-cls">PaymentStrategy</span>):
+    device_token: <span class="tok-builtin">str</span>
+
+    <span class="tok-kw">def</span> <span class="tok-fn">pay</span>(<span class="tok-self">self</span>, amount: <span class="tok-builtin">float</span>) -&gt; <span class="tok-builtin">bool</span>:
+        <span class="tok-builtin">print</span>(f&quot;[ApplePay] Authenticated via FaceID on token {<span class="tok-self">self</span>.device_token[:<span class="tok-num">8</span>]}... Paid ${amount:.2f}&quot;)
+        <span class="tok-kw">return</span> <span class="tok-kw">True</span>
+
+<span class="tok-cmt"># 4. The High-Level Client</span>
+<span class="tok-cmt"># Accepts ANY payment strategy complying with the contract.</span>
+<span class="tok-kw">class</span> <span class="tok-cls">CheckoutService</span>:
+    <span class="tok-kw">def</span> <span class="tok-fn">checkout</span>(<span class="tok-self">self</span>, amount: <span class="tok-builtin">float</span>, strategy: <span class="tok-cls">PaymentStrategy</span>) -&gt; <span class="tok-builtin">bool</span>:
+        <span class="tok-builtin">print</span>(f&quot;[Checkout] Initiating checkout for order total: ${amount:.2f}&quot;)
+        success = strategy.<span class="tok-fn">pay</span>(amount)
+        <span class="tok-kw">if</span> success:
+            <span class="tok-builtin">print</span>(<span class="tok-str">&quot;[Checkout] Payment confirmed. Fulfilling order...&quot;</span>)
+        <span class="tok-kw">return</span> success
+</code></pre></div>
+
+<h2>dynamic runtime plugin registry</h2>
+<p>In high-scale systems, you often need to resolve strategies dynamically based on string inputs from an API request without introducing hardcoded <code>if/elif</code> trees. A <b>Strategy Registry</b> cleanly solves this:</p>
+
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — dynamic runtime strategy registry</span></div><pre><code><span class="tok-kw">class</span> <span class="tok-cls">PaymentRegistry</span>:
+    <span class="tok-kw">def</span> <span class="tok-fn">__init__</span>(<span class="tok-self">self</span>):
+        <span class="tok-self">self</span>._registry: <span class="tok-builtin">dict</span>[<span class="tok-builtin">str</span>, <span class="tok-builtin">type</span>[<span class="tok-cls">PaymentStrategy</span>]] = {}
+
+    <span class="tok-kw">def</span> <span class="tok-fn">register</span>(<span class="tok-self">self</span>, method_name: <span class="tok-builtin">str</span>, strategy_cls: <span class="tok-builtin">type</span>[<span class="tok-cls">PaymentStrategy</span>]) -&gt; <span class="tok-kw">None</span>:
+        <span class="tok-str">&quot;&quot;&quot;Register a new strategy plug-in at startup or runtime.&quot;&quot;&quot;</span>
+        <span class="tok-self">self</span>._registry[method_name.<span class="tok-fn">lower</span>()] = strategy_cls
+
+    <span class="tok-kw">def</span> <span class="tok-fn">create</span>(<span class="tok-self">self</span>, method_name: <span class="tok-builtin">str</span>, **kwargs) -&gt; <span class="tok-cls">PaymentStrategy</span>:
+        strategy_cls = <span class="tok-self">self</span>._registry.<span class="tok-fn">get</span>(method_name.<span class="tok-fn">lower</span>())
+        <span class="tok-kw">if</span> <span class="tok-kw">not</span> strategy_cls:
+            <span class="tok-kw">raise</span> <span class="tok-cls">ValueError</span>(f&quot;Unknown payment method: {method_name}&quot;)
+        <span class="tok-kw">return</span> <span class="tok-fn">strategy_cls</span>(**kwargs)
+
+<span class="tok-cmt"># Setup at application startup:</span>
+registry = <span class="tok-cls">PaymentRegistry</span>()
+registry.<span class="tok-fn">register</span>(<span class="tok-str">&quot;credit_card&quot;</span>, <span class="tok-cls">CreditCardPayment</span>)
+registry.<span class="tok-fn">register</span>(<span class="tok-str">&quot;paypal&quot;</span>, <span class="tok-cls">PayPalPayment</span>)
+registry.<span class="tok-fn">register</span>(<span class="tok-str">&quot;apple_pay&quot;</span>, <span class="tok-cls">ApplePayPayment</span>)
+
+<span class="tok-cmt"># Resolving dynamically from incoming HTTP payload:</span>
+strategy = registry.<span class="tok-fn">create</span>(<span class="tok-str">&quot;apple_pay&quot;</span>, device_token=<span class="tok-str">&quot;tok_apple_98314&quot;</span>)
+checkout = <span class="tok-cls">CheckoutService</span>()
+checkout.<span class="tok-fn">checkout</span>(<span class="tok-num">49.99</span>, strategy)</code></pre></div>
+
+<h2>when not to apply ocp (the yagni balance)</h2>
+<div class="callout gotcha">
+  <b class="label">⚠️ beware of speculative generality</b><br />
+  Do not invent interfaces and strategy patterns for things that are <b>not expected to vary</b>. If your system will only ever calculate sales tax with one standard state tax formula and will never support international jurisdictions, a simple function is superior to an abstract <code>TaxCalculationStrategyFactoryProvider</code>.
+  <br /><br />
+  <b>Rule of thumb:</b> Follow the <i>Rule of Three</i>. Write simple code first. When the second or third variation arrives, refactor into an OCP-compliant abstraction.
+</div>
+
+<div class="callout exam">
+  <b class="label">⭐ interview gold standard</b><br />
+  During LLD machine coding interviews (e.g. <b>Discount Systems, Notification Engines, or Rate Limiters</b>), interviewers will purposefully drop a curveball at minute 35:
+  <br />
+  <i>"Great! Now suppose marketing wants a new discount rule: buy 2 get 1 free on footwear, but only on Tuesdays."</i>
+  <br />
+  If your design requires editing existing discount logic, you fail the OCP test. If you simply create a new <code>TuesdayFootwearBOGODiscount(DiscountPolicy)</code> class and pass it in, the interviewer gives you top marks.
+</div>

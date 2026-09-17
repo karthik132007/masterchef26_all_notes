@@ -1,0 +1,174 @@
+<p class="kicker">a module should be responsible to one, and only one, actor — isolating the blast radius of business changes.</p>
+
+<h2>the core intuition</h2>
+<p>The <b>Single Responsibility Principle (SRP)</b> is the most frequently quoted — and most frequently misunderstood — principle in software engineering. Many developers define it as: <i>"A class should do only one thing."</i> That is incorrect; functions do one thing, but classes naturally orchestrate multiple cooperating operations.</p>
+<p>The definitive formulation by Robert C. Martin is:</p>
+<blockquote>
+  <b>"A class should have one, and only one, reason to change."</b>
+</blockquote>
+<p>And more precisely:</p>
+<blockquote>
+  <b>"A module should be responsible to one, and only one, actor."</b>
+</blockquote>
+
+<div class="callout remember">
+  <b class="label">🧷 who is the actor?</b><br />
+  An <b>actor</b> is a stakeholder, department, or business role that requests changes to the system:
+  <ul>
+    <li>The <b>CFO / Accounting</b> cares about tax calculations, currency conversions, and ledger audits.</li>
+    <li>The <b>COO / Operations</b> cares about fulfillment status, inventory tracking, and warehouse routing.</li>
+    <li>The <b>CTO / DBA</b> cares about database schemas, connection pooling, and JSON persistence.</li>
+  </ul>
+  If a single class serves requirements for both the CFO and the DBA, you have violated SRP. When the DBA migrates from PostgreSQL to DynamoDB, they should never risk breaking the CFO's tax computation!
+</div>
+
+<h2>code smells: how to spot srp violations</h2>
+<ul>
+  <li><b>The God Object (The Blob):</b> A monster class with 2,000+ lines containing business logic, SQL queries, HTTP client calls, and HTML/PDF rendering.</li>
+  <li><b>Divergent Change:</b> You find yourself opening the same file when fixing a database bug, when redesigning an email template, and when adjusting pricing logic.</li>
+  <li><b>Constant Git Merge Conflicts:</b> Multiple developers working on completely unrelated features (billing vs notifications) keep getting merge conflicts on the exact same class.</li>
+  <li><b>Fragile Unit Tests:</b> Testing a simple discount calculation requires mocking an entire database connection pool and an SMTP mail server.</li>
+</ul>
+
+<h2>the violation: the monolithic order manager</h2>
+<p>Consider an e-commerce order class that violates SRP by taking on domain math, persistence, PDF formatting, and email delivery:</p>
+
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — anti-pattern: monolithic order manager</span></div><pre><code><span class="tok-cmt"># ANTI-PATTERN: Violates Single Responsibility Principle</span>
+<span class="tok-kw">import</span> sqlite3
+<span class="tok-kw">import</span> smtplib
+<span class="tok-kw">from</span> email.mime.text <span class="tok-kw">import</span> <span class="tok-cls">MIMEText</span>
+
+<span class="tok-kw">class</span> <span class="tok-cls">Order</span>:
+    <span class="tok-kw">def</span> <span class="tok-fn">__init__</span>(<span class="tok-self">self</span>, order_id: <span class="tok-builtin">str</span>, customer_email: <span class="tok-builtin">str</span>, items: <span class="tok-builtin">list</span>[<span class="tok-builtin">dict</span>]):
+        <span class="tok-self">self</span>.order_id = order_id
+        <span class="tok-self">self</span>.customer_email = customer_email
+        <span class="tok-self">self</span>.items = items
+        <span class="tok-self">self</span>.total_amount = <span class="tok-num">0.0</span>
+
+    <span class="tok-cmt"># Actor 1: Finance / Business Logic</span>
+    <span class="tok-kw">def</span> <span class="tok-fn">calculate_total</span>(<span class="tok-self">self</span>, tax_rate: <span class="tok-builtin">float</span>, discount_code: <span class="tok-builtin">str</span> = <span class="tok-str">&quot;&quot;</span>) -&gt; <span class="tok-builtin">float</span>:
+        subtotal = <span class="tok-builtin">sum</span>(item[<span class="tok-str">&quot;price&quot;</span>] * item[<span class="tok-str">&quot;quantity&quot;</span>] <span class="tok-kw">for</span> item <span class="tok-kw">in</span> <span class="tok-self">self</span>.items)
+        discount = <span class="tok-num">0.10</span> <span class="tok-kw">if</span> discount_code == <span class="tok-str">&quot;SUMMER10&quot;</span> <span class="tok-kw">else</span> <span class="tok-num">0.0</span>
+        <span class="tok-self">self</span>.total_amount = subtotal * (<span class="tok-num">1</span> - discount) * (<span class="tok-num">1</span> + tax_rate)
+        <span class="tok-kw">return</span> <span class="tok-self">self</span>.total_amount
+
+    <span class="tok-cmt"># Actor 2: DBA / Infrastructure</span>
+    <span class="tok-kw">def</span> <span class="tok-fn">save_to_database</span>(<span class="tok-self">self</span>) -&gt; <span class="tok-kw">None</span>:
+        conn = sqlite3.<span class="tok-fn">connect</span>(<span class="tok-str">&quot;ecommerce.db&quot;</span>)
+        cursor = conn.<span class="tok-fn">cursor</span>()
+        cursor.<span class="tok-fn">execute</span>(
+            <span class="tok-str">&quot;INSERT INTO orders (id, email, total) VALUES (?, ?, ?)&quot;</span>,
+            (<span class="tok-self">self</span>.order_id, <span class="tok-self">self</span>.customer_email, <span class="tok-self">self</span>.total_amount)
+        )
+        conn.<span class="tok-fn">commit</span>()
+        conn.<span class="tok-fn">close</span>()
+
+    <span class="tok-cmt"># Actor 3: Marketing / Customer Support</span>
+    <span class="tok-kw">def</span> <span class="tok-fn">send_confirmation_email</span>(<span class="tok-self">self</span>) -&gt; <span class="tok-kw">None</span>:
+        msg = <span class="tok-cls">MIMEText</span>(f&quot;Thank you for order {<span class="tok-self">self</span>.order_id}! Total: ${<span class="tok-self">self</span>.total_amount:.2f}&quot;)
+        msg[<span class="tok-str">&quot;Subject&quot;</span>] = <span class="tok-str">&quot;Order Confirmation&quot;</span>
+        msg[<span class="tok-str">&quot;From&quot;</span>] = <span class="tok-str">&quot;orders@shop.com&quot;</span>
+        msg[<span class="tok-str">&quot;To&quot;</span>] = <span class="tok-self">self</span>.customer_email
+
+        <span class="tok-kw">with</span> smtplib.<span class="tok-cls">SMTP</span>(<span class="tok-str">&quot;smtp.shop.com&quot;</span>, <span class="tok-num">587</span>) <span class="tok-kw">as</span> server:
+            server.<span class="tok-fn">login</span>(<span class="tok-str">&quot;user&quot;</span>, <span class="tok-str">&quot;password&quot;</span>)
+            server.<span class="tok-fn">send_message</span>(msg)
+</code></pre></div>
+
+<div class="callout gotcha">
+  <b class="label">⚠️ why this breaks in production</b><br />
+  If the security team requires updating the SMTP authentication protocol, you have to modify and re-deploy <code>Order</code>. A typo introduced during the email change can silently corrupt the financial <code>calculate_total</code> method. Furthermore, writing a unit test for <code>calculate_total</code> requires fake DB credentials and dummy SMTP servers!
+</div>
+
+<h2>the clean architecture refactor</h2>
+<p>We decompose the monolithic class into cohesive, focused modules. Each class serves exactly one actor and has one reason to change:</p>
+
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — clean architecture: cohesive domain services</span></div><pre><code><span class="tok-cmt"># CLEAN ARCHITECTURE: Respects Single Responsibility Principle</span>
+<span class="tok-kw">from</span> dataclasses <span class="tok-kw">import</span> <span class="tok-builtin">dataclass</span>
+<span class="tok-kw">from</span> typing <span class="tok-kw">import</span> <span class="tok-builtin">Protocol</span>
+
+<span class="tok-cmt"># 1. Pure Domain Model (The Data Entity)</span>
+<span class="tok-cmt"># Responsible only for representing order state.</span>
+<span class="tok-deco">@</span><span class="tok-deco">dataclass</span>(<span class="tok-builtin">frozen</span>=<span class="tok-kw">True</span>)
+<span class="tok-kw">class</span> <span class="tok-cls">OrderItem</span>:
+    sku: <span class="tok-builtin">str</span>
+    price: <span class="tok-builtin">float</span>
+    quantity: <span class="tok-builtin">int</span>
+
+<span class="tok-deco">@</span><span class="tok-deco">dataclass</span>
+<span class="tok-kw">class</span> <span class="tok-cls">Order</span>:
+    order_id: <span class="tok-builtin">str</span>
+    customer_email: <span class="tok-builtin">str</span>
+    items: <span class="tok-builtin">list</span>[<span class="tok-cls">OrderItem</span>]
+
+<span class="tok-cmt"># 2. Financial Pricing Engine (Actor: CFO / Accounting)</span>
+<span class="tok-cmt"># Responsible only for pricing rules and discount policies.</span>
+<span class="tok-kw">class</span> <span class="tok-cls">OrderPricingEngine</span>:
+    <span class="tok-deco">@</span><span class="tok-deco">staticmethod</span>
+    <span class="tok-kw">def</span> <span class="tok-fn">calculate_total</span>(order: <span class="tok-cls">Order</span>, tax_rate: <span class="tok-builtin">float</span>, discount_percent: <span class="tok-builtin">float</span> = <span class="tok-num">0.0</span>) -&gt; <span class="tok-builtin">float</span>:
+        subtotal = <span class="tok-builtin">sum</span>(item.price * item.quantity <span class="tok-kw">for</span> item <span class="tok-kw">in</span> order.items)
+        discounted = subtotal * (<span class="tok-num">1.0</span> - (discount_percent / <span class="tok-num">100.0</span>))
+        <span class="tok-kw">return</span> <span class="tok-builtin">round</span>(discounted * (<span class="tok-num">1.0</span> + tax_rate), <span class="tok-num">2</span>)
+
+<span class="tok-cmt"># 3. Persistence Boundary (Actor: DBA / System Architecture)</span>
+<span class="tok-cmt"># Abstract repository interface decoupling domain from SQL.</span>
+<span class="tok-kw">class</span> <span class="tok-cls">OrderRepository</span>(<span class="tok-builtin">Protocol</span>):
+    <span class="tok-kw">def</span> <span class="tok-fn">save</span>(<span class="tok-self">self</span>, order: <span class="tok-cls">Order</span>, total_amount: <span class="tok-builtin">float</span>) -&gt; <span class="tok-kw">None</span>:
+        ...
+
+<span class="tok-kw">class</span> <span class="tok-cls">SqliteOrderRepository</span>:
+    <span class="tok-kw">def</span> <span class="tok-fn">__init__</span>(<span class="tok-self">self</span>, db_path: <span class="tok-builtin">str</span>):
+        <span class="tok-self">self</span>.db_path = db_path
+
+    <span class="tok-kw">def</span> <span class="tok-fn">save</span>(<span class="tok-self">self</span>, order: <span class="tok-cls">Order</span>, total_amount: <span class="tok-builtin">float</span>) -&gt; <span class="tok-kw">None</span>:
+        <span class="tok-cmt"># DB connection and SQL logic isolated here</span>
+        <span class="tok-builtin">print</span>(f&quot;[DB] Stored order {order.order_id} with total {total_amount} into {<span class="tok-self">self</span>.db_path}&quot;)
+
+<span class="tok-cmt"># 4. Notification Gateway (Actor: Marketing / Communications)</span>
+<span class="tok-kw">class</span> <span class="tok-cls">NotificationService</span>(<span class="tok-builtin">Protocol</span>):
+    <span class="tok-kw">def</span> <span class="tok-fn">send_order_receipt</span>(<span class="tok-self">self</span>, email: <span class="tok-builtin">str</span>, order_id: <span class="tok-builtin">str</span>, total_amount: <span class="tok-builtin">float</span>) -&gt; <span class="tok-kw">None</span>:
+        ...
+
+<span class="tok-kw">class</span> <span class="tok-cls">EmailNotificationService</span>:
+    <span class="tok-kw">def</span> <span class="tok-fn">__init__</span>(<span class="tok-self">self</span>, smtp_host: <span class="tok-builtin">str</span>):
+        <span class="tok-self">self</span>.smtp_host = smtp_host
+
+    <span class="tok-kw">def</span> <span class="tok-fn">send_order_receipt</span>(<span class="tok-self">self</span>, email: <span class="tok-builtin">str</span>, order_id: <span class="tok-builtin">str</span>, total_amount: <span class="tok-builtin">float</span>) -&gt; <span class="tok-kw">None</span>:
+        <span class="tok-builtin">print</span>(f&quot;[Email] Dispatched receipt for {order_id} (${total_amount}) to {email} via {<span class="tok-self">self</span>.smtp_host}&quot;)
+
+<span class="tok-cmt"># 5. Application Orchestrator (Coordinates the domain workflow)</span>
+<span class="tok-kw">class</span> <span class="tok-cls">OrderCheckoutUseCase</span>:
+    <span class="tok-kw">def</span> <span class="tok-fn">__init__</span>(
+        <span class="tok-self">self</span>,
+        pricing: <span class="tok-cls">OrderPricingEngine</span>,
+        repository: <span class="tok-cls">OrderRepository</span>,
+        notifier: <span class="tok-cls">NotificationService</span>
+    ):
+        <span class="tok-self">self</span>.pricing = pricing
+        <span class="tok-self">self</span>.repository = repository
+        <span class="tok-self">self</span>.notifier = notifier
+
+    <span class="tok-kw">def</span> <span class="tok-fn">checkout</span>(<span class="tok-self">self</span>, order: <span class="tok-cls">Order</span>, tax_rate: <span class="tok-builtin">float</span>, discount_percent: <span class="tok-builtin">float</span> = <span class="tok-num">0.0</span>) -&gt; <span class="tok-builtin">float</span>:
+        total = <span class="tok-self">self</span>.pricing.<span class="tok-fn">calculate_total</span>(order, tax_rate, discount_percent)
+        <span class="tok-self">self</span>.repository.<span class="tok-fn">save</span>(order, total)
+        <span class="tok-self">self</span>.notifier.<span class="tok-fn">send_order_receipt</span>(order.customer_email, order.order_id, total)
+        <span class="tok-kw">return</span> total
+</code></pre></div>
+
+<h2>the mechanical architectural payoff</h2>
+<table>
+  <tr><th>Quality Attribute</th><th>Before Refactoring (Monolith)</th><th>After Refactoring (SRP Applied)</th></tr>
+  <tr><td><b>Unit Testability</b></td><td>Nightmare. Requires mock DB sockets and SMTP servers just to test an arithmetic tax formula.</td><td>Trivial. <code>OrderPricingEngine</code> is a pure function tested with standard inputs and zero mocks.</td></tr>
+  <tr><td><b>Change Isolation</b></td><td>Switching from SQLite to PostgreSQL risks breaking order calculation and notification dispatch.</td><td>Zero risk. Only <code>OrderRepository</code> changes; pricing and email systems are untouched.</td></tr>
+  <tr><td><b>Team Scalability</b></td><td>Merge conflicts when billing and communication teams touch <code>Order</code> concurrently.</td><td>Billing devs own <code>OrderPricingEngine</code>; infra devs own <code>OrderRepository</code>.</td></tr>
+</table>
+
+<div class="callout exam">
+  <b class="label">⭐ machine coding interview tip</b><br />
+  When an interviewer asks you to design a system (e.g. <b>Splitwise, Parking Lot, or an ATM</b>), do not dump everything into a <code>ParkingLot</code> or <code>Bill</code> class. Separate:
+  <ol>
+    <li><b>Entities / State:</b> The immutable data representations (e.g. <code>ParkingTicket</code>, <code>Spot</code>).</li>
+    <li><b>Policy / Strategy:</b> The business math (e.g. <code>HourlyFeeCalculator</code>, <code>PeakRateCalculator</code>).</li>
+    <li><b>Storage / Registry:</b> Tracking active spots and tickets (e.g. <code>SpotAllocationRepository</code>).</li>
+  </ol>
+</div>

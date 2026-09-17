@@ -1,0 +1,169 @@
+<p class="kicker">clients should not be forced to depend on interfaces they do not use — build lean role interfaces over bloated monoliths.</p>
+
+<h2>the core intuition</h2>
+<p>The <b>Interface Segregation Principle (ISP)</b> states:</p>
+<blockquote>
+  <b>"Clients should not be forced to depend upon methods that they do not use."</b>
+</blockquote>
+<p>When an interface becomes a catch-all "fat interface" containing every possible method a system might ever need, every class that implements that interface becomes tightly coupled to methods it doesn't care about.</p>
+
+<div class="callout remember">
+  <b class="label">🧷 the remote control mental model</b><br />
+  Imagine a universal television remote control with 120 buttons: DVD playback, VCR rewinding, picture-in-picture, and 3D glasses sync. If all you want to do is stream a movie on Netflix, you only need Power, Volume, and Navigation.
+  <br /><br />
+  A bloated interface forces simple devices to carry all 120 buttons. ISP advises providing focused, modular controls: a <code>PowerController</code>, an <code>AudioController</code>, and a <code>NavigationController</code>.
+</div>
+
+<h2>why fat interfaces poison codebases</h2>
+<ul>
+  <li><b>Stub Pollution:</b> Classes implementing the interface are cluttered with dummy stub methods:
+    <div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — code smell: empty stub method</span></div><pre><code><span class="tok-kw">def</span> <span class="tok-fn">fax_document</span>(<span class="tok-self">self</span>, doc):
+    <span class="tok-kw">pass</span>  <span class="tok-cmt"># Not supported, but required by interface!</span>
+</code></pre></div>
+  </li>
+  <li><b>Unwanted Recompilation / Redeployment:</b> In compiled languages (C++, Java, Go), if method <code>Z()</code> is added to an interface, all 40 classes implementing that interface must be modified and recompiled — even if 39 of them never call <code>Z()</code>.</li>
+  <li><b>Violates the Principle of Least Privilege:</b> A client that only needs read access is handed an object with <code>write()</code>, <code>delete()</code>, and <code>purge_all()</code> methods, increasing the risk of misuse and security vulnerabilities.</li>
+</ul>
+
+<h2>the violation: the monolithic multi-function machine</h2>
+<p>Consider an office hardware interface that groups printing, scanning, faxing, and stapling into a single interface:</p>
+
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — anti-pattern: fat multi-function interface</span></div><pre><code><span class="tok-cmt"># ANTI-PATTERN: Fat Interface Violates ISP</span>
+<span class="tok-kw">from</span> abc <span class="tok-kw">import</span> <span class="tok-builtin">ABC</span>, <span class="tok-builtin">abstractmethod</span>
+
+<span class="tok-kw">class</span> <span class="tok-cls">Machine</span>(<span class="tok-builtin">ABC</span>):
+    <span class="tok-deco">@</span><span class="tok-deco">abstractmethod</span>
+    <span class="tok-kw">def</span> <span class="tok-fn">print_document</span>(<span class="tok-self">self</span>, document: <span class="tok-builtin">str</span>) -&gt; <span class="tok-kw">None</span>:
+        <span class="tok-kw">pass</span>
+
+    <span class="tok-deco">@</span><span class="tok-deco">abstractmethod</span>
+    <span class="tok-kw">def</span> <span class="tok-fn">scan_document</span>(<span class="tok-self">self</span>) -&gt; <span class="tok-builtin">str</span>:
+        <span class="tok-kw">pass</span>
+
+    <span class="tok-deco">@</span><span class="tok-deco">abstractmethod</span>
+    <span class="tok-kw">def</span> <span class="tok-fn">fax_document</span>(<span class="tok-self">self</span>, document: <span class="tok-builtin">str</span>, number: <span class="tok-builtin">str</span>) -&gt; <span class="tok-kw">None</span>:
+        <span class="tok-kw">pass</span>
+
+    <span class="tok-deco">@</span><span class="tok-deco">abstractmethod</span>
+    <span class="tok-kw">def</span> <span class="tok-fn">staple_document</span>(<span class="tok-self">self</span>, document: <span class="tok-builtin">str</span>) -&gt; <span class="tok-kw">None</span>:
+        <span class="tok-kw">pass</span>
+
+
+<span class="tok-cmt"># A simple $50 economic home printer only knows how to print ink on paper!</span>
+<span class="tok-kw">class</span> <span class="tok-cls">BudgetHomePrinter</span>(<span class="tok-cls">Machine</span>):
+    <span class="tok-kw">def</span> <span class="tok-fn">print_document</span>(<span class="tok-self">self</span>, document: <span class="tok-builtin">str</span>) -&gt; <span class="tok-kw">None</span>:
+        <span class="tok-builtin">print</span>(f&quot;[BudgetPrinter] Printing: {document}&quot;)
+
+    <span class="tok-cmt"># Forced to provide empty or dummy implementations for irrelevant operations:</span>
+    <span class="tok-kw">def</span> <span class="tok-fn">scan_document</span>(<span class="tok-self">self</span>) -&gt; <span class="tok-builtin">str</span>:
+        <span class="tok-kw">raise</span> <span class="tok-cls">NotImplementedError</span>(<span class="tok-str">&quot;This budget model cannot scan!&quot;</span>)
+
+    <span class="tok-kw">def</span> <span class="tok-fn">fax_document</span>(<span class="tok-self">self</span>, document: <span class="tok-builtin">str</span>, number: <span class="tok-builtin">str</span>) -&gt; <span class="tok-kw">None</span>:
+        <span class="tok-kw">raise</span> <span class="tok-cls">NotImplementedError</span>(<span class="tok-str">&quot;This budget model cannot fax!&quot;</span>)
+
+    <span class="tok-kw">def</span> <span class="tok-fn">staple_document</span>(<span class="tok-self">self</span>, document: <span class="tok-builtin">str</span>) -&gt; <span class="tok-kw">None</span>:
+        <span class="tok-kw">raise</span> <span class="tok-cls">NotImplementedError</span>(<span class="tok-str">&quot;This budget model cannot staple!&quot;</span>)
+</code></pre></div>
+
+<div class="callout gotcha">
+  <b class="label">⚠️ notice the overlap between isp and lsp</b><br />
+  Fat interfaces are the <b>number one cause</b> of LSP violations! When an interface forces classes to implement methods they cannot support, developers resort to raising <code>NotImplementedError</code> — instantly breaking Liskov substitutability.
+</div>
+
+<h2>the clean architecture refactor: role interfaces</h2>
+<p>Following Martin Fowler's <b>Role Interface</b> pattern, we decompose the fat interface into distinct, single-purpose capabilities. In modern Python, we can define these using <code>typing.Protocol</code> (structural subtyping) or <code>abc.ABC</code>:</p>
+
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — clean architecture: fine-grained role protocols</span></div><pre><code><span class="tok-cmt"># CLEAN ARCHITECTURE: Role Interfaces via Python Protocols (ISP Compliant)</span>
+<span class="tok-kw">from</span> typing <span class="tok-kw">import</span> <span class="tok-builtin">Protocol</span>
+
+<span class="tok-cmt"># 1. Fine-grained, focused role protocols</span>
+<span class="tok-kw">class</span> <span class="tok-cls">Printable</span>(<span class="tok-builtin">Protocol</span>):
+    <span class="tok-kw">def</span> <span class="tok-fn">print_document</span>(<span class="tok-self">self</span>, document: <span class="tok-builtin">str</span>) -&gt; <span class="tok-kw">None</span>:
+        ...
+
+<span class="tok-kw">class</span> <span class="tok-cls">Scannable</span>(<span class="tok-builtin">Protocol</span>):
+    <span class="tok-kw">def</span> <span class="tok-fn">scan_document</span>(<span class="tok-self">self</span>) -&gt; <span class="tok-builtin">str</span>:
+        ...
+
+<span class="tok-kw">class</span> <span class="tok-cls">Faxable</span>(<span class="tok-builtin">Protocol</span>):
+    <span class="tok-kw">def</span> <span class="tok-fn">fax_document</span>(<span class="tok-self">self</span>, document: <span class="tok-builtin">str</span>, number: <span class="tok-builtin">str</span>) -&gt; <span class="tok-kw">None</span>:
+        ...
+
+<span class="tok-kw">class</span> <span class="tok-cls">Stapleable</span>(<span class="tok-builtin">Protocol</span>):
+    <span class="tok-kw">def</span> <span class="tok-fn">staple_document</span>(<span class="tok-self">self</span>, document: <span class="tok-builtin">str</span>) -&gt; <span class="tok-kw">None</span>:
+        ...
+
+
+<span class="tok-cmt"># 2. Simple devices only implement what they actually do (Zero boilerplate!)</span>
+<span class="tok-kw">class</span> <span class="tok-cls">BudgetHomePrinter</span>:
+    <span class="tok-kw">def</span> <span class="tok-fn">print_document</span>(<span class="tok-self">self</span>, document: <span class="tok-builtin">str</span>) -&gt; <span class="tok-kw">None</span>:
+        <span class="tok-builtin">print</span>(f&quot;[BudgetPrinter] Printing: {document}&quot;)
+
+
+<span class="tok-cmt"># 3. High-end industrial devices compose multiple roles cleanly</span>
+<span class="tok-kw">class</span> <span class="tok-cls">EnterprisePhotocopier</span>:
+    <span class="tok-kw">def</span> <span class="tok-fn">print_document</span>(<span class="tok-self">self</span>, document: <span class="tok-builtin">str</span>) -&gt; <span class="tok-kw">None</span>:
+        <span class="tok-builtin">print</span>(f&quot;[EnterpriseCopier] High-speed laser printing: {document}&quot;)
+
+    <span class="tok-kw">def</span> <span class="tok-fn">scan_document</span>(<span class="tok-self">self</span>) -&gt; <span class="tok-builtin">str</span>:
+        <span class="tok-builtin">print</span>(<span class="tok-str">&quot;[EnterpriseCopier] 1200 DPI optical scanning complete.&quot;</span>)
+        <span class="tok-kw">return</span> <span class="tok-str">&quot;Scanned PDF payload&quot;</span>
+
+    <span class="tok-kw">def</span> <span class="tok-fn">fax_document</span>(<span class="tok-self">self</span>, document: <span class="tok-builtin">str</span>, number: <span class="tok-builtin">str</span>) -&gt; <span class="tok-kw">None</span>:
+        <span class="tok-builtin">print</span>(f&quot;[EnterpriseCopier] Faxing to {number}&quot;)
+
+    <span class="tok-kw">def</span> <span class="tok-fn">staple_document</span>(<span class="tok-self">self</span>, document: <span class="tok-builtin">str</span>) -&gt; <span class="tok-kw">None</span>:
+        <span class="tok-builtin">print</span>(<span class="tok-str">&quot;[EnterpriseCopier] Mechanical stapling applied to corners.&quot;</span>)
+
+
+<span class="tok-cmt"># 4. Client services depend strictly on the narrow role they require!</span>
+<span class="tok-kw">class</span> <span class="tok-cls">DocumentPrintingService</span>:
+    <span class="tok-str">&quot;&quot;&quot;This service only cares about printing — scanning/faxing are irrelevant!&quot;&quot;&quot;</span>
+    <span class="tok-kw">def</span> <span class="tok-fn">__init__</span>(<span class="tok-self">self</span>, printer: <span class="tok-cls">Printable</span>):
+        <span class="tok-self">self</span>.printer = printer
+
+    <span class="tok-kw">def</span> <span class="tok-fn">execute_print_job</span>(<span class="tok-self">self</span>, doc: <span class="tok-builtin">str</span>) -&gt; <span class="tok-kw">None</span>:
+        <span class="tok-self">self</span>.printer.<span class="tok-fn">print_document</span>(doc)
+
+<span class="tok-cmt"># Both work seamlessly without unexpected runtime exceptions:</span>
+svc1 = <span class="tok-cls">DocumentPrintingService</span>(<span class="tok-cls">BudgetHomePrinter</span>())
+svc1.<span class="tok-fn">execute_print_job</span>(<span class="tok-str">&quot;Monthly_Report.pdf&quot;</span>)
+
+svc2 = <span class="tok-cls">DocumentPrintingService</span>(<span class="tok-cls">EnterprisePhotocopier</span>())
+svc2.<span class="tok-fn">execute_print_job</span>(<span class="tok-str">&quot;Architectural_Blueprint.pdf&quot;</span>)</code></pre></div>
+
+<h2>isp in dynamic vs statically typed languages</h2>
+<table>
+  <tr><th>Paradigm</th><th>Mechanism</th><th>How ISP is Enforced</th></tr>
+  <tr>
+    <td><b>Go</b></td>
+    <td>Single-method interfaces (e.g. <code>io.Reader</code>, <code>io.Writer</code>, <code>io.Closer</code>)</td>
+    <td>Implicit satisfaction. Packages export interfaces with 1-2 methods; structs satisfy them automatically.</td>
+  </tr>
+  <tr>
+    <td><b>Java / C#</b></td>
+    <td>Interface inheritance &amp; default methods</td>
+    <td>Classes implement multiple small interfaces (e.g. <code>implements AutoCloseable, Serializable</code>).</td>
+  </tr>
+  <tr>
+    <td><b>Python</b></td>
+    <td>Duck Typing &amp; <code>typing.Protocol</code> (PEP 544)</td>
+    <td>Static type checkers (MyPy, Pyright) verify that passed objects possess the exact required methods at type-check time.</td>
+  </tr>
+</table>
+
+<div class="callout exam">
+  <b class="label">⭐ machine coding interview tip: repository design</b><br />
+  A frequent interview design problem is: <i>"Design a Data Access Layer / Repository."</i>
+  <br />
+  Do not create a single mega-interface:
+  <code>CrudRepository: create(), read(), update(), delete(), search(), export_csv(), bulk_insert()</code>.
+  <br /><br />
+  Segregate into roles:
+  <ul>
+    <li><code>Reader[T]</code>: <code>get_by_id(id) -> T</code></li>
+    <li><code>Writer[T]</code>: <code>save(entity: T) -> None</code></li>
+    <li><code>Searchable[T]</code>: <code>find_by_query(query) -> list[T]</code></li>
+  </ul>
+  Now, cached read replicas only implement <code>Reader</code>, whereas read-only background audit services cannot accidentally call <code>delete()</code>.
+</div>

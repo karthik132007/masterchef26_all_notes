@@ -1,0 +1,1032 @@
+<style>
+/* ── GenAI Topic 08: RAG Evaluation Styling ── */
+.eval-fig { margin: 18px auto 12px; max-width: 680px; text-align: center; }
+.eval-fig svg { width: 100%; height: auto; display: block; }
+.eval-fig figcaption { font-family: var(--font-mono); font-size: 12px; color: var(--ink-soft); margin-top: 6px; line-height: 1.5; }
+.note-body figure.eval-fig { animation: eval-rise .55s ease both; }
+@keyframes eval-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+.pulse-line { stroke-dasharray: 6 6; animation: line-flow 1.4s linear infinite; }
+@keyframes line-flow { to { stroke-dashoffset: -12; } }
+@media (prefers-reduced-motion: reduce) { .pulse-line { animation: none; } .note-body figure.eval-fig { animation: none; } }
+
+/* Pills & Badges */
+.eval-pill {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border: 1.2px solid var(--ink);
+  border-radius: 6px;
+  margin-right: 4px;
+}
+.eval-pill.yellow { background: var(--yellow); }
+.eval-pill.pink { background: var(--pink); }
+.eval-pill.mint { background: var(--mint); }
+.eval-pill.blue { background: var(--blue); }
+.eval-pill.orange { background: var(--orange); }
+
+/* Comparison Grid */
+.eval-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+  margin: 18px 0;
+}
+.eval-card {
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  padding: 16px;
+  background: #fff;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+.eval-card h4 {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.eval-card p {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  margin: 0 0 6px;
+}
+
+/* Diagnostic Matrix */
+.triage-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 18px 0;
+  border: 2px solid var(--ink);
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+.triage-table th, .triage-table td {
+  padding: 10px 14px;
+  border: 1px solid #d5cdbd;
+  text-align: left;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.triage-table th {
+  background: var(--paper-2);
+  font-family: var(--font-display);
+  font-weight: 800;
+  border-bottom: 2px solid var(--ink);
+}
+
+/* Interactive Lab Card */
+.lab-card {
+  border: 2.5px solid var(--ink);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: var(--card-shadow);
+  padding: 18px 20px;
+  margin: 24px 0;
+}
+.lab-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-bottom: 1.5px dashed #d5cdbd;
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.lab-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+.lab-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 9px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: var(--yellow);
+}
+.sim-controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.sim-btn {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border: 1.8px solid var(--ink);
+  border-radius: 8px;
+  background: var(--paper);
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+.sim-btn:hover {
+  background: var(--yellow);
+  transform: translate(-1px, -1px);
+}
+.sim-btn.active {
+  background: var(--ink);
+  color: #fff;
+  box-shadow: 2px 2px 0 var(--yellow);
+}
+.score-stat-box {
+  background: var(--paper);
+  border: 1.8px solid var(--ink);
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 130px;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+.score-stat-num {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
+  margin-top: 2px;
+}
+.score-stat-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+}
+
+/* Chunk display rows */
+.chunk-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1.5px solid var(--ink);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background: #fff;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+.chunk-row.relevant {
+  border-left: 6px solid #10b981;
+  background: #f0fdf4;
+}
+.chunk-row.irrelevant {
+  border-left: 6px solid #ef4444;
+  background: #fef2f2;
+}
+.chunk-rank-badge {
+  font-size: 12px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--ink);
+  background: #fff;
+}
+</style>
+
+<p class="kicker">rag evaluation: measuring retrieval precision, recall, ranking, golden benchmarks &amp; root-cause failure triage</p>
+
+<!-- ============================================================ -->
+<!-- 1. WHY RAG EVALUATION MATTERS -->
+<!-- ============================================================ -->
+<h2>why rag evaluation matters</h2>
+<p><b>If you don't evaluate RAG in two independent stages, you are debugging a dual-variable equation with one equation. You will blame the LLM for retriever sins, and blame the retriever for LLM hallucinations.</b></p>
+
+<p>In Topic 07, we built a complete RAG pipeline: chunking documents, creating dense embeddings, running hybrid search with BM25, and reranking candidates. But when you test it in a Jupyter notebook with three questions, everything looks brilliant. Then you deploy to 5,000 users, and production falls apart:</p>
+
+<ul>
+  <li><b>The "Vibe Check" illusion:</b> Manually testing 5 queries creates a dangerous false confidence. A subtle change in chunk size (e.g., dropping from 500 to 200 tokens) or tweaking your embedding model might improve 2 queries while silently breaking 40 others.</li>
+  <li><b>The Dual-Failure Dilemma:</b> When a user receives an incorrect answer, there are two completely different failure origins:
+    <ol>
+      <li><b>Retrieval failure:</b> The retriever fetched the wrong chunks or missed the ground-truth document entirely. The LLM had zero evidence.</li>
+      <li><b>Generation failure:</b> The retriever fetched the exact ground-truth paragraph at Rank 1, but the LLM ignored it, hallucinated from its pre-training weights, or misread the numbers.</li>
+    </ol>
+  </li>
+  <li><b>Garbage In, Garbage Out (GIGO):</b> The smartest frontier model (Claude 3.5 Sonnet or GPT-4o) cannot answer accurately if the critical chunk was never retrieved. Retrieval sets the <b>hard theoretical ceiling</b> for overall system accuracy.</li>
+  <li><b>Token Cost &amp; Latency Savings:</b> Evaluating retrieval independently requires zero generative LLM API calls. You can benchmark 10,000 search queries in seconds using offline mathematical metrics without spending a cent on token generation.</li>
+</ul>
+
+<figure class="eval-fig">
+<svg viewBox="0 0 680 240" role="img" aria-label="Decoupled RAG Evaluation Architecture">
+  <defs>
+    <marker id="eval-arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1c1a15"></path>
+    </marker>
+  </defs>
+
+  <!-- RETRIEVAL EVAL STAGE -->
+  <rect x="20" y="20" width="300" height="200" rx="12" fill="#fffdf6" stroke="#1c1a15" stroke-width="2.5" stroke-dasharray="6 4"></rect>
+  <rect x="35" y="32" width="160" height="24" rx="6" fill="#ffe14d" stroke="#1c1a15" stroke-width="1.5"></rect>
+  <text x="115" y="48" text-anchor="middle" font-size="11" font-weight="800" font-family="monospace">STAGE 1: RETRIEVAL EVAL</text>
+
+  <rect x="40" y="70" width="260" height="42" rx="8" fill="#fff" stroke="#1c1a15" stroke-width="1.8"></rect>
+  <text x="52" y="88" font-size="11" font-weight="800" font-family="monospace">Input: Query + Vector DB</text>
+  <text x="52" y="103" font-size="10.5" fill="#575046">Fetches Top-K Context Chunks</text>
+
+  <rect x="40" y="124" width="260" height="82" rx="8" fill="#e3f1ff" stroke="#1c1a15" stroke-width="1.8"></rect>
+  <text x="52" y="142" font-size="11" font-weight="800" font-family="monospace">Deterministic Metrics (No LLM):</text>
+  <text x="52" y="160" font-size="11">● <tspan font-weight="700">Recall@K</tspan> (Did we catch the doc?)</text>
+  <text x="52" y="178" font-size="11">● <tspan font-weight="700">Precision@K</tspan> (Is it pure signal?)</text>
+  <text x="52" y="196" font-size="11">● <tspan font-weight="700">MRR</tspan> (Is it at the top?)</text>
+
+  <!-- CONNECTOR ARROW -->
+  <line x1="320" y1="120" x2="355" y2="120" stroke="#1c1a15" stroke-width="3" marker-end="url(#eval-arr)"></line>
+  <text x="338" y="112" text-anchor="middle" font-size="9" font-family="monospace" font-weight="700">Top-K</text>
+
+  <!-- GENERATION EVAL STAGE -->
+  <rect x="360" y="20" width="300" height="200" rx="12" fill="#fffdf6" stroke="#1c1a15" stroke-width="2.5" stroke-dasharray="6 4"></rect>
+  <rect x="375" y="32" width="170" height="24" rx="6" fill="#7df0b2" stroke="#1c1a15" stroke-width="1.5"></rect>
+  <text x="460" y="48" text-anchor="middle" font-size="11" font-weight="800" font-family="monospace">STAGE 2: GENERATION EVAL</text>
+
+  <rect x="380" y="70" width="260" height="42" rx="8" fill="#fff" stroke="#1c1a15" stroke-width="1.8"></rect>
+  <text x="392" y="88" font-size="11" font-weight="800" font-family="monospace">Input: Query + Context → LLM</text>
+  <text x="392" y="103" font-size="10.5" fill="#575046">Synthesizes natural answer</text>
+
+  <rect x="380" y="124" width="260" height="82" rx="8" fill="#ffe3ef" stroke="#1c1a15" stroke-width="1.8"></rect>
+  <text x="392" y="142" font-size="11" font-weight="800" font-family="monospace">Generative Metrics (LLM Judge):</text>
+  <text x="392" y="160" font-size="11">● <tspan font-weight="700">Faithfulness</tspan> (Grounded in context?)</text>
+  <text x="392" y="178" font-size="11">● <tspan font-weight="700">Answer Relevance</tspan> (Answers query?)</text>
+  <text x="392" y="196" font-size="11">● <tspan font-weight="700">Golden Match</tspan> (Matches reference?)</text>
+</svg>
+<figcaption>decoupling rag evaluation: isolate retriever quality before diagnosing generator hallucinations</figcaption>
+</figure>
+
+<div class="callout remember">
+  <b class="label">🧷 the golden rule of rag evaluation</b><br />
+  <b>Never test your RAG pipeline end-to-end until your retriever passes its own benchmarks.</b> If your retriever has a Recall@5 of 0.40, 60% of user questions will fail regardless of how brilliant your prompt engineering or LLM is.
+</div>
+
+<!-- ============================================================ -->
+<!-- 2. RETRIEVAL EVALUATION -->
+<!-- ============================================================ -->
+<h2>retrieval evaluation</h2>
+<p>Retrieval evaluation treats the vector database and search algorithm like an Information Retrieval (IR) engine. Given a query $q$, the retriever searches through millions of chunks in corpus $D$ and returns an ordered list of $K$ candidate chunks:</p>
+
+$$\mathcal{R}_K = [d_1, d_2, \dots, d_K]$$
+
+<p>In standard machine learning classification, accuracy is simple: did you predict class 0 or 1? But in retrieval, we have <b>massive class imbalance</b> (10 relevant chunks hidden among 500,000 corpus chunks) and <b>order dependency</b> (a relevant chunk placed at Rank 1 is vastly more valuable than one buried at Rank 10).</p>
+
+<p>To evaluate retrieval objectively, every query in your benchmark requires a set of <b>Ground Truth Relevant Chunks</b> $\mathcal{G}$ (chunks that genuinely contain the facts needed to answer the question). We then compare the retrieved list $\mathcal{R}_K$ against $\mathcal{G}$ using three foundational metrics:</p>
+
+<div class="eval-grid">
+  <div class="eval-card">
+    <h4><span class="eval-pill yellow">Recall@K</span> Completeness</h4>
+    <p><b>Question:</b> Did we catch all the relevant chunks needed to construct the complete answer?</p>
+    <p><b>Protects Against:</b> Missing context, unanswered questions, and retrieval dropouts.</p>
+  </div>
+  <div class="eval-card">
+    <h4><span class="eval-pill mint">Precision@K</span> Noise Control</h4>
+    <p><b>Question:</b> Out of the $K$ chunks we crammed into the prompt, how many were actually useful?</p>
+    <p><b>Protects Against:</b> Context poisoning, bloated token costs, and LLM distraction.</p>
+  </div>
+  <div class="eval-card">
+    <h4><span class="eval-pill pink">MRR</span> Rank Priority</h4>
+    <p><b>Question:</b> How close to the very top (Rank 1) was our very first relevant piece of evidence?</p>
+    <p><b>Protects Against:</b> "Lost in the middle" attenuation and slow LLM attention scan.</p>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 3. RECALL@K -->
+<!-- ============================================================ -->
+<h2>recall@k</h2>
+<p><b>Recall@K measures coverage: of all the ground-truth chunks that contain the answer, what fraction did the retriever manage to catch in the top $K$ results?</b></p>
+
+$$\text{Recall@K} = \frac{|\mathcal{R}_K \cap \mathcal{G}|}{|\mathcal{G}|} = \frac{\text{Number of Relevant Chunks in Top } K}{\text{Total Number of Ground Truth Relevant Chunks}}$$
+
+<ul>
+  <li><b>The denominator is $|\mathcal{G}|$ (Total Relevant Chunks in the corpus):</b> It does not matter how large your entire database is; it only matters how many total chunks contain the necessary facts for this specific question.</li>
+  <li><b>Range:</b> Always between $0.0$ (complete retrieval failure) and $1.0$ (100% of all required evidence retrieved).</li>
+  <li><b>The ceiling effect:</b> If $\text{Recall@K} < 1.0$, information was lost. If a question requires 3 distinct facts (e.g. refund percentage, cut-off timeline, exceptions) spread across 3 chunks, and Recall@K is $0.33$, the LLM is literally missing 66% of the answer.</li>
+</ul>
+
+<h3>concrete worked example: recall@k step-by-step</h3>
+<p>Let's walk through an enterprise scenario. A user asks:</p>
+<div style="background:var(--paper); border:1.8px solid var(--ink); border-radius:8px; padding:10px 14px; font-weight:700; margin:10px 0;">
+  User Query: "What are the cancellation penalties, refund processing times, and medical emergency waivers for international flights?"
+</div>
+
+<p>In your knowledge base, there are exactly <b>4 ground truth chunks</b> ($|\mathcal{G}| = 4$) that contain these specific policies:</p>
+<ul>
+  <li><b>Doc A (Chunk #101):</b> International cancellation penalty tier schedule.</li>
+  <li><b>Doc B (Chunk #102):</b> 48-hour cut-off refund processing timelines.</li>
+  <li><b>Doc C (Chunk #103):</b> Medical emergency fee waiver policy.</li>
+  <li><b>Doc D (Chunk #104):</b> Natural disaster &amp; force majeure flight exceptions.</li>
+</ul>
+
+<p>Now, let's observe what happens when your vector database returns the top $K=5$ candidates:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Rank</th>
+      <th>Retrieved Chunk</th>
+      <th>Relevance to Query?</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>#1</b></td>
+      <td>Doc A (Chunk #101)</td>
+      <td><span class="eval-pill mint">Relevant</span> Cancellation penalties</td>
+      <td>✅ <b>Hit</b> (1st relevant)</td>
+    </tr>
+    <tr>
+      <td><b>#2</b></td>
+      <td>Doc X (Chunk #890)</td>
+      <td><span class="eval-pill pink">Irrelevant</span> Domestic carry-on luggage sizes</td>
+      <td>❌ Distractor</td>
+    </tr>
+    <tr>
+      <td><b>#3</b></td>
+      <td>Doc B (Chunk #102)</td>
+      <td><span class="eval-pill mint">Relevant</span> Refund processing times</td>
+      <td>✅ <b>Hit</b> (2nd relevant)</td>
+    </tr>
+    <tr>
+      <td><b>#4</b></td>
+      <td>Doc Y (Chunk #441)</td>
+      <td><span class="eval-pill pink">Irrelevant</span> In-flight meal booking rules</td>
+      <td>❌ Distractor</td>
+    </tr>
+    <tr>
+      <td><b>#5</b></td>
+      <td>Doc Z (Chunk #722)</td>
+      <td><span class="eval-pill pink">Irrelevant</span> Frequent flyer lounge access</td>
+      <td>❌ Distractor</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Let's calculate <b>Recall@5</b>:</p>
+$$\text{Relevant in Top 5} = \{\text{Doc A}, \text{Doc B}\} = 2$$
+$$\text{Total Ground Truth Relevant Chunks} = \{\text{Doc A}, \text{Doc B}, \text{Doc C}, \text{Doc D}\} = 4$$
+$$\text{Recall@5} = \frac{2}{4} = \mathbf{0.50}\quad (50\%)$$
+
+<p><b>Consequence for the user:</b> The LLM receives Doc A and Doc B, so it successfully explains penalties and refund timelines. But because Doc C (medical waivers) was missed, the LLM tells the customer <i>"Medical waivers are not offered under our policy"</i> or simply hallucinates one!</p>
+
+<h4>what happens if we increase $K$ from 5 to 10?</h4>
+<p>Suppose expanding the search window to $K=10$ catches Doc C at Rank #7. Now we have retrieved 3 out of 4 relevant chunks:</p>
+$$\text{Recall@10} = \frac{3}{4} = \mathbf{0.75}\quad (75\%)$$
+<p>Recall increased! But what happened to precision and prompt noise? Let's analyze Precision next.</p>
+
+<!-- ============================================================ -->
+<!-- 4. PRECISION@K -->
+<!-- ============================================================ -->
+<h2>precision@k</h2>
+<p><b>Precision@K measures signal density: out of the $K$ chunks retrieved and stuffed into the prompt, what proportion is actual relevant signal rather than irrelevant junk?</b></p>
+
+$$\text{Precision@K} = \frac{|\mathcal{R}_K \cap \mathcal{G}|}{K} = \frac{\text{Number of Relevant Chunks in Top } K}{K}$$
+
+<ul>
+  <li><b>The denominator is $K$ (Total chunks fetched):</b> Precision penalizes you every time you fetch a useless distractor document.</li>
+  <li><b>Range:</b> Between $0.0$ (100% noise) and $1.0$ (100% pure signal; every retrieved chunk is relevant).</li>
+  <li><b>Why Precision@K matters for LLMs:</b>
+    <ol>
+      <li><b>Context Poisoning:</b> LLMs can be easily distracted by irrelevant text that shares incidental keywords with the query.</li>
+      <li><b>Lost-in-the-Middle Penalty:</b> The more noise chunks you pass, the harder it is for the model's self-attention to spot the true facts.</li>
+      <li><b>Token Billing:</b> If each chunk is 400 tokens, retrieving 10 chunks sends 4,000 tokens per prompt. If 8 of them are junk, 3,200 tokens ($80\%$ of your bill) are thrown directly into the trash.</li>
+    </ol>
+  </li>
+</ul>
+
+<h3>concrete worked example: precision@k step-by-step</h3>
+<p>Revisiting the exact same 5 chunks retrieved above:</p>
+<ul>
+  <li>Retrieved at $K=5$: <code>[Doc A ✅, Doc X ❌, Doc B ✅, Doc Y ❌, Doc Z ❌]</code></li>
+  <li>Number of relevant hits in top-5 = $2$ (Doc A, Doc B).</li>
+  <li>Total items evaluated $K$ = $5$.</li>
+</ul>
+
+$$\text{Precision@5} = \frac{2}{5} = \mathbf{0.40}\quad (40\%)$$
+
+<p><b>Interpretation:</b> Only $40\%$ of the context window injected into the LLM contains real evidence. $60\%$ is useless noise (carry-on bags, meal bookings, lounge rules) that the LLM must sift through.</p>
+
+<h4>example 2: the effect of a cross-encoder reranker</h4>
+<p>Now suppose we deploy a <b>Cross-Encoder Reranker</b> (like <code>bge-reranker-large</code>) after vector retrieval. The reranker computes deep query-document cross-attention, throws out the irrelevant luggage and meal chunks, and pulls the top-3 most confident chunks:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Rank</th>
+      <th>Reranked Chunk</th>
+      <th>Relevance</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>#1</b></td>
+      <td>Doc A (Chunk #101)</td>
+      <td>Cancellation penalty schedules</td>
+      <td>✅ Hit</td>
+    </tr>
+    <tr>
+      <td><b>#2</b></td>
+      <td>Doc B (Chunk #102)</td>
+      <td>Refund processing timelines</td>
+      <td>✅ Hit</td>
+    </tr>
+    <tr>
+      <td><b>#3</b></td>
+      <td>Doc C (Chunk #103)</td>
+      <td>Medical emergency waiver policy</td>
+      <td>✅ Hit</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Let's calculate <b>Precision@3</b> on this cleaned result:</p>
+$$\text{Precision@3} = \frac{3}{3} = \mathbf{1.00}\quad (100\%)$$
+
+<p>Every single token passed to the LLM is pure, validated signal. The prompt is compact, latency is halved, and the model cannot get distracted by baggage rules.</p>
+
+<h3>the fundamental precision@k vs recall@k trade-off</h3>
+<p>You cannot blindly optimize one without hurting the other. As you increase $K$:</p>
+
+<table class="triage-table">
+  <thead>
+    <tr>
+      <th>Metric</th>
+      <th>Formula</th>
+      <th>Denominator</th>
+      <th>Behavior when $K$ increases</th>
+      <th>Failure when too low</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>Recall@K</b></td>
+      <td>$\frac{|\mathcal{R}_K \cap \mathcal{G}|}{|\mathcal{G}|}$</td>
+      <td>$|\mathcal{G}|$ (Fixed Ground Truth)</td>
+      <td><b>Always increases or stays flat</b> (wider net catches more fish)</td>
+      <td><b>Information Blindness:</b> The LLM never sees the required facts and hallucinates.</td>
+    </tr>
+    <tr>
+      <td><b>Precision@K</b></td>
+      <td>$\frac{|\mathcal{R}_K \cap \mathcal{G}|}{K}$</td>
+      <td>$K$ (Number of retrieved chunks)</td>
+      <td><b>Almost always drops</b> (pulls in marginal, low-relevance junk)</td>
+      <td><b>Context Poisoning:</b> The LLM drowns in distractors, driving up latency and cost.</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout try">
+  <b class="label">🔬 production architectural fix: two-stage retrieval</b><br />
+  How do top AI engineering teams win both? <b>Two-stage retrieval</b>:
+  <ol>
+    <li><b>Stage 1 (Bi-Encoder Dense + BM25):</b> Retrieve $K=50$ candidates. High $K$ guarantees high <b>Recall</b> ($> 95\%$).</li>
+    <li><b>Stage 2 (Cross-Encoder Reranker):</b> Score those 50 pairs and slice down to top $K=4$. The reranker compresses the list for high <b>Precision</b> ($> 85\%$) before prompt injection!</li>
+  </ol>
+</div>
+
+<!-- ============================================================ -->
+<!-- 5. MRR (MEAN RECIPROCAL RANK) -->
+<!-- ============================================================ -->
+<h2>mrr (mean reciprocal rank)</h2>
+<p>Recall and Precision care only <i>if</i> a document was caught in the top $K$, but they are completely indifferent to <b>position</b>. Finding the answer at Rank 1 scores the exact same Precision@5 as finding it at Rank 5!</p>
+
+<p>In real-world RAG, position is everything. Chunks at Rank 1 receive the highest attention weights from the LLM, whereas chunks at Rank 5 or Rank 8 suffer from the <b>Lost-in-the-Middle</b> phenomenon. Furthermore, in search bars and question-answering systems, users want the correct answer immediately.</p>
+
+<p><b>MRR (Mean Reciprocal Rank) evaluates how high the FIRST relevant chunk is placed.</b></p>
+
+<h3>the reciprocal rank (rr) formula</h3>
+<p>For a single query $i$, the <b>Reciprocal Rank ($\text{RR}_i$)</b> is simply the multiplicative inverse of the rank of the first relevant document:</p>
+
+$$\text{RR}_i = \frac{1}{\text{rank}_i}$$
+
+<ul>
+  <li>If the first relevant document is at <b>Rank 1</b>: $\text{RR} = \frac{1}{1} = \mathbf{1.0}$ (Perfect score).</li>
+  <li>If the first relevant document is at <b>Rank 2</b>: $\text{RR} = \frac{1}{2} = \mathbf{0.50}$.</li>
+  <li>If the first relevant document is at <b>Rank 5</b>: $\text{RR} = \frac{1}{5} = \mathbf{0.20}$.</li>
+  <li>If <b>no relevant document</b> appears in the top $K$: $\text{RR} = \mathbf{0.0}$.</li>
+</ul>
+
+<h3>mean reciprocal rank (mrr) across the test dataset</h3>
+<p>To evaluate your retriever across a benchmark test set of $|Q|$ queries, calculate the average Reciprocal Rank:</p>
+
+$$\text{MRR} = \frac{1}{|Q|} \sum_{i=1}^{|Q|} \frac{1}{\text{rank}_i}$$
+
+<h3>concrete worked example: calculating mrr across 4 queries</h3>
+<p>Imagine evaluating an enterprise IT support RAG system on 4 diverse employee queries with $K=5$:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Query ID</th>
+      <th>User Query</th>
+      <th>Rank of 1st Relevant Chunk</th>
+      <th>Reciprocal Rank (RR)</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>Q1</b></td>
+      <td>"How do I reset my VPN password?"</td>
+      <td><b>Rank 1</b></td>
+      <td>$\frac{1}{1} = \mathbf{1.00}$</td>
+      <td>Instant match at the very top.</td>
+    </tr>
+    <tr>
+      <td><b>Q2</b></td>
+      <td>"What is the maximum limit for 401k match?"</td>
+      <td><b>Rank 3</b></td>
+      <td>$\frac{1}{3} \approx \mathbf{0.333}$</td>
+      <td>Two unrelated tax forms ranked above it.</td>
+    </tr>
+    <tr>
+      <td><b>Q3</b></td>
+      <td>"Where do I download Docker desktop license?"</td>
+      <td><b>Rank 2</b></td>
+      <td>$\frac{1}{2} = \mathbf{0.50}$</td>
+      <td>Ranked just below general dev guidelines.</td>
+    </tr>
+    <tr>
+      <td><b>Q4</b></td>
+      <td>"SAML 2.0 IdP metadata entity ID configuration"</td>
+      <td><b>None in Top 5</b></td>
+      <td>$\mathbf{0.00}$</td>
+      <td>Complete retrieval miss (Zero recall).</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Now, calculate the system-wide <b>MRR</b>:</p>
+
+$$\text{MRR} = \frac{1.00 + 0.333 + 0.50 + 0.00}{4} = \frac{1.833}{4} = \mathbf{0.458}$$
+
+<div class="callout exam">
+  <b class="label">⭐ interview question: when to use mrr vs ndcg?</b><br />
+  <ul>
+    <li><b>Use MRR</b> when there is <b>one clear answer or winning chunk</b> (e.g. fact lookup, known-item search, "What is our company tax ID?"). MRR only looks at the <i>first</i> relevant hit and ignores all subsequent hits.</li>
+    <li><b>Use NDCG (Normalized Discounted Cumulative Gain)</b> when queries require <b>multiple relevant chunks with varying degrees of importance</b> (e.g., graded relevance: chunk A is essential (3), chunk B is supplemental (2), chunk C is tangential (1)).</li>
+  </ul>
+</div>
+
+<!-- ============================================================ -->
+<!-- 6. GOLDEN ANSWERS -->
+<!-- ============================================================ -->
+<h2>golden answers</h2>
+<p>To compute Precision, Recall, MRR, or test whether the LLM hallucinated, you need an indisputable ground truth. In AI engineering, this benchmark dataset is called the <b>Golden Dataset</b>.</p>
+
+<p>A true RAG Golden Dataset is not just a list of questions and answers. It consists of <b>Ground Truth Triples</b>:</p>
+
+$$\mathcal{T} = \Big( \text{Query},\; \mathcal{G}_{\text{context}},\; \mathcal{A}_{\text{golden}} \Big)$$
+
+<ol>
+  <li><b>$\text{Query}$:</b> The realistic question asked by a user (including domain jargon, typos, or conversational phrasing).</li>
+  <li><b>$\mathcal{G}_{\text{context}}$ (Golden Chunks):</b> The exact chunk IDs or text spans in your knowledge base that contain the facts needed to answer. (Used to evaluate the <b>Retriever</b>).</li>
+  <li><b>$\mathcal{A}_{\text{golden}}$ (Golden Answer):</b> The verified, human-grade answer string. (Used to evaluate the <b>Generator</b>).</li>
+</ol>
+
+<h3>how to construct golden datasets</h3>
+<div class="eval-grid">
+  <div class="eval-card">
+    <h4><span class="eval-pill yellow">Method 1</span> Human Subject Matter Experts</h4>
+    <p><b>Approach:</b> Engineers or domain experts (doctors, lawyers, customer ops) write 100–500 realistic questions, highlight the exact source paragraphs, and craft reference answers.</p>
+    <p><b>Pros/Cons:</b> 100% authoritative and trusted, but very expensive, slow to produce, and hard to scale when documents update.</p>
+  </div>
+  <div class="eval-card">
+    <h4><span class="eval-pill mint">Method 2</span> Synthetic Generation (Ragas / Auto-Eval)</h4>
+    <p><b>Approach:</b> An LLM (e.g. GPT-4o) reads your corpus chunks in reverse: for each chunk, it generates 3 diverse questions that <i>can only be answered using that chunk</i>.</p>
+    <p><b>Pros/Cons:</b> Ultra-fast, produces thousands of triples for dollars, but can generate artificial queries that don't match human phrasing.</p>
+  </div>
+  <div class="eval-card">
+    <h4><span class="eval-pill blue">Method 3</span> Production Log Mining</h4>
+    <p><b>Approach:</b> Extract questions from production logs where users clicked "Copy answer" or gave a 👍 thumbs-up, verified by human review.</p>
+    <p><b>Pros/Cons:</b> Captures genuine user query distributions, but requires an existing deployed system with user feedback loops.</p>
+  </div>
+</div>
+
+<h3>evaluating generated answers against golden answers</h3>
+<p>Once your retriever fetches chunks and your LLM produces an answer $\hat{\mathcal{A}}$, how do you score $\hat{\mathcal{A}}$ against $\mathcal{A}_{\text{golden}}$?</p>
+
+<ul>
+  <li><b>Lexical Metrics (BLEU, ROUGE-L):</b> Measures exact n-gram token overlap.
+    <br /><i>Gotcha:</i> Brittle! If the golden answer is <i>"The fee is $50"</i> and the LLM says <i>"You will be charged fifty dollars"</i>, ROUGE gives a near-zero score despite 100% semantic accuracy.
+  </li>
+  <li><b>Semantic Embedding Distance:</b> Computes cosine similarity between $\text{embed}(\hat{\mathcal{A}})$ and $\text{embed}(\mathcal{A}_{\text{golden}})$. Captures paraphrasing, but can miss numerical inaccuracies ($50$ vs $500$).</li>
+  <li><b>LLM-as-a-Judge (The Modern Standard):</b> Use an evaluator prompt with a strict rubric on an frontier model:</li>
+</ul>
+
+<pre><code class="language-python"># Example LLM-as-a-Judge prompt for Golden Answer Verification
+EVAL_PROMPT = """
+You are an impartial evaluation judge. Compare the Student Answer to the Golden Reference Answer.
+Score from 1 to 5 based strictly on factual agreement:
+- 5: Completely accurate, covers all critical facts, zero contradictions.
+- 3: Partially correct, misses minor details but has no false statements.
+- 1: Contradicts golden answer or hallucinates false information.
+
+User Query: {query}
+Golden Reference: {golden_answer}
+Student Answer: {student_answer}
+
+Respond in strict JSON: {"score": &lt;1-5&gt;, "reason": "&lt;explanation&gt;"}
+"""</code></pre>
+
+<!-- ============================================================ -->
+<!-- 7. FAILURE ANALYSIS -->
+<!-- ============================================================ -->
+<h2>failure analysis</h2>
+<p>When a RAG system fails, junior engineers immediately start rewriting system prompts or switching LLMs. Senior AI engineers perform a <b>root-cause failure analysis</b> across the pipeline.</p>
+
+<p>Every RAG bug maps into one of four distinct failure archetypes in the <b>RAG Diagnostic Matrix</b>:</p>
+
+<table class="triage-table">
+  <thead>
+    <tr>
+      <th>Failure Mode</th>
+      <th>Observed Symptom</th>
+      <th>Root Cause</th>
+      <th>Engineering Fix</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>1. Retrieval Miss</b><br /><span class="eval-pill pink">Stage 1: Retriever</span></td>
+      <td>$\text{Recall@K} = 0$. The ground truth chunk is completely absent from top-$K$.</td>
+      <td>
+        ● Chunk size too large (vector dilution)<br />
+        ● Keyword mismatch (BM25 missing)<br />
+        ● Embedding model blind to domain acronyms
+      </td>
+      <td>
+        ● Implement <b>Hybrid Search</b> (BM25 + Dense)<br />
+        ● Add <b>HyDE</b> (Hypothetical Document Embeddings)<br />
+        ● Use recursive semantic chunking with 15% overlap
+      </td>
+    </tr>
+    <tr>
+      <td><b>2. Ranking Miss</b><br /><span class="eval-pill orange">Stage 1: Reranker</span></td>
+      <td>$\text{Recall@K}$ is high, but $\text{MRR}$ is low. Golden chunk is buried at Rank 8–10.</td>
+      <td>
+        ● Bi-encoder cosine similarity scores noisy distractors slightly higher than true chunk<br />
+        ● "Lost in the Middle" attenuation
+      </td>
+      <td>
+        ● Deploy a <b>Cross-Encoder Reranker</b><br />
+        ● Dynamically place highest-scored chunks at the very top and bottom of the context window
+      </td>
+    </tr>
+    <tr>
+      <td><b>3. Faithfulness Failure</b><br /><span class="eval-pill yellow">Stage 2: Generator</span></td>
+      <td>Golden chunk is at Rank 1, but LLM output contradicts it or hallucinates external facts.</td>
+      <td>
+        ● Pre-training parametric bias overrides prompt<br />
+        ● Temperature is too high ($> 0.5$)<br />
+        ● System prompt allows speculative reasoning
+      </td>
+      <td>
+        ● Set <code>temperature: 0.0</code><br />
+        ● System prompt: <i>"Answer strictly and exclusively using the provided context. If not present, state 'NOT FOUND'"</i><br />
+        ● Require inline citations (e.g. <code>[Doc 2]</code>)
+      </td>
+    </tr>
+    <tr>
+      <td><b>4. Premature Refusal</b><br /><span class="eval-pill blue">Stage 2: Generator</span></td>
+      <td>Relevant chunk is present in context, but LLM claims <i>"I don't have enough information to answer."</i></td>
+      <td>
+        ● System prompt safety guardrail is overly aggressive<br />
+        ● Question phrased with slight synonym variance
+      </td>
+      <td>
+        ● Add few-shot examples demonstrating acceptable synthesis and inference over provided documents<br />
+        ● Calibrate guardrail prompts
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<figure class="eval-fig">
+<svg viewBox="0 0 660 300" role="img" aria-label="RAG Failure Triage Decision Tree">
+  <rect x="230" y="15" width="200" height="38" rx="8" fill="#ffe14d" stroke="#1c1a15" stroke-width="2"></rect>
+  <text x="330" y="38" text-anchor="middle" font-size="12" font-weight="800" font-family="monospace">RAG Answer is Incorrect</text>
+
+  <line x1="330" y1="53" x2="330" y2="85" stroke="#1c1a15" stroke-width="2"></line>
+
+  <polygon points="330,85 460,120 330,155 200,120" fill="#fff" stroke="#1c1a15" stroke-width="2"></polygon>
+  <text x="330" y="117" text-anchor="middle" font-size="11" font-weight="800">Is Golden Chunk in Top-K?</text>
+  <text x="330" y="132" text-anchor="middle" font-size="9.5" fill="#575046">(Check Recall@K)</text>
+
+  <!-- NO BRANCH -->
+  <line x1="200" y1="120" x2="110" y2="120" stroke="#1c1a15" stroke-width="2"></line>
+  <line x1="110" y1="120" x2="110" y2="180" stroke="#1c1a15" stroke-width="2"></line>
+  <text x="145" y="112" text-anchor="middle" font-size="11" font-weight="800" fill="#ef4444">NO</text>
+
+  <rect x="20" y="180" width="180" height="90" rx="8" fill="#ffe3ef" stroke="#1c1a15" stroke-width="2"></rect>
+  <text x="110" y="202" text-anchor="middle" font-size="11" font-weight="800">RETRIEVAL FAILURE</text>
+  <text x="30" y="222" font-size="9.5">● Recall@K is 0</text>
+  <text x="30" y="238" font-size="9.5">● Fix: Hybrid search (BM25)</text>
+  <text x="30" y="254" font-size="9.5">● Fix: Smaller chunks + overlap</text>
+
+  <!-- YES BRANCH -->
+  <line x1="460" y1="120" x2="550" y2="120" stroke="#1c1a15" stroke-width="2"></line>
+  <line x1="550" y1="120" x2="550" y2="155" stroke="#1c1a15" stroke-width="2"></line>
+  <text x="500" y="112" text-anchor="middle" font-size="11" font-weight="800" fill="#10b981">YES</text>
+
+  <polygon points="550,155 640,185 550,215 460,185" fill="#fff" stroke="#1c1a15" stroke-width="2"></polygon>
+  <text x="550" y="182" text-anchor="middle" font-size="10.5" font-weight="800">Is Chunk at Top Rank?</text>
+  <text x="550" y="196" text-anchor="middle" font-size="9" fill="#575046">(MRR Check: Rank 1–3)</text>
+
+  <!-- RANKING FAILURE -->
+  <line x1="460" y1="185" x2="380" y2="185" stroke="#1c1a15" stroke-width="2"></line>
+  <line x1="380" y1="185" x2="380" y2="225" stroke="#1c1a15" stroke-width="2"></line>
+  <text x="420" y="177" text-anchor="middle" font-size="10" font-weight="800" fill="#ef4444">NO</text>
+  <rect x="290" y="225" width="180" height="65" rx="8" fill="#fff4c2" stroke="#1c1a15" stroke-width="2"></rect>
+  <text x="380" y="244" text-anchor="middle" font-size="10.5" font-weight="800">RANKING FAILURE</text>
+  <text x="300" y="262" font-size="9.5">● Fix: Cross-encoder reranker</text>
+  <text x="300" y="278" font-size="9.5">● Fix: Filter noise (Precision@K)</text>
+
+  <!-- GENERATION FAILURE -->
+  <line x1="550" y1="215" x2="550" y2="245" stroke="#1c1a15" stroke-width="2"></line>
+  <text x="562" y="235" text-anchor="middle" font-size="10" font-weight="800" fill="#10b981">YES</text>
+  <rect x="470" y="245" width="170" height="50" rx="8" fill="#dcf9e8" stroke="#1c1a15" stroke-width="2"></rect>
+  <text x="555" y="264" text-anchor="middle" font-size="10.5" font-weight="800">GENERATION FAILURE</text>
+  <text x="480" y="282" font-size="9.5">● LLM hallucinating context</text>
+</svg>
+<figcaption>the rag root-cause debugging tree: triage step-by-step from data layer to llm</figcaption>
+</figure>
+
+<!-- ============================================================ -->
+<!-- 8. INTERACTIVE EVALUATION LAB -->
+<!-- ============================================================ -->
+<h2>interactive evaluation lab</h2>
+<p>Experiment with real queries, dynamically change top-$K$, toggle a Cross-Encoder Reranker, and watch <b>Recall@K, Precision@K, and MRR</b> compute live.</p>
+
+<div class="lab-card">
+  <div class="lab-head">
+    <div class="lab-title">🧪 RAG Metrics &amp; Diagnostic Simulator</div>
+    <div class="lab-badge">INTERACTIVE WORKBENCH</div>
+  </div>
+
+  <p style="margin:0 0 10px; font-size:13px; color:var(--ink-soft);"><b>Select a Benchmark Query:</b></p>
+  <div class="sim-controls" id="query-buttons">
+    <button class="sim-btn active" onclick="selectEvalQuery(0)">Query 1: International Flight Refund</button>
+    <button class="sim-btn" onclick="selectEvalQuery(1)">Query 2: Single-Fact API Key</button>
+    <button class="sim-btn" onclick="selectEvalQuery(2)">Query 3: Complex Multi-Hop Policy</button>
+  </div>
+
+  <!-- CONTROLS ROW -->
+  <div style="display:flex; flex-wrap:wrap; gap:16px; align-items:center; background:var(--paper); padding:12px 16px; border:1.8px solid var(--ink); border-radius:10px; margin:14px 0;">
+    <div>
+      <label style="font-family:var(--font-mono); font-size:12px; font-weight:700;">Top-K Window: </label>
+      <select id="k-select" onchange="updateEvalMetrics()" style="font-family:var(--font-mono); font-size:12px; padding:4px 8px; border:1.5px solid var(--ink); border-radius:6px;">
+        <option value="1">K = 1</option>
+        <option value="3">K = 3</option>
+        <option value="5" selected>K = 5</option>
+      </select>
+    </div>
+
+    <div>
+      <label style="font-family:var(--font-mono); font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px;">
+        <input type="checkbox" id="rerank-toggle" onchange="updateEvalMetrics()" style="accent-color:var(--ink); cursor:pointer;">
+        Enable Cross-Encoder Reranker
+      </label>
+    </div>
+  </div>
+
+  <!-- METRICS SCOREBOARD -->
+  <div style="display:flex; gap:12px; flex-wrap:wrap; margin:14px 0;">
+    <div class="score-stat-box" style="background:#fff9ec;">
+      <span class="score-stat-label">Recall@K</span>
+      <span class="score-stat-num" id="stat-recall" style="color:#0284c7;">50%</span>
+      <span style="font-size:11px; color:var(--ink-soft); font-family:var(--font-mono);" id="stat-recall-ratio">2 / 4 chunks</span>
+    </div>
+    <div class="score-stat-box" style="background:#f0fdf4;">
+      <span class="score-stat-label">Precision@K</span>
+      <span class="score-stat-num" id="stat-precision" style="color:#16a34a;">40%</span>
+      <span style="font-size:11px; color:var(--ink-soft); font-family:var(--font-mono);" id="stat-precision-ratio">2 / 5 in prompt</span>
+    </div>
+    <div class="score-stat-box" style="background:#fdf2f8;">
+      <span class="score-stat-label">Reciprocal Rank</span>
+      <span class="score-stat-num" id="stat-mrr" style="color:#db2777;">1.00</span>
+      <span style="font-size:11px; color:var(--ink-soft); font-family:var(--font-mono);" id="stat-mrr-rank">1st hit @ Rank 1</span>
+    </div>
+  </div>
+
+  <!-- RETRIEVED CHUNKS LIST -->
+  <p style="margin:14px 0 6px; font-family:var(--font-display); font-weight:700; font-size:14px;">Retrieved Context Passed to LLM Context Window:</p>
+  <div id="eval-chunks-container">
+    <!-- Populated dynamically via JS -->
+  </div>
+
+  <!-- DIAGNOSTIC TRIAGE BOX -->
+  <div id="eval-triage-box" style="margin-top:14px; padding:12px 14px; border:1.8px solid var(--ink); border-radius:10px; background:#fff;">
+    <!-- Populated dynamically via JS -->
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 9. SUMMARY & EXAM CHECKLIST -->
+<!-- ============================================================ -->
+<h2>summary &amp; exam checklist</h2>
+
+<div class="callout exam">
+  <b class="label">⭐ top rag evaluation interview questions</b>
+  <ul>
+    <li><b>Why not just evaluate RAG with BLEU or ROUGE?</b> Lexical overlap metrics penalize valid synonymous phrasing and cannot verify factual correctness or detect hallucinations. Use LLM-as-a-judge with deterministic retrieval metrics instead.</li>
+    <li><b>What is the difference between Recall@K and Precision@K in RAG?</b>
+      $$\text{Recall@K} = \frac{\text{Hits}}{|\mathcal{G}|} \quad (\text{Completeness ceiling}), \quad \text{Precision@K} = \frac{\text{Hits}}{K} \quad (\text{Signal density / Noise filter})$$
+    </li>
+    <li><b>Why is MRR preferred for QA over Precision@K?</b> In known-item search (e.g., finding the password reset link), you only care that the correct answer is at the very top. Finding extra relevant documents at positions 4 and 5 adds zero user value.</li>
+    <li><b>What is a Golden Dataset composed of?</b> Ground truth triples: $\text{Query}$, $\mathcal{G}_{\text{context}}$ (the exact chunk IDs for retrieval evaluation), and $\mathcal{A}_{\text{golden}}$ (the human-verified answer for generation evaluation).</li>
+    <li><b>How do you debug an LLM that hallucinates despite correct context?</b> Check temperature (drop to 0.0), strengthen system prompt constraints (strictly refuse ungrounded facts), and enforce inline citations per claim.</li>
+  </ul>
+</div>
+
+<div class="callout gotcha">
+  <b class="label">⚠️ common rookie mistake: tuning the llm before the retriever</b><br />
+  If your retrieval Recall@5 is 0.45, spend 90% of your engineering time on chunking, hybrid BM25 search, metadata filtering, and cross-encoder rerankers. Tweaking prompt instructions when the context is missing is like repainting a car that has no engine.
+</div>
+
+<!-- NEXT TOPIC BANNER -->
+<div style="margin:28px 0 14px; padding:16px 18px; border:2px solid var(--ink); border-radius:12px; background:var(--paper); box-shadow:var(--card-shadow); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+  <div>
+    <div style="font-size:12px; font-family:var(--font-mono); font-weight:700; color:var(--ink-soft);">UP NEXT · TOPIC 09</div>
+    <div style="font-size:17px; font-weight:800; font-family:var(--font-display); margin-top:2px;">Agents: Tool Calling, ReAct Loops &amp; Autonomous Planning</div>
+  </div>
+  <a class="btn yellow" href="/courses/genai-agentic-ai/agents">Go to Topic 9 Notes →</a>
+</div>
+
+<!-- ============================================================ -->
+<!-- INTERACTIVE SCRIPT FOR RAG EVAL LAB -->
+<!-- ============================================================ -->
+<script>
+(function() {
+  var testQueries = [
+    {
+      title: "Query 1: International Flight Refund",
+      query: "What are the cancellation penalties, refund processing times, and medical emergency waivers for international flights?",
+      goldenCount: 4,
+      goldenChunks: ["Chunk #101", "Chunk #102", "Chunk #103", "Chunk #104"],
+      rawRetrieved: [
+        { id: "Chunk #101", title: "Doc A: International cancellation fee schedules", isRelevant: true, desc: "Contains penalty tiers ($150-$300 depending on days before departure)." },
+        { id: "Chunk #890", title: "Doc X: Domestic carry-on luggage dimensions", isRelevant: false, desc: "Cabin bag measurements: 22 x 14 x 9 inches." },
+        { id: "Chunk #102", title: "Doc B: Refund processing timelines & 48-hour window", isRelevant: true, desc: "Refunds issued to original payment within 7-10 business days." },
+        { id: "Chunk #441", title: "Doc Y: In-flight dietary meal reservation policy", isRelevant: false, desc: "Kosher, vegan, and gluten-free meals must be ordered 24h ahead." },
+        { id: "Chunk #722", title: "Doc Z: Frequent flyer lounge access rules", isRelevant: false, desc: "Gold tier cardholders receive priority entry and shower access." }
+      ],
+      reranked: [
+        { id: "Chunk #101", title: "Doc A: International cancellation fee schedules", isRelevant: true, desc: "Contains penalty tiers ($150-$300 depending on days before departure)." },
+        { id: "Chunk #102", title: "Doc B: Refund processing timelines & 48-hour window", isRelevant: true, desc: "Refunds issued to original payment within 7-10 business days." },
+        { id: "Chunk #103", title: "Doc C: Medical emergency fee waiver policy", isRelevant: true, desc: "Full refund waiver granted with hospital admission paperwork." },
+        { id: "Chunk #104", title: "Doc D: Force majeure & weather exception waivers", isRelevant: true, desc: "Storm grounding allows rebooking or full cash voucher reimbursement." },
+        { id: "Chunk #890", title: "Doc X: Domestic carry-on luggage dimensions", isRelevant: false, desc: "Cabin bag measurements: 22 x 14 x 9 inches." }
+      ]
+    },
+    {
+      title: "Query 2: Single-Fact API Key",
+      query: "Where do I configure the OpenAI organization ID in the enterprise portal?",
+      goldenCount: 1,
+      goldenChunks: ["Chunk #305"],
+      rawRetrieved: [
+        { id: "Chunk #912", title: "Doc A: General billing payment methods", isRelevant: false, desc: "Credit card, ACH wire, and invoice billing cycles." },
+        { id: "Chunk #305", title: "Doc B: Organization settings & API key management", isRelevant: true, desc: "Navigate to Settings -> Organization -> General to copy your org-id." },
+        { id: "Chunk #551", title: "Doc C: Team member RBAC invite links", isRelevant: false, desc: "Admins, readers, and billing manager permission roles." },
+        { id: "Chunk #773", title: "Doc D: SSO SAML certificate renewal", isRelevant: false, desc: "Upload Okta or Azure AD XML metadata before certificate expiry." },
+        { id: "Chunk #412", title: "Doc E: Rate limits per workspace", isRelevant: false, desc: "Default RPM and TPM allowances for Tier 4 enterprises." }
+      ],
+      reranked: [
+        { id: "Chunk #305", title: "Doc B: Organization settings & API key management", isRelevant: true, desc: "Navigate to Settings -> Organization -> General to copy your org-id." },
+        { id: "Chunk #912", title: "Doc A: General billing payment methods", isRelevant: false, desc: "Credit card, ACH wire, and invoice billing cycles." },
+        { id: "Chunk #551", title: "Doc C: Team member RBAC invite links", isRelevant: false, desc: "Admins, readers, and billing manager permission roles." },
+        { id: "Chunk #412", title: "Doc E: Rate limits per workspace", isRelevant: false, desc: "Default RPM and TPM allowances for Tier 4 enterprises." },
+        { id: "Chunk #773", title: "Doc D: SSO SAML certificate renewal", isRelevant: false, desc: "Upload Okta or Azure AD XML metadata before certificate expiry." }
+      ]
+    },
+    {
+      title: "Query 3: Complex Multi-Hop Policy",
+      query: "Can a contractor submit an expense for an international hotel if booked without corporate card?",
+      goldenCount: 3,
+      goldenChunks: ["Chunk #501", "Chunk #502", "Chunk #503"],
+      rawRetrieved: [
+        { id: "Chunk #100", title: "Doc A: Full-time employee corporate card policy", isRelevant: false, desc: "All employees must charge lodging to AMEX corporate cards." },
+        { id: "Chunk #200", title: "Doc B: Per-diem meal allowances across Europe", isRelevant: false, desc: "Breakfast €25, Lunch €35, Dinner €50 maximum reimbursement." },
+        { id: "Chunk #501", title: "Doc C: Contractor expense reimbursement rules", isRelevant: true, desc: "Contractors submit personal card receipts via Invoice Portal." },
+        { id: "Chunk #888", title: "Doc D: Office parking subsidy guidelines", isRelevant: false, desc: "Subsidized parking tickets for downtown garage facility." },
+        { id: "Chunk #999", title: "Doc E: Travel health insurance coverage", isRelevant: false, desc: "Emergency medical evacuation coverage during overseas business." }
+      ],
+      reranked: [
+        { id: "Chunk #501", title: "Doc C: Contractor expense reimbursement rules", isRelevant: true, desc: "Contractors submit personal card receipts via Invoice Portal." },
+        { id: "Chunk #502", title: "Doc D: International hotel cap limits ($250/night)", isRelevant: true, desc: "Lodging caps apply regardless of payment method." },
+        { id: "Chunk #503", title: "Doc E: Exception approval process for personal cards", isRelevant: true, desc: "Manager written signoff required within 14 days of travel." },
+        { id: "Chunk #100", title: "Doc A: Full-time employee corporate card policy", isRelevant: false, desc: "All employees must charge lodging to AMEX corporate cards." },
+        { id: "Chunk #200", title: "Doc B: Per-diem meal allowances across Europe", isRelevant: false, desc: "Breakfast €25, Lunch €35, Dinner €50 maximum reimbursement." }
+      ]
+    }
+  ];
+
+  var activeQueryIdx = 0;
+
+  window.selectEvalQuery = function(idx) {
+    activeQueryIdx = idx;
+    var buttons = document.querySelectorAll("#query-buttons button");
+    buttons.forEach(function(b, i) {
+      if (i === idx) b.classList.add("active");
+      else b.classList.remove("active");
+    });
+    updateEvalMetrics();
+  };
+
+  window.updateEvalMetrics = function() {
+    var queryData = testQueries[activeQueryIdx];
+    var kSelect = document.getElementById("k-select");
+    var kVal = parseInt(kSelect.value, 10);
+    var rerankEnabled = document.getElementById("rerank-toggle").checked;
+
+    var list = rerankEnabled ? queryData.reranked : queryData.rawRetrieved;
+    var displayedChunks = list.slice(0, kVal);
+
+    var hits = 0;
+    var firstRank = 0;
+
+    displayedChunks.forEach(function(item, i) {
+      if (item.isRelevant) {
+        hits++;
+        if (firstRank === 0) firstRank = i + 1;
+      }
+    });
+
+    var recall = (hits / queryData.goldenCount);
+    var precision = (hits / kVal);
+    var rr = firstRank > 0 ? (1.0 / firstRank) : 0.0;
+
+    // Update stats in UI
+    document.getElementById("stat-recall").textContent = Math.round(recall * 100) + "%";
+    document.getElementById("stat-recall-ratio").textContent = hits + " / " + queryData.goldenCount + " golden";
+
+    document.getElementById("stat-precision").textContent = Math.round(precision * 100) + "%";
+    document.getElementById("stat-precision-ratio").textContent = hits + " / " + kVal + " in context";
+
+    document.getElementById("stat-mrr").textContent = rr.toFixed(2);
+    document.getElementById("stat-mrr-rank").textContent = firstRank > 0 ? "1st hit @ Rank " + firstRank : "No hits in Top-" + kVal;
+
+    // Render Chunks
+    var container = document.getElementById("eval-chunks-container");
+    container.innerHTML = "";
+
+    displayedChunks.forEach(function(chunk, idx) {
+      var row = document.createElement("div");
+      row.className = "chunk-row " + (chunk.isRelevant ? "relevant" : "irrelevant");
+
+      var badge = '<span class="chunk-rank-badge">Rank #' + (idx + 1) + '</span>';
+      var statusPill = chunk.isRelevant
+        ? '<span class="eval-pill mint" style="margin-left:6px;">✅ Relevant Hit</span>'
+        : '<span class="eval-pill pink" style="margin-left:6px;">❌ Distractor / Noise</span>';
+
+      row.innerHTML = '<div style="flex:1;">' +
+        '<div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">' +
+          badge + ' <b>' + chunk.title + '</b> ' + statusPill +
+        '</div>' +
+        '<div style="font-size:12px; color:var(--ink-soft);">' + chunk.desc + '</div>' +
+      '</div>';
+
+      container.appendChild(row);
+    });
+
+    // Diagnostic summary box
+    var triageBox = document.getElementById("eval-triage-box");
+    if (recall === 1.0 && precision >= 0.8) {
+      triageBox.innerHTML = '<b style="color:#16a34a;">🟢 Optimal State:</b> High Recall (' + Math.round(recall*100) + '%) + High Precision (' + Math.round(precision*100) + '%). The LLM context is compact and contains 100% of required facts.';
+      triageBox.style.background = "#f0fdf4";
+      triageBox.style.borderColor = "#16a34a";
+    } else if (recall < 1.0 && !rerankEnabled) {
+      triageBox.innerHTML = '<b style="color:#ea580c;">🟠 Retrieval Leak Detected:</b> Missing ' + (queryData.goldenCount - hits) + ' required chunks (Recall is ' + Math.round(recall*100) + '%). <i>Tip: Check "Enable Cross-Encoder Reranker" above to see how Stage 2 rescues missing evidence!</i>';
+      triageBox.style.background = "#fff9ec";
+      triageBox.style.borderColor = "#ea580c";
+    } else if (precision < 0.5) {
+      triageBox.innerHTML = '<b style="color:#dc2626;">🔴 Context Poisoning Warning:</b> ' + Math.round((1 - precision)*100) + '% of the prompt is distractor noise. The LLM may suffer Lost-in-the-Middle and inflate token bills.';
+      triageBox.style.background = "#fef2f2";
+      triageBox.style.borderColor = "#dc2626";
+    } else {
+      triageBox.innerHTML = '<b style="color:#0284c7;">ℹ️ Good Balance:</b> Recall is ' + Math.round(recall*100) + '% with ' + Math.round(precision*100) + '% signal density.';
+      triageBox.style.background = "#f0f9ff";
+      triageBox.style.borderColor = "#0284c7";
+    }
+  };
+
+  // Initial mount
+  setTimeout(function() {
+    updateEvalMetrics();
+  }, 100);
+})();
+</script>

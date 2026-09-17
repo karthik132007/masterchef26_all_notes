@@ -2,9 +2,9 @@ import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 
 export const metadata = {
-  title: "Nexora — High-Velocity Notes & Rapid Revision",
+  title: "Nexora — Field Notes for Sharper Minds",
   description:
-    "Master core Computer Science, AI, Systems, and FAANG interview drills. Visual mental models first, exact math and code after.",
+    "High-quality, student-made notes for computer science & AI. Learn faster. Revise smarter. Be interview-ready.",
 };
 
 export default function RootLayout({ children }) {

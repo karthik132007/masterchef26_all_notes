@@ -44,6 +44,10 @@ export default async function DayPage({ params }) {
     redirect("/courses/genai-agentic-ai/foundations");
   }
 
+  if (courseId === "genai-agentic-ai" && (day === "rag-evals" || day === "rag-eval")) {
+    redirect("/courses/genai-agentic-ai/rag-evaluation");
+  }
+
   if (courseId === "networking" && day === "load-balancer") {
     redirect("/courses/hld/load-balancer");
   }

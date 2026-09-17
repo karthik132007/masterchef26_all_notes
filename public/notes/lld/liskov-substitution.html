@@ -1,0 +1,204 @@
+<p class="kicker">subtypes must be substitutable for their base types without altering program correctness or breaking caller assumptions.</p>
+
+<h2>the core intuition</h2>
+<p>The <b>Liskov Substitution Principle (LSP)</b> was introduced by Turing Award winner <b>Barbara Liskov</b> in 1987. The formal mathematical definition states:</p>
+<blockquote>
+  <i>Let \(\phi(x)\) be a property provable about objects \(x\) of type \(T\). Then \(\phi(y)\) should be true for objects \(y\) of type \(S\) where \(S\) is a subtype of \(T\).</i>
+</blockquote>
+<p>In everyday engineering terms:</p>
+<blockquote>
+  <b>"If code expects an instance of class A, passing an instance of subclass B must never break the correctness, invariants, or runtime behavior of the program."</b>
+</blockquote>
+
+<div class="callout remember">
+  <b class="label">🧷 the battery-operated duck mental model</b><br />
+  If it looks like a duck and quacks like a duck, but requires batteries, you probably have the wrong abstraction. If your code expects a live duck, tosses it into a pond, and it sinks to the bottom because of battery weight, you have violated LSP. Subclasses must honor the <b>behavioral expectations</b> of the parent, not just match method signatures!
+</div>
+
+<h2>the 3 formal behavioral contract rules</h2>
+<p>LSP is governed by the <b>Design by Contract</b> paradigm (Bertrand Meyer). For a subclass to be truly substitutable, it must obey three strict contract conditions:</p>
+
+<table>
+  <tr><th>Contract Rule</th><th>What It Means</th><th>Violation Example</th></tr>
+  <tr>
+    <td><b>1. Preconditions cannot be strengthened</b></td>
+    <td>A subclass cannot demand <b>stricter inputs</b> or preconditions than the base class.</td>
+    <td>Base accepts any positive integer; subclass throws an error if the integer is greater than 100.</td>
+  </tr>
+  <tr>
+    <td><b>2. Postconditions cannot be weakened</b></td>
+    <td>A subclass must deliver at least the <b>same guarantees/outcomes</b> as the base class.</td>
+    <td>Base guarantees writing to disk before returning; subclass leaves writes in an uncommitted buffer.</td>
+  </tr>
+  <tr>
+    <td><b>3. Invariants must be preserved</b></td>
+    <td>A subclass must maintain all internal consistency rules guaranteed by the base class.</td>
+    <td>Base guarantees <code>width</code> and <code>height</code> can vary independently; subclass forces them to stay equal.</td>
+  </tr>
+</table>
+
+<h2>code smells: how to spot lsp violations</h2>
+<ul>
+  <li><b>Methods Throwing <code>NotImplementedError</code>:</b> A subclass overrides a parent method solely to raise an error because it doesn't support that feature.</li>
+  <li><b>Empty Method Implementations (Stubs):</b> Overriding a method with <code>pass</code> or a dummy return value because the subclass has no use for it.</li>
+  <li><b>Type-Checking (<code>isinstance</code> / <code>instanceof</code>):</b> If calling code must check the runtime type before executing an action, the abstraction has failed:
+    <div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — code smell: isinstance type-checking</span></div><pre><code><span class="tok-cmt"># SMELL: Indicates an LSP violation!</span>
+<span class="tok-kw">for</span> account <span class="tok-kw">in</span> accounts:
+    <span class="tok-kw">if</span> <span class="tok-builtin">isinstance</span>(account, <span class="tok-cls">FixedDepositAccount</span>):
+        <span class="tok-cmt"># don&#x27;t call withdraw!</span>
+    <span class="tok-kw">else</span>:
+        account.<span class="tok-fn">withdraw</span>(<span class="tok-num">500</span>)
+</code></pre></div>
+  </li>
+</ul>
+
+<h2>classic trap 1: the rectangle and square paradox</h2>
+<p>In Euclidean geometry, every square is a rectangle. But in object-oriented programming, a <b>mutable Square is NOT a mutable Rectangle</b>:</p>
+
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — anti-pattern: rectangle vs square paradox</span></div><pre><code><span class="tok-cmt"># ANTI-PATTERN: Geometric intuition conflicts with OOP behavior</span>
+<span class="tok-kw">class</span> <span class="tok-cls">Rectangle</span>:
+    <span class="tok-kw">def</span> <span class="tok-fn">__init__</span>(<span class="tok-self">self</span>, width: <span class="tok-builtin">float</span>, height: <span class="tok-builtin">float</span>):
+        <span class="tok-self">self</span>._width = width
+        <span class="tok-self">self</span>._height = height
+
+    <span class="tok-kw">def</span> <span class="tok-fn">set_width</span>(<span class="tok-self">self</span>, width: <span class="tok-builtin">float</span>) -&gt; <span class="tok-kw">None</span>:
+        <span class="tok-self">self</span>._width = width
+
+    <span class="tok-kw">def</span> <span class="tok-fn">set_height</span>(<span class="tok-self">self</span>, height: <span class="tok-builtin">float</span>) -&gt; <span class="tok-kw">None</span>:
+        <span class="tok-self">self</span>._height = height
+
+    <span class="tok-kw">def</span> <span class="tok-fn">area</span>(<span class="tok-self">self</span>) -&gt; <span class="tok-builtin">float</span>:
+        <span class="tok-kw">return</span> <span class="tok-self">self</span>._width * <span class="tok-self">self</span>._height
+
+
+<span class="tok-kw">class</span> <span class="tok-cls">Square</span>(<span class="tok-cls">Rectangle</span>):
+    <span class="tok-kw">def</span> <span class="tok-fn">__init__</span>(<span class="tok-self">self</span>, size: <span class="tok-builtin">float</span>):
+        <span class="tok-builtin">super</span>().<span class="tok-fn">__init__</span>(size, size)
+
+    <span class="tok-cmt"># In a square, setting width must change height to maintain squareness!</span>
+    <span class="tok-kw">def</span> <span class="tok-fn">set_width</span>(<span class="tok-self">self</span>, width: <span class="tok-builtin">float</span>) -&gt; <span class="tok-kw">None</span>:
+        <span class="tok-self">self</span>._width = width
+        <span class="tok-self">self</span>._height = width
+
+    <span class="tok-kw">def</span> <span class="tok-fn">set_height</span>(<span class="tok-self">self</span>, height: <span class="tok-builtin">float</span>) -&gt; <span class="tok-kw">None</span>:
+        <span class="tok-self">self</span>._width = height
+        <span class="tok-self">self</span>._height = height
+
+
+<span class="tok-cmt"># Caller function that relies on Rectangle&#x27;s contract:</span>
+<span class="tok-kw">def</span> <span class="tok-fn">resize_and_verify</span>(rect: <span class="tok-cls">Rectangle</span>) -&gt; <span class="tok-kw">None</span>:
+    rect.<span class="tok-fn">set_width</span>(<span class="tok-num">5</span>)
+    rect.<span class="tok-fn">set_height</span>(<span class="tok-num">10</span>)
+    <span class="tok-cmt"># The caller reasonably assumes: area == 5 * 10 == 50</span>
+    <span class="tok-kw">assert</span> rect.<span class="tok-fn">area</span>() == <span class="tok-num">50</span>, f&quot;Expected 50, but got {rect.<span class="tok-fn">area</span>()}&quot;
+
+<span class="tok-cmt"># Works fine with Rectangle:</span>
+<span class="tok-fn">resize_and_verify</span>(<span class="tok-cls">Rectangle</span>(<span class="tok-num">2</span>, <span class="tok-num">3</span>))  <span class="tok-cmt"># PASSES (area is 50)</span>
+
+<span class="tok-cmt"># Catastrophically fails when substituted with Square!</span>
+<span class="tok-cmt"># resize_and_verify(Square(2))      # AssertionError: Expected 50, but got 100!</span></code></pre></div>
+
+<div class="callout gotcha">
+  <b class="label">⚠️ why did square break?</b><br />
+  <code>Rectangle</code> has an invariant: changing width does not mutate height. <code>Square</code> silently mutates height when width changes. By breaking this invariant, <code>Square</code> cannot be safely substituted for <code>Rectangle</code>.
+</div>
+
+<h2>real-world trap 2: banking account hierarchies</h2>
+<p>In an enterprise banking system, a classic design mistake is forcing <code>FixedDepositAccount</code> (where funds are locked for 3 years) to inherit from a generic <code>BankAccount</code> that contains a <code>withdraw()</code> method:</p>
+
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — anti-pattern: broken contract with NotImplementedError</span></div><pre><code><span class="tok-cmt"># ANTI-PATTERN: Subclass raises NotImplementedError</span>
+<span class="tok-kw">class</span> <span class="tok-cls">BankAccount</span>:
+    <span class="tok-kw">def</span> <span class="tok-fn">__init__</span>(<span class="tok-self">self</span>, balance: <span class="tok-builtin">float</span>):
+        <span class="tok-self">self</span>.balance = balance
+
+    <span class="tok-kw">def</span> <span class="tok-fn">deposit</span>(<span class="tok-self">self</span>, amount: <span class="tok-builtin">float</span>) -&gt; <span class="tok-kw">None</span>:
+        <span class="tok-self">self</span>.balance += amount
+
+    <span class="tok-kw">def</span> <span class="tok-fn">withdraw</span>(<span class="tok-self">self</span>, amount: <span class="tok-builtin">float</span>) -&gt; <span class="tok-kw">None</span>:
+        <span class="tok-kw">if</span> amount &gt; <span class="tok-self">self</span>.balance:
+            <span class="tok-kw">raise</span> <span class="tok-cls">ValueError</span>(<span class="tok-str">&quot;Insufficient balance&quot;</span>)
+        <span class="tok-self">self</span>.balance -= amount
+
+
+<span class="tok-kw">class</span> <span class="tok-cls">FixedDepositAccount</span>(<span class="tok-cls">BankAccount</span>):
+    <span class="tok-kw">def</span> <span class="tok-fn">withdraw</span>(<span class="tok-self">self</span>, amount: <span class="tok-builtin">float</span>) -&gt; <span class="tok-kw">None</span>:
+        <span class="tok-cmt"># VIOLATION: Subtype weakens postconditions and breaks callers!</span>
+        <span class="tok-kw">raise</span> <span class="tok-cls">NotImplementedError</span>(<span class="tok-str">&quot;Withdrawals are locked until maturity date!&quot;</span>)
+</code></pre></div>
+
+<h2>the clean architecture refactor (composition &amp; role segregation)</h2>
+<p>To honor LSP, align classes around <b>actual behavioral capabilities</b>. Accounts that support withdrawal implement a withdrawable contract; locked accounts do not:</p>
+
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — clean architecture: capability segregation</span></div><pre><code><span class="tok-cmt"># CLEAN ARCHITECTURE: Respects Liskov Substitution Principle</span>
+<span class="tok-kw">from</span> abc <span class="tok-kw">import</span> <span class="tok-builtin">ABC</span>, <span class="tok-builtin">abstractmethod</span>
+
+<span class="tok-cmt"># 1. Base abstraction representing accounts that hold a balance and accept deposits</span>
+<span class="tok-kw">class</span> <span class="tok-cls">Account</span>(<span class="tok-builtin">ABC</span>):
+    <span class="tok-kw">def</span> <span class="tok-fn">__init__</span>(<span class="tok-self">self</span>, account_id: <span class="tok-builtin">str</span>, balance: <span class="tok-builtin">float</span>):
+        <span class="tok-self">self</span>.account_id = account_id
+        <span class="tok-self">self</span>._balance = balance
+
+    <span class="tok-deco">@</span><span class="tok-deco">property</span>
+    <span class="tok-kw">def</span> <span class="tok-fn">balance</span>(<span class="tok-self">self</span>) -&gt; <span class="tok-builtin">float</span>:
+        <span class="tok-kw">return</span> <span class="tok-self">self</span>._balance
+
+    <span class="tok-kw">def</span> <span class="tok-fn">deposit</span>(<span class="tok-self">self</span>, amount: <span class="tok-builtin">float</span>) -&gt; <span class="tok-kw">None</span>:
+        <span class="tok-kw">if</span> amount &lt;= <span class="tok-num">0</span>:
+            <span class="tok-kw">raise</span> <span class="tok-cls">ValueError</span>(<span class="tok-str">&quot;Deposit amount must be strictly positive&quot;</span>)
+        <span class="tok-self">self</span>._balance += amount
+        <span class="tok-builtin">print</span>(f&quot;[Account {<span class="tok-self">self</span>.account_id}] Deposited ${amount:.2f}. New Balance: ${<span class="tok-self">self</span>._balance:.2f}&quot;)
+
+
+<span class="tok-cmt"># 2. Narrower capability interface for accounts that allow on-demand withdrawal</span>
+<span class="tok-kw">class</span> <span class="tok-cls">Withdrawable</span>(<span class="tok-builtin">ABC</span>):
+    <span class="tok-deco">@</span><span class="tok-deco">abstractmethod</span>
+    <span class="tok-kw">def</span> <span class="tok-fn">withdraw</span>(<span class="tok-self">self</span>, amount: <span class="tok-builtin">float</span>) -&gt; <span class="tok-kw">None</span>:
+        <span class="tok-kw">pass</span>
+
+
+<span class="tok-cmt"># 3. Checking Account implements both capabilities</span>
+<span class="tok-kw">class</span> <span class="tok-cls">CheckingAccount</span>(<span class="tok-cls">Account</span>, <span class="tok-cls">Withdrawable</span>):
+    <span class="tok-kw">def</span> <span class="tok-fn">withdraw</span>(<span class="tok-self">self</span>, amount: <span class="tok-builtin">float</span>) -&gt; <span class="tok-kw">None</span>:
+        <span class="tok-kw">if</span> amount &lt;= <span class="tok-num">0</span>:
+            <span class="tok-kw">raise</span> <span class="tok-cls">ValueError</span>(<span class="tok-str">&quot;Withdrawal must be positive&quot;</span>)
+        <span class="tok-kw">if</span> amount &gt; <span class="tok-self">self</span>._balance:
+            <span class="tok-kw">raise</span> <span class="tok-cls">ValueError</span>(<span class="tok-str">&quot;Insufficient funds&quot;</span>)
+        <span class="tok-self">self</span>._balance -= amount
+        <span class="tok-builtin">print</span>(f&quot;[Checking {<span class="tok-self">self</span>.account_id}] Withdrew ${amount:.2f}. Remaining: ${<span class="tok-self">self</span>._balance:.2f}&quot;)
+
+
+<span class="tok-cmt"># 4. Fixed Deposit Account only inherits Account capabilities</span>
+<span class="tok-kw">class</span> <span class="tok-cls">FixedDepositAccount</span>(<span class="tok-cls">Account</span>):
+    <span class="tok-kw">def</span> <span class="tok-fn">__init__</span>(<span class="tok-self">self</span>, account_id: <span class="tok-builtin">str</span>, balance: <span class="tok-builtin">float</span>, lock_period_months: <span class="tok-builtin">int</span>):
+        <span class="tok-builtin">super</span>().<span class="tok-fn">__init__</span>(account_id, balance)
+        <span class="tok-self">self</span>.lock_period_months = lock_period_months
+
+
+<span class="tok-cmt"># 5. Client functions now depend only on the exact capability they require!</span>
+<span class="tok-kw">def</span> <span class="tok-fn">process_monthly_interest</span>(accounts: <span class="tok-builtin">list</span>[<span class="tok-cls">Account</span>]) -&gt; <span class="tok-kw">None</span>:
+    <span class="tok-str">&quot;&quot;&quot;Safe for ALL accounts — no exceptions possible!&quot;&quot;&quot;</span>
+    <span class="tok-kw">for</span> acc <span class="tok-kw">in</span> accounts:
+        acc.<span class="tok-fn">deposit</span>(<span class="tok-num">10.0</span>)
+
+<span class="tok-kw">def</span> <span class="tok-fn">process_batch_payout</span>(accounts: <span class="tok-builtin">list</span>[<span class="tok-cls">Withdrawable</span>], amount: <span class="tok-builtin">float</span>) -&gt; <span class="tok-kw">None</span>:
+    <span class="tok-str">&quot;&quot;&quot;Type-safe by construction: impossible to pass a FixedDepositAccount here!&quot;&quot;&quot;</span>
+    <span class="tok-kw">for</span> acc <span class="tok-kw">in</span> accounts:
+        acc.<span class="tok-fn">withdraw</span>(amount)
+</code></pre></div>
+
+<h2>the golden rule: composition over inheritance</h2>
+<div class="callout remember">
+  <b class="label">🧷 prefer "has-a" over "is-a"</b><br />
+  Most LSP violations stem from treating inheritance as a code-reuse mechanism rather than a strict behavioral subtype relationship. If two concepts share logic but not full behavioral substitutability, <b>do not inherit</b>. Instead, inject the shared behavior as a component via composition.
+</div>
+
+<div class="callout exam">
+  <b class="label">⭐ interview questions that test lsp</b><br />
+  Interviewers love asking:
+  <ol>
+    <li><i>"Can a ReadOnlyRepository inherit from a CrudRepository?"</i><br />
+        <b>Answer:</b> No! That violates LSP because <code>save()</code> and <code>delete()</code> would throw runtime exceptions. Split them into <code>ReadableRepository</code> and <code>WritableRepository</code>.</li>
+    <li><i>"Why does Bird $\to$ FlyingBird $\to$ Penguin break LSP?"</i><br />
+        <b>Answer:</b> A Penguin is a Bird, but cannot fly. If <code>Bird</code> contains <code>fly()</code>, <code>Penguin</code> must either raise an error or no-op. Instead, make <code>Flyable</code> an independent capability interface.</li>
+  </ol>
+</div>

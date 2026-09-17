@@ -1,0 +1,84 @@
+<p class="kicker">low-level design · concept-wise track</p>
+<h1>LLD, Concept by Concept</h1>
+<p class="plan-lede">Transform ambiguous feature requirements into clean, extensible, object-oriented architectures. This track bridges high-level domain intuition with low-level class models, design patterns, and machine coding execution — explained language-independently with clean Python implementations.</p>
+
+<div class="plan-outcomes">
+  <b>The Low-Level Design Mastery Progression:</b>
+  <ol>
+    <li><b>SOLID Foundations:</b> The 5 architectural invariants that prevent software rot, fragility, and rigid coupling.</li>
+    <li><b>Clean Class Modeling:</b> Identifying actors, single responsibilities, value objects, entities, and domain boundaries.</li>
+    <li><b>Gang of Four (GoF) Patterns:</b> Choosing the right Creational, Structural, and Behavioral patterns without over-engineering.</li>
+    <li><b>Thread Safety &amp; Concurrency:</b> Race conditions, reentrancy, locking primitives, and thread-safe data structures.</li>
+    <li><b>Machine Coding Drills:</b> Designing end-to-end systems under 45-minute interview constraints (Parking Lot, Rate Limiter, Splitwise, LRU Cache).</li>
+  </ol>
+</div>
+
+<div class="plan-timeline">
+
+<section class="plan-day">
+  <span class="plan-daynum">Foundation</span>
+  <h2>SOLID Principles Overview</h2>
+  <ul>
+    <li>The mechanical symptoms of software rot: Rigidity, Fragility, Immobility, and Viscosity</li>
+    <li>High cohesion vs Loose coupling — the twin pillars of software engineering</li>
+    <li>SOLID comparison matrix: definitions, violations, and remedies at a glance</li>
+  </ul>
+  <a class="plan-open" href="/courses/lld/solid-overview">open solid overview notes →</a>
+</section>
+
+<section class="plan-day">
+  <span class="plan-daynum">Principle 01</span>
+  <h2>Single Responsibility Principle (SRP)</h2>
+  <ul>
+    <li>"One reason to change" — why responsibility is defined by the stakeholder/actor</li>
+    <li>Code smell diagnostics: The God Class and Shotgun Surgery</li>
+    <li>Python refactor: Decomposing a monolithic order processor into cohesive services</li>
+  </ul>
+  <a class="plan-open" href="/courses/lld/single-responsibility">open srp notes →</a>
+</section>
+
+<section class="plan-day">
+  <span class="plan-daynum">Principle 02</span>
+  <h2>Open/Closed Principle (OCP)</h2>
+  <ul>
+    <li>Open for extension, closed for modification — programming to interfaces, not concretions</li>
+    <li>Code smell diagnostics: Giant <code>if/elif/else</code> and <code>switch</code> cascades</li>
+    <li>Python refactor: Building a pluggable payment processor with Abstract Base Classes &amp; Protocols</li>
+  </ul>
+  <a class="plan-open" href="/courses/lld/open-closed">open ocp notes →</a>
+</section>
+
+<section class="plan-day">
+  <span class="plan-daynum">Principle 03</span>
+  <h2>Liskov Substitution Principle (LSP)</h2>
+  <ul>
+    <li>Behavioral subtyping: Why "is-a" geometric relationships fail in object models</li>
+    <li>Preconditions, postconditions, and class invariants</li>
+    <li>Python refactor: Deconstructing the Rectangle/Square dilemma and banking account hierarchies</li>
+  </ul>
+  <a class="plan-open" href="/courses/lld/liskov-substitution">open lsp notes →</a>
+</section>
+
+<section class="plan-day">
+  <span class="plan-daynum">Principle 04</span>
+  <h2>Interface Segregation Principle (ISP)</h2>
+  <ul>
+    <li>Clients should never be forced to depend on methods they do not consume</li>
+    <li>Fat interfaces vs focused Role Interfaces</li>
+    <li>Python refactor: Multi-function devices and Python's structural typing via <code>typing.Protocol</code></li>
+  </ul>
+  <a class="plan-open" href="/courses/lld/interface-segregation">open isp notes →</a>
+</section>
+
+<section class="plan-day">
+  <span class="plan-daynum">Principle 05</span>
+  <h2>Dependency Inversion Principle (DIP)</h2>
+  <ul>
+    <li>High-level policy must never depend on low-level mechanism; both depend on abstractions</li>
+    <li>Dependency Inversion vs Inversion of Control (IoC) vs Dependency Injection (DI)</li>
+    <li>Python refactor: Decoupling business logic from external email/SMS providers for instant mockability</li>
+  </ul>
+  <a class="plan-open" href="/courses/lld/dependency-inversion">open dip notes →</a>
+</section>
+
+</div>

@@ -1,0 +1,39 @@
+<!--
+  HOW TO ADD NOTES FOR A CONCEPT (lld is concept-wise)
+  ====================================================
+  1. Concepts live in `lib/courses.js` under lld.topics.
+     To add one, add `{ slug: "my-concept", title: "My Concept" }` there.
+  2. Copy this file to `<slug>.html` in this folder (e.g. factory-pattern.html).
+     File name MUST match the sidebar concept slug.
+  3. Delete this comment and write your notes as an HTML fragment.
+  4. Styles available out-of-the-box:
+       .kicker            handwritten hook line under a heading
+       .callout.exam      ⭐ yellow exam-tip / interview box
+       .callout.gotcha    ⚠️ pink common-mistake box
+       .callout.remember  🧷 green remember box
+       .callout.try       🔬 blue try-it-yourself box
+       Plain <h2>, <p>, <ul>, <ol>, <table>, <pre>, <code> are styled.
+-->
+
+<p class="kicker">one-line intuition for the design pattern or principle.</p>
+
+<h2>the core intuition</h2>
+<p>Explain the design problem without tying it to any single programming language.</p>
+
+<div class="callout remember">
+  <b class="label">🧷 mental model</b><br />
+  A memorable real-world metaphor or physical analogy.
+</div>
+
+<h2>the violation (anti-pattern)</h2>
+<p>Why naive code breaks when requirements inevitably change.</p>
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — anti-pattern (bad code)</span></div><pre><code><span class="tok-cmt"># Bad code example</span></code></pre></div>
+
+<h2>the clean architecture refactor</h2>
+<p>How applying the principle isolates changes and decouples components.</p>
+<div class="code-wrap"><div class="code-head"><span class="dots">● ● ●</span><span class="lang">python — clean architecture (good code)</span></div><pre><code><span class="tok-cmt"># Refactored clean code example in Python</span></code></pre></div>
+
+<div class="callout exam">
+  <b class="label">⭐ interview tip</b><br />
+  Trade-offs, when NOT to apply this pattern (avoiding over-engineering), and what interviewers look for.
+</div>
