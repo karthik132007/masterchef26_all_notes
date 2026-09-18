@@ -1,0 +1,78 @@
+<p class="kicker">a working endpoint is a demo; validation, errors, configuration, and transactions make it an application.</p>
+
+<h2>today's outcome</h2>
+<p>Make the student API safer and more production-shaped with externalized configuration, validation, consistent errors, and transaction boundaries.</p>
+<figure style="margin:18px 0;text-align:center;"><img src="/notes/spring-boot/resources/day-6-01-production-api-safety.png" alt="Production API safety practices including configuration, validation, exception handling, and transactions" style="width:100%;height:auto;border:2px solid var(--ink);border-radius:14px;box-shadow:4px 4px 0 var(--ink);" /><figcaption>Validate early, return consistent errors, and commit related database changes together.</figcaption></figure>
+
+<h2>configuration without secrets</h2>
+<pre>spring.datasource.url=jdbc:postgresql://localhost:5432/classroom
+spring.datasource.username=classroom
+spring.datasource.password=${DB_PASSWORD}
+server.port=8081</pre>
+<p>Keep environment-specific values outside source control. Use <code>application-dev.properties</code> and <code>application-prod.properties</code> only for non-secret defaults; inject secrets through environment variables or a secret manager.</p>
+<p>See the official <a href="https://docs.spring.io/spring-boot/reference/features/external-config.html" target="_blank" rel="noopener">externalized configuration</a> documentation.</p>
+
+<h2>profiles</h2>
+<pre>spring.profiles.active=dev
+
+// or at startup
+java -jar app.jar --spring.profiles.active=prod</pre>
+<p>Profiles select configuration and beans for an environment. They are not a security boundary; secrets still need secure storage.</p>
+
+<h2>validate at the boundary</h2>
+<pre>public record StudentRequest(
+    @NotBlank String name,
+    @NotBlank @Email String email,
+    @NotBlank @Size(max = 80) String branch
+) {}
+
+@PostMapping
+public ResponseEntity&lt;StudentResponse&gt; create(
+        @Valid @RequestBody StudentRequest request) {
+    return ResponseEntity.status(HttpStatus.CREATED)
+        .body(service.create(request));
+}</pre>
+<p>Validation belongs at the boundary so invalid input does not travel through the service and persistence layers.</p>
+
+<h2>one error shape</h2>
+<pre>@RestControllerAdvice
+public class ApiExceptionHandler {
+    @ExceptionHandler(StudentNotFoundException.class)
+    ResponseEntity&lt;ApiError&gt; notFound(
+            StudentNotFoundException exception,
+            HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body(new ApiError(404, exception.getMessage(), request.getRequestURI()));
+    }
+}</pre>
+<pre>{
+  "status": 404,
+  "message": "Student 12 was not found",
+  "path": "/students/12"
+}</pre>
+
+<h2>transactions</h2>
+<p>A transaction groups related database changes. If a later operation fails, the database can roll back the earlier changes.</p>
+<pre>@Transactional
+public Enrollment enroll(Long studentId, Long courseId) {
+    Student student = studentRepository.getReferenceById(studentId);
+    Course course = courseRepository.getReferenceById(courseId);
+    return enrollmentRepository.save(new Enrollment(student, course));
+}</pre>
+<p>Keep transactions around a business operation, not around an entire web request that performs slow external calls.</p>
+
+<h2>trade-off table</h2>
+<table>
+  <tr><th>Choice</th><th>Use this when</th></tr>
+  <tr><td>JPA</td><td>Your domain maps naturally to entities and you value productive CRUD.</td></tr>
+  <tr><td>JDBC</td><td>You need direct SQL control or highly specialized queries.</td></tr>
+  <tr><td>Lazy loading</td><td>The relationship is not needed for every request.</td></tr>
+  <tr><td>DTOs</td><td>Your API contract should be independent from the database model.</td></tr>
+</table>
+
+<h2>practice</h2>
+<ol>
+  <li>Add validation for every create/update field.</li>
+  <li>Return the same error shape for not found, validation, and duplicate email errors.</li>
+  <li>Demonstrate rollback by forcing the second operation in a transaction to fail.</li>
+</ol>

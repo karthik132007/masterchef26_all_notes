@@ -1,0 +1,53 @@
+<p class="kicker">the gateway is the front door; resilience and observability tell us what happens behind it.</p>
+
+<h2>today's outcome</h2>
+<p>Route client traffic through Spring Cloud Gateway and understand predicates, filters, logical service routes, timeouts, retries, circuit breakers, and health endpoints.</p>
+<figure style="margin:18px 0;text-align:center;"><img src="/notes/spring-boot/resources/day-9-01-gateway-resilience.png" alt="API Gateway routing requests to microservices with resilience and observability concerns" style="width:100%;height:auto;border:2px solid var(--ink);border-radius:14px;box-shadow:4px 4px 0 var(--ink);" /><figcaption>The gateway is the front door; resilience and observability keep failures understandable.</figcaption></figure>
+
+<h2>gateway architecture</h2>
+<pre>Client
+  ↓
+API Gateway
+  ├── /api/products/** → PRODUCT-SERVICE
+  ├── /api/orders/**   → ORDER-SERVICE
+  └── /api/users/**    → USER-SERVICE</pre>
+<p>Centralizing routing can also centralize cross-cutting concerns such as authentication, headers, metrics, and rate limits. It should not become a place where all business logic accumulates.</p>
+
+<h2>route concepts</h2>
+<table>
+  <tr><th>Concept</th><th>Question it answers</th></tr>
+  <tr><td>Predicate</td><td>When should this route match?</td></tr>
+  <tr><td>Filter</td><td>What should change before or after forwarding?</td></tr>
+  <tr><td>URI</td><td>Where should the request go?</td></tr>
+  <tr><td><code>lb://PRODUCT-SERVICE</code></td><td>Which discovered service name should LoadBalancer resolve?</td></tr>
+</table>
+<p>See the official <a href="https://docs.spring.io/spring-cloud-gateway/reference/" target="_blank" rel="noopener">Spring Cloud Gateway reference</a>.</p>
+
+<h2>resilience vocabulary</h2>
+<ul>
+  <li><b>Timeout:</b> stop waiting after a bounded period.</li>
+  <li><b>Retry:</b> try again for failures that are safe and likely temporary.</li>
+  <li><b>Circuit breaker:</b> stop sending traffic to a failing dependency for a period.</li>
+  <li><b>Fallback:</b> return a useful degraded response when the dependency is unavailable.</li>
+</ul>
+<pre>Closed → requests flow normally
+Open → requests fail fast
+Half-open → probe whether recovery happened</pre>
+<div class="callout gotcha"><b class="label">⚠️ gotcha</b><br />Retries can multiply traffic and duplicate writes. Retry only operations with a safe idempotency strategy.</div>
+
+<h2>observability basics</h2>
+<p>When a request crosses services, logs from one process are not enough. Add:</p>
+<ul>
+  <li><b>Logs:</b> what happened.</li>
+  <li><b>Metrics:</b> how often and how slowly it happens.</li>
+  <li><b>Traces:</b> where time was spent across services.</li>
+  <li><b>Correlation IDs:</b> which logs belong to one request.</li>
+</ul>
+<p>Add Spring Boot Actuator and inspect <code>/actuator/health</code>. The official <a href="https://docs.spring.io/spring-boot/reference/actuator/" target="_blank" rel="noopener">Actuator documentation</a> explains endpoints and exposure settings.</p>
+
+<h2>practice</h2>
+<ol>
+  <li>Route product and order requests through a gateway.</li>
+  <li>Add a request correlation ID to logs.</li>
+  <li>Simulate a slow dependency and define a timeout and fallback policy.</li>
+</ol>

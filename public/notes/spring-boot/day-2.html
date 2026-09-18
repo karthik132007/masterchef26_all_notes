@@ -1,0 +1,92 @@
+<p class="kicker">JDBC makes the mapping visible; ORM makes the mapping reusable.</p>
+
+<h2>today's outcome</h2>
+<p>You will be able to explain the exact chain <b>JDBC → ORM → JPA → Hibernate</b>, map Java classes to tables, and describe basic relationships.</p>
+<figure style="margin:18px 0;text-align:center;"><img src="/notes/spring-boot/resources/day-2-01-persistence-stack.png" alt="Persistence stack from application code through JPA, Hibernate, JDBC, and the database" style="width:100%;height:auto;border:2px solid var(--ink);border-radius:14px;box-shadow:4px 4px 0 var(--ink);" /><figcaption>JPA defines the contract; Hibernate implements it; JDBC reaches the database.</figcaption></figure>
+
+<h2>the five words students mix up</h2>
+<table>
+  <tr><th>Term</th><th>Simple meaning</th></tr>
+  <tr><td>JDBC</td><td>Java's low-level API for sending SQL to a database.</td></tr>
+  <tr><td>ORM</td><td>A technique for mapping relational rows and tables to objects and classes.</td></tr>
+  <tr><td>JPA</td><td>A standard API/specification describing persistence annotations and operations.</td></tr>
+  <tr><td>Hibernate</td><td>A popular ORM framework that implements JPA.</td></tr>
+  <tr><td>Spring Data JPA</td><td>A Spring abstraction that creates repository implementations on top of JPA.</td></tr>
+</table>
+<div class="callout exam"><b class="label">⭐ exam answer</b><br />JPA is not Hibernate. JPA defines the contract; Hibernate is one implementation of that contract.</div>
+
+<h2>the complete persistence chain</h2>
+<pre>Your service code
+      ↓
+JPA API (standard)
+      ↓
+Hibernate (implementation)
+      ↓
+JDBC (low-level database API)
+      ↓
+Database</pre>
+<p>Spring Data JPA will later add a repository layer above JPA. It does not replace Hibernate or JDBC.</p>
+
+<h2>an entity</h2>
+<pre>@Entity
+@Table(name = "students")
+public class Student {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
+    private String name;
+
+    @Column(nullable = false, unique = true)
+    private String email;
+}
+</pre>
+<p><code>@Entity</code> tells the persistence provider to track instances. <code>@Id</code> identifies the primary key. <code>@GeneratedValue</code> delegates identifier generation to the database strategy.</p>
+
+<h2>relationships: department and students</h2>
+<figure style="margin:18px 0;text-align:center;"><img src="/notes/spring-boot/resources/day-2-02-entity-mapping.png" alt="Student and Department entities mapped to relational database tables" style="width:100%;height:auto;border:2px solid var(--ink);border-radius:14px;box-shadow:4px 4px 0 var(--ink);" /><figcaption>Entity fields and relationships become table columns and foreign keys.</figcaption></figure>
+<pre>@Entity
+public class Department {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+
+    @OneToMany(mappedBy = "department")
+    private List&lt;Student&gt; students = new ArrayList&lt;&gt;();
+}
+
+@Entity
+public class Student {
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department_id")
+    private Department department;
+}
+</pre>
+<p>The foreign key belongs on the student table. <code>mappedBy</code> says the student owns the database relationship. Keep both sides synchronized in helper methods when changing the relationship in memory.</p>
+
+<h2>lazy versus eager</h2>
+<ul>
+  <li><b>LAZY:</b> load the relationship when code first needs it. Usually safer for large collections.</li>
+  <li><b>EAGER:</b> load the relationship immediately. Convenient, but can load much more data than the request needs.</li>
+</ul>
+<p>Choose fetching deliberately. A relationship annotation is not a license to load the entire object graph.</p>
+
+<h2>entitymanager basics</h2>
+<pre>entityManager.persist(student); // INSERT when flushed
+entityManager.find(Student.class, id); // SELECT by id
+entityManager.merge(student); // copy detached state
+entityManager.remove(student); // DELETE managed entity</pre>
+<p>These operations usually run inside a transaction. The persistence context tracks managed objects and synchronizes changes with the database.</p>
+
+<h2>official reading</h2>
+<p>Use the official <a href="https://docs.spring.io/spring-data/jpa/reference/" target="_blank" rel="noopener">Spring Data JPA reference</a> as the detailed reference and the <a href="https://hibernate.org/orm/documentation/" target="_blank" rel="noopener">Hibernate ORM documentation</a> when you need provider-specific behavior.</p>
+
+<h2>practice</h2>
+<ol>
+  <li>Map <code>Department</code> and <code>Student</code> with a many-to-one relationship.</li>
+  <li>Write down which table owns the foreign key and why.</li>
+  <li>Change a relationship to eager loading, inspect the SQL, then change it back to lazy loading.</li>
+</ol>

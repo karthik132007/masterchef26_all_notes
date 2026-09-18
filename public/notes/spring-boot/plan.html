@@ -1,0 +1,155 @@
+<p class="kicker">spring boot · from database calls to production-shaped services</p>
+<h1>Build backend systems you can explain</h1>
+<p class="plan-lede">Ten focused classes. We start with JDBC so the framework solves a real problem, then move through JPA, Spring Boot, REST, production practices, and microservices. Days 11 and 12 remain reserved for the project phase.</p>
+
+<div class="plan-outcomes">
+  <b>By the end of this course, you know:</b>
+  <ol>
+    <li>Why Spring Boot exists and what it automates</li>
+    <li>The difference between JDBC, ORM, JPA, Hibernate, and Spring Data JPA</li>
+    <li>How IoC, dependency injection, beans, and component scanning work</li>
+    <li>How to build and test a layered REST API</li>
+    <li>How repositories, entities, DTOs, relationships, and transactions fit together</li>
+    <li>How to validate requests and return consistent API errors</li>
+    <li>When a monolith is better than microservices</li>
+    <li>How discovery, load balancing, gateways, resilience, and observability fit together</li>
+  </ol>
+</div>
+
+<div class="plan-timeline">
+<section class="plan-day important">
+  <span class="plan-daynum">Day 01</span><span class="imp">foundation</span>
+  <h2>JDBC and persistence fundamentals</h2>
+  <ul>
+    <li>Java, Maven, IntelliJ, database, Postman, and Git setup</li>
+    <li>Connections, PreparedStatement, ResultSet, and resource cleanup</li>
+    <li>Student CRUD with manual SQL and object mapping</li>
+    <li>SQL injection and why parameterized queries matter</li>
+    <li>Why repetitive persistence code motivates ORM</li>
+  </ul>
+  <a class="plan-open" href="/courses/spring-boot/day-1">open day 1 notes →</a>
+</section>
+
+<section class="plan-day important">
+  <span class="plan-daynum">Day 02</span><span class="imp">important</span>
+  <h2>ORM, JPA, and Hibernate</h2>
+  <ul>
+    <li>Rows and tables mapped to Java objects</li>
+    <li>JPA as a specification and Hibernate as an implementation</li>
+    <li>Entities, identifiers, generated keys, and columns</li>
+    <li>Department–Student relationships and foreign keys</li>
+    <li>Lazy loading, eager loading, and EntityManager basics</li>
+  </ul>
+  <a class="plan-open" href="/courses/spring-boot/day-2">open day 2 notes →</a>
+</section>
+
+<section class="plan-day important">
+  <span class="plan-daynum">Day 03</span><span class="imp">important</span>
+  <h2>Spring framework and Spring Boot</h2>
+  <ul>
+    <li>Inversion of Control and dependency injection</li>
+    <li>Beans, ApplicationContext, component scanning, and stereotypes</li>
+    <li>Constructor injection and testable design</li>
+    <li>Auto-configuration, starters, embedded server, and defaults</li>
+    <li>What <code>@SpringBootApplication</code> does conceptually</li>
+  </ul>
+  <a class="plan-open" href="/courses/spring-boot/day-3">open day 3 notes →</a>
+</section>
+
+<section class="plan-day important">
+  <span class="plan-daynum">Day 04</span><span class="imp">build</span>
+  <h2>Spring MVC and REST APIs</h2>
+  <ul>
+    <li>Create a project with Spring Initializr</li>
+    <li>DispatcherServlet request flow</li>
+    <li>Controllers, routes, path variables, query parameters, and request bodies</li>
+    <li>GET, POST, PUT, PATCH, DELETE, and HTTP status codes</li>
+    <li>Move business work from controllers into services</li>
+  </ul>
+  <a class="plan-open" href="/courses/spring-boot/day-4">open day 4 notes →</a>
+</section>
+
+<section class="plan-day important">
+  <span class="plan-daynum">Day 05</span><span class="imp">important</span>
+  <h2>Spring Data JPA</h2>
+  <ul>
+    <li>JpaRepository and generated implementations</li>
+    <li>Built-in CRUD operations and derived query methods</li>
+    <li>JPQL, native queries, pagination, and sorting</li>
+    <li>Entity versus request and response DTOs</li>
+    <li>Lazy loading and the N+1 query problem</li>
+  </ul>
+  <a class="plan-open" href="/courses/spring-boot/day-5">open day 5 notes →</a>
+</section>
+
+<section class="plan-day">
+  <span class="plan-daynum">Day 06</span>
+  <h2>Production-style application basics</h2>
+  <ul>
+    <li>Properties, YAML, profiles, and environment variables</li>
+    <li>Bean validation with <code>@Valid</code> and constraint annotations</li>
+    <li>Centralized exception handling with <code>@RestControllerAdvice</code></li>
+    <li>Transactions, ACID, commit, and rollback</li>
+    <li>Trade-offs between JPA, JDBC, lazy loading, and DTOs</li>
+  </ul>
+  <a class="plan-open" href="/courses/spring-boot/day-6">open day 6 notes →</a>
+</section>
+
+<section class="plan-day">
+  <span class="plan-daynum">Day 07</span>
+  <h2>Microservices fundamentals</h2>
+  <ul>
+    <li>Modular monolith versus independently deployed services</li>
+    <li>Business capability and data ownership</li>
+    <li>Benefits and operational costs of microservices</li>
+    <li>First service-to-service HTTP call</li>
+    <li>Timeouts, retries, idempotency, and distributed consistency</li>
+  </ul>
+  <a class="plan-open" href="/courses/spring-boot/day-7">open day 7 notes →</a>
+</section>
+
+<section class="plan-day important">
+  <span class="plan-daynum">Day 08</span><span class="imp">important</span>
+  <h2>Eureka, discovery, and load balancing</h2>
+  <ul>
+    <li>Why fixed hostnames and ports do not scale</li>
+    <li>Eureka Server and Eureka Client registration</li>
+    <li>Logical service names such as <code>PRODUCT-SERVICE</code></li>
+    <li>Discovery versus instance selection</li>
+    <li>Spring Cloud LoadBalancer and health-aware traffic</li>
+  </ul>
+  <a class="plan-open" href="/courses/spring-boot/day-8">open day 8 notes →</a>
+</section>
+
+<section class="plan-day important">
+  <span class="plan-daynum">Day 09</span><span class="imp">important</span>
+  <h2>API Gateway and resilience</h2>
+  <ul>
+    <li>Gateway routes, predicates, filters, and <code>lb://</code> destinations</li>
+    <li>Centralized routing and cross-cutting policies</li>
+    <li>Timeouts, retries, circuit breakers, and fallbacks</li>
+    <li>Health checks, logs, metrics, traces, and correlation IDs</li>
+    <li>Why the gateway should not become a second monolith</li>
+  </ul>
+  <a class="plan-open" href="/courses/spring-boot/day-9">open day 9 notes →</a>
+</section>
+
+<section class="plan-day">
+  <span class="plan-daynum">Day 10</span>
+  <h2>Production readiness and revision</h2>
+  <ul>
+    <li>Full request path from client to database</li>
+    <li>Unit, web slice, repository, integration, and end-to-end tests</li>
+    <li>Packaging with Maven and running an executable JAR</li>
+    <li>Actuator, safe configuration, logs, metrics, and operational checks</li>
+    <li>Final trade-off review and service design checklist</li>
+  </ul>
+  <a class="plan-open" href="/courses/spring-boot/day-10">open day 10 notes →</a>
+</section>
+</div>
+
+<div class="plan-rule">
+  <b>One rule for every Spring annotation: explain the problem it solves.</b>
+  <p>Use the framework to remove repetition, not to hide the request flow, database behavior, or failure modes.</p>
+  <p class="plan-quote">“Understand the layer underneath the annotation.”</p>
+</div>

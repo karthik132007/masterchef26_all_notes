@@ -1,0 +1,82 @@
+<p class="kicker">before Spring writes the code for us, let us feel the problem ourselves.</p>
+
+<h2>today's outcome</h2>
+<p>By the end of this class you can connect a Java program to a relational database with JDBC and implement basic CRUD for a <b>Student</b>.</p>
+<figure style="margin:18px 0;text-align:center;"><img src="/notes/spring-boot/resources/day-1-01-jdbc-flow.png" alt="JDBC flow from a Java application through the JDBC API and driver to a database" style="width:100%;height:auto;border:2px solid var(--ink);border-radius:14px;box-shadow:4px 4px 0 var(--ink);" /><figcaption>JDBC connects Java code to different databases through a standard API.</figcaption></figure>
+
+<h2>setup checklist</h2>
+<ol>
+  <li>Install Java 17 or later and verify with <code>java -version</code>.</li>
+  <li>Install IntelliJ IDEA, Maven, Git, MySQL or PostgreSQL, and Postman.</li>
+  <li>Create a plain Maven Java project. Do not add Spring yet.</li>
+  <li>Create a database and a <code>students</code> table.</li>
+</ol>
+<p>For the official project generator used later, bookmark <a href="https://start.spring.io" target="_blank" rel="noopener">start.spring.io</a>. The official <a href="https://spring.io/guides/gs/rest-service/" target="_blank" rel="noopener">REST service guide</a> also lists Java 17+, Maven, and IntelliJ as the baseline.</p>
+
+<h2>the database model</h2>
+<pre>CREATE TABLE students (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(150) UNIQUE NOT NULL,
+  branch VARCHAR(80) NOT NULL
+);</pre>
+<pre>public class Student {
+    private Long id;
+    private String name;
+    private String email;
+    private String branch;
+}
+</pre>
+
+<h2>the JDBC pipeline</h2>
+<p>The application does not talk to MySQL directly. A JDBC driver translates the standard Java database calls into the database's protocol.</p>
+<div class="callout remember"><b class="label">🧷 remember</b><br />Java code → JDBC API → JDBC driver → MySQL/PostgreSQL.</div>
+
+<h2>read one student</h2>
+<pre>String sql = "SELECT id, name, email, branch FROM students WHERE id = ?";
+
+try (Connection connection = dataSource.getConnection();
+     PreparedStatement statement = connection.prepareStatement(sql)) {
+    statement.setLong(1, studentId);
+
+    try (ResultSet result = statement.executeQuery()) {
+        if (result.next()) {
+            Student student = new Student();
+            student.setId(result.getLong("id"));
+            student.setName(result.getString("name"));
+            student.setEmail(result.getString("email"));
+            student.setBranch(result.getString("branch"));
+            return student;
+        }
+    }
+}
+return null;</pre>
+
+<h2>why preparedstatement?</h2>
+<p>Never concatenate user input into SQL. A <code>PreparedStatement</code> sends the SQL structure separately from the values, which helps prevent SQL injection and handles escaping correctly.</p>
+<pre>// unsafe
+String sql = "SELECT * FROM students WHERE email = '" + email + "'";
+
+// parameterized
+String sql = "SELECT * FROM students WHERE email = ?";
+statement.setString(1, email);</pre>
+
+<h2>the four CRUD operations</h2>
+<ul>
+  <li><b>Create:</b> <code>INSERT</code> with <code>executeUpdate()</code>.</li>
+  <li><b>Read:</b> <code>SELECT</code> with <code>executeQuery()</code> and <code>ResultSet</code>.</li>
+  <li><b>Update:</b> <code>UPDATE</code> with changed parameters.</li>
+  <li><b>Delete:</b> <code>DELETE</code> with a parameterized identifier.</li>
+</ul>
+<div class="callout gotcha"><b class="label">⚠️ gotcha</b><br />Close connections, statements, and result sets. Try-with-resources closes them even when an exception occurs.</div>
+
+<h2>the motivation for ORM</h2>
+<p>For one table, manual mapping is manageable. With 50 entities, every query repeats connection handling, SQL strings, column names, and row-to-object mapping.</p>
+<p><b>Next class:</b> we will replace repetitive mapping with ORM, then separate the JPA specification from Hibernate's implementation.</p>
+
+<h2>practice</h2>
+<ol>
+  <li>Implement <code>createStudent()</code>, <code>getStudent()</code>, <code>getAllStudents()</code>, <code>updateStudent()</code>, and <code>deleteStudent()</code>.</li>
+  <li>Try an email containing an apostrophe and verify that <code>PreparedStatement</code> still works.</li>
+  <li>Make the database reject duplicate emails and decide what exception your DAO should expose.</li>
+</ol>

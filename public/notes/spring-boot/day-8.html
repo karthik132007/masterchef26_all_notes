@@ -1,0 +1,54 @@
+<p class="kicker">discovery answers “where is the service?”; load balancing answers “which instance should I call?”</p>
+
+<h2>today's outcome</h2>
+<p>Register services with Eureka, call them by a logical service name, and separate service discovery from instance selection.</p>
+<figure style="margin:18px 0;text-align:center;"><img src="/notes/spring-boot/resources/day-8-01-eureka-load-balancing.png" alt="Eureka service discovery and Spring Cloud LoadBalancer selecting a service instance" style="width:100%;height:auto;border:2px solid var(--ink);border-radius:14px;box-shadow:4px 4px 0 var(--ink);" /><figcaption>Eureka finds instances; LoadBalancer chooses which instance receives the request.</figcaption></figure>
+
+<h2>the problem with fixed URLs</h2>
+<pre>http://localhost:8081/products/1</pre>
+<p>A physical host and port are deployment details. If Product Service runs on ports 8081, 8082, and 8083, callers should not hard-code one instance.</p>
+
+<h2>eureka's role</h2>
+<pre>Product Service :8081 ─┐
+Product Service :8082 ─┼─ register → Eureka Server
+Product Service :8083 ─┘
+
+Order Service → ask Eureka for PRODUCT-SERVICE instances</pre>
+<p>Eureka is a service registry. Clients register metadata such as service name, host, port, and health information.</p>
+<p>Read the official <a href="https://docs.spring.io/spring-cloud-netflix/reference/" target="_blank" rel="noopener">Spring Cloud Netflix reference</a> before choosing the compatible Spring Cloud release train for your Spring Boot version.</p>
+
+<h2>three applications</h2>
+<ol>
+  <li>Create a Eureka Server application with the Eureka Server starter and enable the server.</li>
+  <li>Add the Eureka Client starter to Product Service and Order Service.</li>
+  <li>Give each service a stable name such as <code>PRODUCT-SERVICE</code> and configure the registry URL.</li>
+</ol>
+<p>Keep the registry address in configuration. Do not put a production registry URL directly into business code.</p>
+
+<h2>discovery versus load balancing</h2>
+<pre>PRODUCT-SERVICE
+       ↓
+Eureka returns 8081, 8082, 8083
+       ↓
+Spring Cloud LoadBalancer chooses one
+       ↓
+Order Service sends the request</pre>
+<div class="callout exam"><b class="label">⭐ interview distinction</b><br /><b>Eureka discovers instances.</b> <b>LoadBalancer selects an instance.</b> They solve different problems.</div>
+
+<h2>logical service names</h2>
+<pre>PRODUCT-SERVICE/products/1</pre>
+<p>The logical name decouples the caller from physical locations. The client library resolves that name and applies the configured load-balancing strategy.</p>
+
+<h2>health and failure</h2>
+<ul>
+  <li>A registered service can still be unhealthy; registration is not the same as a successful request.</li>
+  <li>Use health checks and timeouts.</li>
+  <li>Remove failed instances from traffic and restore them only after they recover.</li>
+</ul>
+
+<h2>practice</h2>
+<ol>
+  <li>Register two Product Service instances with Eureka.</li>
+  <li>Call Product Service from Order Service using its logical name.</li>
+  <li>Stop one instance and observe what changes in the registry and request behavior.</li>
+</ol>
