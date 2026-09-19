@@ -1,7 +1,7 @@
 <p class="kicker">JDBC makes the mapping visible; ORM makes the mapping reusable.</p>
 
 <h2>today's outcome</h2>
-<p>You will be able to explain the exact chain <b>JDBC → ORM → JPA → Hibernate</b>, map Java classes to tables, and describe basic relationships.</p>
+<p>You will be able to explain the exact chain <b>JDBC → ORM → JPA → Hibernate</b>, map Java classes to tables, describe basic relationships, and build a runnable Maven JPA project with entities, configuration, and transactions.</p>
 <figure style="margin:18px 0;text-align:center;"><img src="/notes/spring-boot/resources/day-2-01-persistence-stack.png" alt="Persistence stack from application code through JPA, Hibernate, JDBC, and the database" style="width:100%;height:auto;border:2px solid var(--ink);border-radius:14px;box-shadow:4px 4px 0 var(--ink);" /><figcaption>JPA defines the contract; Hibernate implements it; JDBC reaches the database.</figcaption></figure>
 
 <h2>the five words students mix up</h2>
@@ -27,8 +27,146 @@ JDBC (low-level database API)
 Database</pre>
 <p>Spring Data JPA will later add a repository layer above JPA. It does not replace Hibernate or JDBC.</p>
 
-<h2>an entity</h2>
-<pre>@Entity
+<h2>1. create a plain Maven JPA project</h2>
+<p>Build a small console application first; Spring will automate this wiring in later lessons. Use <b>JDK 17</b>, Maven, and an IDE such as IntelliJ IDEA or Eclipse. Install and start <b>MySQL Server 8.0 or later</b>; MySQL Workbench is an optional SQL client. Connector/J connects the Java application to that server.</p>
+<ol>
+  <li>Verify <code>java -version</code> and <code>mvn -version</code>. Maven must use a compatible JDK too.</li>
+  <li>In your IDE, create a Java project with <b>Maven</b> as the build system. Choose group ID <code>com.example</code>, artifact ID <code>jpa-demo</code>, and JDK 17. A plain Maven project is enough; no special JPA project wizard is required.</li>
+  <li>Create the package <code>com.example.jpa</code> under <code>src/main/java</code>, then create <code>Student.java</code> and <code>App.java</code>.</li>
+  <li>Create <code>src/main/resources/META-INF/persistence.xml</code>. The folder name <code>META-INF</code> is uppercase and the file is spelled <b>persistence.xml</b>.</li>
+</ol>
+<pre>jpa-demo/
+├── pom.xml
+└── src/main/
+    ├── java/com/example/jpa/
+    │   ├── Student.java
+    │   └── App.java
+    └── resources/META-INF/
+        └── persistence.xml</pre>
+
+<h2>2. find and use dependencies from MVNRepository</h2>
+<p><a href="https://mvnrepository.com/" target="_blank" rel="noopener">MVNRepository</a> helps you look up library coordinates and dependency snippets. Maven downloads the actual artifacts from configured repositories such as Maven Central; you do not need to download JAR files manually.</p>
+<ol>
+  <li>Search for a library, then check its <b>group ID and artifact ID</b>. For this project use the three exact coordinates in the table below.</li>
+  <li>Open the artifact, select the version used in this lesson, select the <b>Maven</b> snippet, and copy the <code>&lt;dependency&gt;...&lt;/dependency&gt;</code> block.</li>
+  <li>Paste each block inside the single <code>&lt;dependencies&gt;</code> element in <code>pom.xml</code>, directly under <code>&lt;project&gt;</code>. Do not paste it inside <code>&lt;build&gt;</code> or another dependency.</li>
+  <li>Check the scope: the API and Hibernate use the default compile scope; MySQL Connector/J uses <code>runtime</code>. A snippet with <code>test</code> scope will not supply the driver when this application runs.</li>
+  <li>Reload/import the Maven project in your IDE, or run <code>mvn compile</code>. Use <code>mvn dependency:tree</code> to see direct and transitive dependencies.</li>
+</ol>
+<table>
+  <tr><th>Artifact</th><th>Role</th><th>Lesson version</th></tr>
+  <tr><td><a href="https://mvnrepository.com/artifact/jakarta.persistence/jakarta.persistence-api">jakarta.persistence:jakarta.persistence-api</a></td><td>JPA annotations and interfaces</td><td>3.1.0</td></tr>
+  <tr><td><a href="https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core">org.hibernate.orm:hibernate-core</a></td><td>Provider implementing JPA</td><td>6.6.57.Final</td></tr>
+  <tr><td><a href="https://mvnrepository.com/artifact/com.mysql/mysql-connector-j">com.mysql:mysql-connector-j</a></td><td>JDBC driver for MySQL Server</td><td>9.7.0</td></tr>
+</table>
+<p><code>groupId</code> identifies the publishing group, <code>artifactId</code> identifies the module, and <code>version</code> selects its release. These versions pin this exercise to the Hibernate 6.6 / Jakarta Persistence 3.1 family; do not independently replace them with unrelated major versions. Hibernate also brings the JPA API transitively; listing it directly makes the API your code imports explicit.</p>
+<div class="callout gotcha"><b class="label">⚠️ gotcha</b><br />Use <code>jakarta.persistence.*</code> imports throughout this example. Do not mix older <code>javax.persistence.*</code> tutorials with these dependencies. Maven Central is available by default, so this project needs no extra <code>&lt;repositories&gt;</code> entry.</div>
+<h3>complete pom.xml</h3>
+<pre>&lt;project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"&gt;
+    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+    &lt;groupId&gt;com.example&lt;/groupId&gt;
+    &lt;artifactId&gt;jpa-demo&lt;/artifactId&gt;
+    &lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;
+
+    &lt;properties&gt;
+        &lt;maven.compiler.release&gt;17&lt;/maven.compiler.release&gt;
+        &lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;
+    &lt;/properties&gt;
+
+    &lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;jakarta.persistence&lt;/groupId&gt;
+            &lt;artifactId&gt;jakarta.persistence-api&lt;/artifactId&gt;
+            &lt;version&gt;3.1.0&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.hibernate.orm&lt;/groupId&gt;
+            &lt;artifactId&gt;hibernate-core&lt;/artifactId&gt;
+            &lt;version&gt;6.6.57.Final&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;com.mysql&lt;/groupId&gt;
+            &lt;artifactId&gt;mysql-connector-j&lt;/artifactId&gt;
+            &lt;version&gt;9.7.0&lt;/version&gt;
+            &lt;scope&gt;runtime&lt;/scope&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+
+    &lt;build&gt;
+        &lt;plugins&gt;
+            &lt;plugin&gt;
+                &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+                &lt;artifactId&gt;maven-compiler-plugin&lt;/artifactId&gt;
+                &lt;version&gt;3.13.0&lt;/version&gt;
+            &lt;/plugin&gt;
+            &lt;plugin&gt;
+                &lt;groupId&gt;org.codehaus.mojo&lt;/groupId&gt;
+                &lt;artifactId&gt;exec-maven-plugin&lt;/artifactId&gt;
+                &lt;version&gt;3.5.0&lt;/version&gt;
+                &lt;configuration&gt;
+                    &lt;mainClass&gt;com.example.jpa.App&lt;/mainClass&gt;
+                &lt;/configuration&gt;
+            &lt;/plugin&gt;
+        &lt;/plugins&gt;
+    &lt;/build&gt;
+&lt;/project&gt;</pre>
+
+<p>The compiler plugin targets Java 17. The exec plugin runs our <code>App</code> class with Maven's resolved dependencies on the classpath.</p>
+
+<h2>3. create the MySQL database and configure persistence.xml</h2>
+<p>Connect to your local MySQL server using Workbench or <code>mysql -u root -p</code>, then create the practice database:</p>
+<pre>CREATE DATABASE jpa_day2;</pre>
+<p>Use your existing MySQL username and password in the XML below. The example uses <code>root</code>; change it if you sign in with a different account, and replace <code>CHANGE_ME_LOCAL_PASSWORD</code> with that account's password.</p>
+<p>Hibernate will create the <code>students</code> table from your entity. Use this separate practice database because <code>create-drop</code> recreates mapped tables and deletes their data.</p>
+<p>Save this complete file at <code>src/main/resources/META-INF/persistence.xml</code>. Maven copies resources to the classpath, where JPA looks for <code>META-INF/persistence.xml</code>. Placing it beside <code>pom.xml</code> or inside the Java package will not work.</p>
+<pre>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;persistence xmlns="https://jakarta.ee/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd"
+             version="3.0"&gt;
+    &lt;persistence-unit name="studentPU" transaction-type="RESOURCE_LOCAL"&gt;
+        &lt;provider&gt;org.hibernate.jpa.HibernatePersistenceProvider&lt;/provider&gt;
+        &lt;class&gt;com.example.jpa.Student&lt;/class&gt;
+        &lt;exclude-unlisted-classes&gt;true&lt;/exclude-unlisted-classes&gt;
+        &lt;properties&gt;
+            &lt;property name="jakarta.persistence.jdbc.driver" value="com.mysql.cj.jdbc.Driver"/&gt;
+            &lt;property name="jakarta.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/jpa_day2"/&gt;
+            &lt;property name="jakarta.persistence.jdbc.user" value="root"/&gt;
+            &lt;property name="jakarta.persistence.jdbc.password" value="CHANGE_ME_LOCAL_PASSWORD"/&gt;
+            &lt;property name="hibernate.hbm2ddl.auto" value="create-drop"/&gt;
+            &lt;property name="hibernate.show_sql" value="true"/&gt;
+            &lt;property name="hibernate.format_sql" value="true"/&gt;
+        &lt;/properties&gt;
+    &lt;/persistence-unit&gt;
+&lt;/persistence&gt;</pre>
+
+<table>
+  <tr><th>Setting</th><th>What it means</th></tr>
+  <tr><td><code>studentPU</code></td><td>The persistence-unit name. Use this exact name when creating the factory in Java.</td></tr>
+  <tr><td><code>RESOURCE_LOCAL</code></td><td>This console application controls local transactions with <code>EntityTransaction</code>.</td></tr>
+  <tr><td><code>provider</code></td><td>Selects Hibernate's JPA implementation.</td></tr>
+  <tr><td><code>class</code></td><td>Registers the fully qualified entity name. Register additional entities here too; this example disables automatic discovery of unlisted classes.</td></tr>
+  <tr><td><code>jakarta.persistence.jdbc.*</code></td><td>Driver, connection URL, username, and password for this local MySQL database.</td></tr>
+  <tr><td><code>create-drop</code></td><td>Creates tables at startup and drops them when the factory closes. Use only for this disposable exercise.</td></tr>
+  <tr><td><code>show_sql / format_sql</code></td><td>Prints readable SQL so you can connect Java operations to database statements.</td></tr>
+</table>
+<p>The XML uses the <b>3.0 schema</b>, which is also used with Jakarta Persistence 3.1. The URL selects MySQL on <code>localhost</code>, port <code>3306</code>, and database <code>jpa_day2</code>. Change the host or port if your server uses different settings. Hibernate can infer the MySQL dialect from the connection metadata.</p>
+<p>The password shown is a placeholder for local learning. Do not commit your actual database credentials. <code>create-drop</code> is for this disposable lab only; later, use migrations for persistent application data.</p>
+
+<h2>4. set up the entity class</h2>
+<p>Save this as <code>src/main/java/com/example/jpa/Student.java</code>. Each public class belongs in its own matching file, and the package must match the name registered in <code>persistence.xml</code>.</p>
+<pre>package com.example.jpa;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+@Entity
 @Table(name = "students")
 public class Student {
     @Id
@@ -40,12 +178,119 @@ public class Student {
 
     @Column(nullable = false, unique = true)
     private String email;
-}
-</pre>
-<p><code>@Entity</code> tells the persistence provider to track instances. <code>@Id</code> identifies the primary key. <code>@GeneratedValue</code> delegates identifier generation to the database strategy.</p>
+
+    protected Student() {
+        // Required by JPA to create entity instances.
+    }
+
+    public Student(String name, String email) {
+        this.name = name;
+        this.email = email;
+    }
+
+    public Long getId() { return id; }
+    public String getName() { return name; }
+    public String getEmail() { return email; }
+    public void setName(String name) { this.name = name; }
+    public void setEmail(String email) { this.email = email; }
+}</pre>
+
+<ul>
+  <li><code>@Entity</code> maps a class to persistent data; <code>@Table</code> sets the table name.</li>
+  <li><code>@Id</code> is mandatory. <code>IDENTITY</code> lets the database generate the identifier; leave it unset for new students.</li>
+  <li><code>@Column</code> adds database constraints. The unique email constraint is useful for the rollback exercise.</li>
+  <li>JPA requires a public or protected no-argument constructor. Keep the entity class non-final.</li>
+  <li>Putting <code>@Id</code> on a field selects field access: JPA can read and write private fields. Getters and setters are for application code; an ID setter is unnecessary here.</li>
+</ul>
+
+<h2>5. bootstrap JPA and run transactions</h2>
+<p>Save this as <code>src/main/java/com/example/jpa/App.java</code>. It creates, reads, updates, and deletes one student. Each write uses <code>begin()</code> and <code>commit()</code>. This introductory example follows the successful execution path; error handling is omitted.</p>
+<pre>package com.example.jpa;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityTransaction;
+import jakarta.persistence.Persistence;
+
+public class App {
+    public static void main(String[] args) {
+        EntityManagerFactory factory =
+                Persistence.createEntityManagerFactory("studentPU");
+        EntityManager em = factory.createEntityManager();
+        EntityTransaction tx = em.getTransaction();
+
+        // Create
+        tx.begin();
+        Student student = new Student("Asha", "asha@example.com");
+        em.persist(student);
+        tx.commit();
+        Long studentId = student.getId();
+        System.out.println("Created student id: " + studentId);
+
+        // Read from the database instead of the first-level cache.
+        em.clear();
+        Student saved = em.find(Student.class, studentId);
+        System.out.println("Read: " + saved.getName());
+
+        // Update the managed entity.
+        tx.begin();
+        saved.setName("Asha Rao");
+        tx.commit();
+        em.clear();
+        Student updated = em.find(Student.class, studentId);
+        System.out.println("Updated: " + updated.getName());
+
+        // Delete
+        tx.begin();
+        em.remove(updated);
+        tx.commit();
+        em.clear();
+        System.out.println("Deleted: " +
+                (em.find(Student.class, studentId) == null));
+
+        em.close();
+        factory.close();
+    }
+}</pre>
+
+<h3>factory → entity manager → transaction</h3>
+<ul>
+  <li><b>EntityManagerFactory:</b> expensive, thread-safe application-level object. Create once for a persistence unit and close at shutdown.</li>
+  <li><b>EntityManager:</b> owns a persistence context that tracks managed objects. Keep it short-lived, close it, and never share it between threads.</li>
+  <li><b>EntityTransaction:</b> <code>begin()</code> starts a unit of work, <code>commit()</code> flushes pending changes and commits, and <code>rollback()</code> cancels database changes in the active transaction.</li>
+</ul>
+<p>For example, two inserts inside one transaction either commit together or are rolled back together. SQL can execute before commit, especially with identity-generated IDs; <code>flush()</code> sends pending SQL but does <b>not</b> commit the transaction. A later rollback can still undo those writes.</p>
+<p>The reads here use <code>find()</code> without locking and are allowed outside a transaction in this setup. Writes require an active transaction. On the successful path, the example closes the entity manager and factory at the end. Handling failures and ensuring cleanup will be added when introducing exception handling. Rollback does not reset your Java objects to their previous field values.</p>
+<div class="callout remember"><b class="label">🧷 remember</b><br />A new object is <b>transient</b>; <code>persist()</code> makes it <b>managed</b>; <code>clear()</code> or closing the entity manager makes it <b>detached</b>. Changing a managed entity inside a transaction is enough for an update. <code>merge()</code> returns a managed copy of detached state; the original object remains detached.</div>
+
+<h2>6. run and verify</h2>
+<p>Open a terminal in <code>jpa-demo</code>, next to <code>pom.xml</code>, and run:</p>
+<pre>mvn clean compile exec:java</pre>
+
+<p>Alongside Hibernate's SQL logs, expect these messages (the generated ID may differ):</p>
+<pre>Created student id: 1
+Read: Asha
+Updated: Asha Rao
+Deleted: true</pre>
+
+<p>Look for <code>INSERT</code>, <code>SELECT</code>, <code>UPDATE</code>, and <code>DELETE</code> in the output. The explicit <code>clear()</code> calls ensure verification reads go back to the database instead of returning cached objects. Each run recreates the mapped tables in <code>jpa_day2</code>, and factory shutdown drops them. To inspect the table in Workbench, pause the program after the first commit and before deletion, then run <code>SELECT * FROM jpa_day2.students;</code>.</p>
+<h3>common setup errors</h3>
+<table>
+  <tr><th>Symptom</th><th>What to check</th></tr>
+  <tr><td>No persistence provider for studentPU</td><td>Check the exact unit name, the Hibernate dependency, and <code>target/classes/META-INF/persistence.xml</code> after compilation.</td></tr>
+  <tr><td>Unknown entity / Not an entity</td><td>Check <code>@Entity</code>, Jakarta imports, and the fully qualified <code>&lt;class&gt;</code> entry.</td></tr>
+  <tr><td>Driver class not found</td><td>Reload Maven, check the MySQL Connector/J runtime dependency, and run with <code>exec:java</code> so dependencies are on the classpath.</td></tr>
+  <tr><td>Communications link failure</td><td>Start MySQL Server and check the JDBC host and port. Installing Connector/J alone does not install or start a database server.</td></tr>
+  <tr><td>Unknown database / Access denied</td><td>Create <code>jpa_day2</code>, match the XML credentials to your MySQL account, and check its grants.</td></tr>
+  <tr><td>Public Key Retrieval is not allowed</td><td>Prefer a TLS connection or a configured server RSA public key. For this local disposable lab only, a non-TLS URL may use <code>jdbc:mysql://localhost:3306/jpa_day2?sslMode=DISABLED&amp;allowPublicKeyRetrieval=true</code>; inside XML write the separator as <code>&amp;amp;</code>. Do not use these settings for a remote production database.</td></tr>
+  <tr><td>TransactionRequiredException</td><td>Call <code>begin()</code> before writes; commit or roll back before closing the entity manager.</td></tr>
+  <tr><td>Unique constraint violation</td><td>Use different email addresses, or intentionally repeat one to test rollback.</td></tr>
+</table>
+<p><b>Where Spring fits later:</b> Spring Boot can configure the factory from application properties, and Spring's transaction support can manage transaction boundaries. Here we configure them explicitly to learn what those features automate.</p>
 
 <h2>relationships: department and students</h2>
 <figure style="margin:18px 0;text-align:center;"><img src="/notes/spring-boot/resources/day-2-02-entity-mapping.png" alt="Student and Department entities mapped to relational database tables" style="width:100%;height:auto;border:2px solid var(--ink);border-radius:14px;box-shadow:4px 4px 0 var(--ink);" /><figcaption>Entity fields and relationships become table columns and foreign keys.</figcaption></figure>
+<p>The snippets below extend the working example; they are not replacement files. Add the imports for <code>OneToMany</code>, <code>ManyToOne</code>, <code>FetchType</code>, <code>JoinColumn</code>, <code>List</code>, and <code>ArrayList</code> as needed. Put <code>Department</code> in its own file in <code>com.example.jpa</code>, give it a public or protected no-argument constructor, and register <code>com.example.jpa.Department</code> in <code>persistence.xml</code>. Add the department field to the existing <code>Student</code> class, preserving its ID and other fields.</p>
 <pre>@Entity
 public class Department {
     @Id
@@ -75,18 +320,88 @@ public class Student {
 <p>Choose fetching deliberately. A relationship annotation is not a license to load the entire object graph.</p>
 
 <h2>entitymanager basics</h2>
-<pre>entityManager.persist(student); // INSERT when flushed
+<pre>entityManager.persist(student); // make managed; INSERT may occur before flush
 entityManager.find(Student.class, id); // SELECT by id
 entityManager.merge(student); // copy detached state
 entityManager.remove(student); // DELETE managed entity</pre>
 <p>These operations usually run inside a transaction. The persistence context tracks managed objects and synchronizes changes with the database.</p>
 
 <h2>official reading</h2>
+<p>See MySQL's <a href="https://dev.mysql.com/doc/connector-j/en/connector-j-installing-maven.html" target="_blank" rel="noopener">Connector/J Maven setup</a> and <a href="https://dev.mysql.com/doc/connector-j/en/connector-j-usagenotes-connect-drivermanager.html" target="_blank" rel="noopener">JDBC driver connection guide</a> for the MySQL dependency and connection details.</p>
+<p>For this setup, see the <a href="https://docs.hibernate.org/orm/6.6/quickstart/html_single/#tutorial_jpa" target="_blank" rel="noopener">Hibernate JPA quickstart</a>, <a href="https://hibernate.org/orm/releases/6.6/" target="_blank" rel="noopener">Hibernate 6.6 compatibility table</a>, and <a href="https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism" target="_blank" rel="noopener">Maven dependency guide</a>.</p>
 <p>Use the official <a href="https://docs.spring.io/spring-data/jpa/reference/" target="_blank" rel="noopener">Spring Data JPA reference</a> as the detailed reference and the <a href="https://hibernate.org/orm/documentation/" target="_blank" rel="noopener">Hibernate ORM documentation</a> when you need provider-specific behavior.</p>
 
-<h2>practice</h2>
+<h2>practice mini project: student department directory</h2>
+<p>Build a <b>Java console application using JPA, Hibernate, and MySQL</b> that manages students and their departments. Use exactly two tables: <code>departments</code> and <code>students</code>. A department can have many students, and every student must belong to one department.</p>
+
+<h3>1. design the two tables</h3>
+<table>
+  <tr><th>Table</th><th>Column</th><th>Required constraints</th></tr>
+  <tr><td>departments</td><td>id</td><td>PRIMARY KEY, AUTO_INCREMENT</td></tr>
+  <tr><td>departments</td><td>name</td><td>VARCHAR(80), NOT NULL, UNIQUE</td></tr>
+  <tr><td>departments</td><td>office</td><td>VARCHAR(40), NOT NULL</td></tr>
+  <tr><td>students</td><td>id</td><td>PRIMARY KEY, AUTO_INCREMENT</td></tr>
+  <tr><td>students</td><td>name</td><td>VARCHAR(100), NOT NULL</td></tr>
+  <tr><td>students</td><td>email</td><td>VARCHAR(150), NOT NULL, UNIQUE</td></tr>
+  <tr><td>students</td><td>department_id</td><td>NOT NULL, FOREIGN KEY referencing departments(id)</td></tr>
+</table>
+<p><b>Mapping hints:</b> use <code>@Table(name = "departments")</code> and <code>@Table(name = "students")</code>, <code>@Id</code>, and <code>@GeneratedValue(strategy = GenerationType.IDENTITY)</code>. Set column lengths with <code>@Column(length = ...)</code>; combine <code>nullable = false</code> and <code>unique = true</code> where required. Map the student relationship using <code>@ManyToOne(optional = false)</code> and <code>@JoinColumn(name = "department_id", nullable = false)</code>. The department collection uses <code>@OneToMany(mappedBy = "department")</code>.</p>
+<p>Register both entity classes in <code>persistence.xml</code>. Let Hibernate generate the tables in the practice database, then inspect them with <code>SHOW CREATE TABLE departments;</code> and <code>SHOW CREATE TABLE students;</code> to verify the constraints. Keep the existing <code>create-drop</code> setting for this disposable exercise; inspect data while the application is still running, before closing the factory.</p>
+<div class="callout gotcha"><b class="label">⚠️ gotcha</b><br /><code>NOT NULL</code> rejects missing values, but allows an empty string. Reject blank names and emails in your Java code as well. A student's name does not need to be unique; two students can share a name, but not an email address.</div>
+
+<h3>2. insert a small dataset</h3>
+<p>Create these three departments first, then create the students using the saved department objects. Let MySQL generate the IDs instead of assuming specific ID numbers.</p>
+<table>
+  <tr><th>Department</th><th>Office</th><th>Students and emails</th></tr>
+  <tr><td>Computer Science</td><td>A-101</td><td>Asha — asha@example.com<br />Ravi — ravi@example.com</td></tr>
+  <tr><td>Electronics</td><td>B-201</td><td>Meera — meera@example.com</td></tr>
+  <tr><td>Mechanical</td><td>C-301</td><td>No students yet</td></tr>
+</table>
+<p>Use <code>begin()</code> before inserting and <code>commit()</code> afterward. For this practice, keep the main flow simple without <code>try</code>/<code>catch</code> blocks.</p>
+
+<h3>3. use joins to build reports</h3>
+<p>Run the following SQL in MySQL Workbench after inserting the sample data. An <b>INNER JOIN</b> returns matching student–department pairs:</p>
+<pre>SELECT s.name AS student_name, s.email, d.name AS department_name
+FROM students s
+INNER JOIN departments d ON s.department_id = d.id
+ORDER BY s.name;</pre>
+<p><b>Expected:</b> three rows — Asha and Ravi in Computer Science, and Meera in Electronics.</p>
+<p>A <b>LEFT JOIN</b> keeps every department, including a department with no students:</p>
+<pre>SELECT d.name AS department_name, COUNT(s.id) AS student_count
+FROM departments d
+LEFT JOIN students s ON s.department_id = d.id
+GROUP BY d.id, d.name
+ORDER BY d.name;</pre>
+<p><b>Expected:</b> Computer Science → 2, Electronics → 1, Mechanical → 0. Use <code>COUNT(s.id)</code> rather than <code>COUNT(*)</code> so an empty department counts as zero.</p>
+<p><b>Your tasks:</b> write a query that lists students from a department chosen by name, and another that lists only departments with no students. Then implement the first report in Java using JPQL:</p>
+<pre>SELECT s.name, s.email, d.name
+FROM Student s JOIN s.department d
+ORDER BY s.name</pre>
+<p>JPQL uses <b>entity names and Java fields</b>; SQL uses <b>table names and columns</b>. Run this projection with <code>em.createQuery(jpql, Object[].class).getResultList()</code> and print each row. For a department filter, bind the name with <code>:departmentName</code> and <code>setParameter()</code>.</p>
+
+<h3>4. add update and delete operations</h3>
 <ol>
-  <li>Map <code>Department</code> and <code>Student</code> with a many-to-one relationship.</li>
-  <li>Write down which table owns the foreign key and why.</li>
-  <li>Change a relationship to eager loading, inspect the SQL, then change it back to lazy loading.</li>
+  <li>Change Ravi's email and verify the new value with a fresh database read.</li>
+  <li>Move Meera from Electronics to Computer Science by changing her department. If you keep both sides of the relationship in memory, update the collections too.</li>
+  <li>Run the count report again: Computer Science should have 3 students, Electronics 0, and Mechanical 0.</li>
+  <li>Delete Ravi, then verify that the student count is 2 and his department still exists.</li>
 </ol>
+<p>Give each update or delete operation a transaction. Do not cascade deletion from a student to its department.</p>
+
+<h3>5. check that constraints actually work</h3>
+<p>Try each invalid operation separately in Workbench against the populated tables. Record the error and confirm that the invalid row or change was rejected.</p>
+<ul>
+  <li><b>UNIQUE:</b> insert another student using Asha's email, then try a second department named Computer Science.</li>
+  <li><b>NOT NULL:</b> insert a student with a <code>NULL</code> name or email, then try one without a department.</li>
+  <li><b>FOREIGN KEY:</b> insert a student with a department ID that does not exist.</li>
+  <li><b>Referential integrity:</b> try deleting Computer Science while students still reference it. Keep the foreign key's default restrictive delete behavior so MySQL rejects this operation.</li>
+  <li><b>Valid duplicate:</b> insert another student named Asha with a different email and a valid department. This should succeed.</li>
+</ul>
+
+<h3>what to submit</h3>
+<ul>
+  <li><code>pom.xml</code>, <code>persistence.xml</code> with a password placeholder, <code>Department.java</code>, <code>Student.java</code>, and <code>App.java</code>.</li>
+  <li>A <code>reports.sql</code> file with the inner join, department counts, department filter, and empty-department queries.</li>
+  <li>Console output or screenshots showing the initial reports, the updated counts, and the constraint errors.</li>
+  <li>A short explanation of why <code>students</code> owns the foreign key and why a left join is needed to show empty departments.</li>
+</ul>
