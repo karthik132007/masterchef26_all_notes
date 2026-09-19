@@ -5,11 +5,20 @@ import { getAllRoadmaps } from "../../lib/roadmaps";
 export const metadata = {
   title: "Engineering Roadmaps — Riviso",
   description:
-    "Opinionated, step-by-step curriculum roadmaps for AI Engineering, Backend, Systems and Software Engineering with verified resources.",
+    "Opinionated, step-by-step curriculum roadmaps for AI Engineering, Backend, Software Engineering, and Systems with verified resources.",
 };
 
 export default function RoadmapsIndexPage() {
   const roadmaps = getAllRoadmaps();
+  const activeRoadmaps = roadmaps.filter((r) => r.status === "active");
+  const totalLiveStages = activeRoadmaps.reduce(
+    (acc, r) => acc + (r.stages?.length || r.totalStages || 0),
+    0
+  );
+
+  const getCleanStageTitle = (title) => {
+    return title.replace(/^Stage\s+\d+:\s*/i, "").split(":")[0].trim();
+  };
 
   return (
     <>
@@ -30,6 +39,21 @@ export default function RoadmapsIndexPage() {
             Step-by-step paths from fundamentals to production — core
             mechanics plus verified resources, no fluff.
           </p>
+
+          <div className="rd-pill-row" style={{ marginTop: 18 }} aria-label="Roadmaps summary">
+            <span className="rd-pill">
+              <b>{activeRoadmaps.length}</b> active tracks
+            </span>
+            <span className="rd-pill">
+              <b>{totalLiveStages}</b> production stages
+            </span>
+            <span className="rd-pill">
+              <b>100+</b> verified resources
+            </span>
+            <span className="rd-pill">
+              <b>0</b> fluff · free &amp; open
+            </span>
+          </div>
         </div>
       </header>
 
@@ -42,6 +66,14 @@ export default function RoadmapsIndexPage() {
                 <div className="rd-grid-top">
                   <span
                     className={isLive ? "rd-track-live" : "rd-track-soon"}
+                    style={
+                      isLive && r.accentColor
+                        ? {
+                            background: r.accentColor,
+                            color: r.accentColor === "var(--blue)" ? "#fff" : "var(--ink)",
+                          }
+                        : {}
+                    }
                   >
                     {isLive ? "Active track" : "Coming soon"}
                   </span>
@@ -56,7 +88,7 @@ export default function RoadmapsIndexPage() {
                     {r.stages.map((st) => (
                       <li key={st.slug}>
                         <b>{String(st.number).padStart(2, "0")}</b>
-                        {st.title.split(":")[0]}
+                        <span>{getCleanStageTitle(st.title)}</span>
                       </li>
                     ))}
                   </ol>
@@ -80,6 +112,9 @@ export default function RoadmapsIndexPage() {
                 key={r.id}
                 href={`/roadmaps/${r.id}`}
                 className="rd-grid-card"
+                style={{
+                  borderTop: `4px solid ${r.accentColor || "var(--ink)"}`,
+                }}
                 aria-label={`Open ${r.title}`}
               >
                 {body}
@@ -104,7 +139,9 @@ export default function RoadmapsIndexPage() {
           </span>
           <span>
             <a href="/">home</a> · <a href="/#courses">tracks</a> ·{" "}
-            <a href="/roadmaps/ai-engineer">ai engineer roadmap</a>
+            <a href="/roadmaps/ai-engineer">ai engineer</a> ·{" "}
+            <a href="/roadmaps/backend-engineering">backend engineering</a> ·{" "}
+            <a href="/roadmaps/software-engineering">software engineering</a>
           </span>
         </div>
       </footer>

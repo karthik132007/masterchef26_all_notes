@@ -19,17 +19,22 @@ export default function RoadmapBanner() {
 
         {/* Center: Main info */}
         <div className="nx-roadmap-main">
-          <h2>AI Engineer Career Roadmap (2025–2026)</h2>
+          <h2>Engineering Career Roadmaps (2025–2026)</h2>
           <p>
-            A structured path from fundamentals to advanced topics — curated
-            with the best free resources, courses, and practice sets.
+            Curated, step-by-step paths for <b>AI Engineering</b>, <b>Backend Engineering</b>, and <b>Software Engineering (SWE)</b> — featuring free resources, framework breakdowns, and production system design.
           </p>
-          <div className="nx-roadmap-cta">
+          <div className="nx-roadmap-cta" style={{ flexWrap: "wrap" }}>
             <Link className="nx-btn nx-btn-yellow" href="/roadmaps/ai-engineer">
-              Open Roadmap <span aria-hidden="true">→</span>
+              AI Engineer <span aria-hidden="true">→</span>
+            </Link>
+            <Link className="nx-btn" style={{ background: "var(--mint)", color: "var(--ink)", border: "2.5px solid var(--ink)", boxShadow: "3px 3px 0 var(--ink)", fontWeight: 800 }} href="/roadmaps/backend-engineering">
+              Backend Roadmap <span aria-hidden="true">→</span>
+            </Link>
+            <Link className="nx-btn" style={{ background: "var(--blue)", color: "#fff", border: "2.5px solid var(--ink)", boxShadow: "3px 3px 0 var(--ink)", fontWeight: 800 }} href="/roadmaps/software-engineering">
+              SWE Roadmap <span aria-hidden="true">→</span>
             </Link>
             <Link className="nx-btn nx-btn-darkoutline" href="/roadmaps">
-              View All Roadmaps
+              All Roadmaps
             </Link>
           </div>
         </div>

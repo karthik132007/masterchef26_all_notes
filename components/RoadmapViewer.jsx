@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import FrameworkSelector from "./FrameworkSelector";
 
 const PHASES = [
   {
@@ -80,7 +81,7 @@ export default function RoadmapViewer({ roadmap }) {
     };
   }, [selected]);
 
-  const visiblePhases = PHASES;
+  const visiblePhases = roadmap.phases || PHASES;
 
   const shortTitle = (t) => t.split(":")[0];
 
@@ -199,8 +200,8 @@ export default function RoadmapViewer({ roadmap }) {
           })}
 
           <div className="rmap-terminal end">
-            <span>◆ Production-ready AI Engineer</span>
-            <i>distributed systems + production serving</i>
+            <span>{roadmap.terminalEndTitle || "◆ Production-ready AI Engineer"}</span>
+            <i>{roadmap.terminalEndSub || "distributed systems + production serving"}</i>
           </div>
       </div>
 
@@ -305,6 +306,12 @@ export default function RoadmapViewer({ roadmap }) {
                 )}
               </section>
 
+              {active.number === 2 && roadmap.frameworks && (
+                <section>
+                  <FrameworkSelector frameworks={roadmap.frameworks} />
+                </section>
+              )}
+
               <section>
                 <div className="rdv-d-sec-head">
                   <h3>Core mechanics</h3>
@@ -319,6 +326,31 @@ export default function RoadmapViewer({ roadmap }) {
                   ))}
                 </ol>
               </section>
+
+              {(active.handsOnProject || active.interviewDrill) && (
+                <section>
+                  <div className="rdv-d-sec-head">
+                    <h3>Practice &amp; Interview Drills</h3>
+                    <span>Production mastery</span>
+                  </div>
+                  <div className="rdv-d-drills" style={{ marginTop: 12 }}>
+                    {active.handsOnProject && (
+                      <div className="rdv-drill">
+                        <span>Hands-on Project</span>
+                        <b>{active.handsOnProject.title}</b>
+                        <p>{active.handsOnProject.description}</p>
+                      </div>
+                    )}
+                    {active.interviewDrill && (
+                      <div className="rdv-drill alt">
+                        <span>Technical Interview Drill</span>
+                        <b>Core Drill Question</b>
+                        <p>{active.interviewDrill}</p>
+                      </div>
+                    )}
+                  </div>
+                </section>
+              )}
             </div>
 
             <div className="rdv-d-foot">
