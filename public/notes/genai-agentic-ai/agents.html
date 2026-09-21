@@ -457,52 +457,6 @@ tools = [
   <li><b>Capture Output or Exception:</b> Trap errors without crashing the host process.</li>
 </ol>
 
-<pre><code class="language-python">import json
-from pydantic import BaseModel, EmailStr, ValidationError
-
-# 1. Concrete Python implementation of the tool
-def lookup_user_account(email: str, include_transactions: bool = False) -> dict:
-    # Simulated database lookup
-    db = {
-        "alex@riviso.com": {"name": "Alex", "balance": 4500.00, "status": "active"},
-        "sam@riviso.com": {"name": "Sam", "balance": 120.50, "status": "suspended"}
-    }
-    if email not in db:
-        raise ValueError(f"User with email '{email}' was not found in the database.")
-    return db[email]
-
-# Tool Registry map
-TOOL_REGISTRY = {
-    "lookup_user_account": lookup_user_account
-}
-
-# 2. Runtime Dispatcher with self-healing error recovery
-def execute_tool_call(tool_call) -> dict:
-    fn_name = tool_call.function.name
-    fn_args_raw = tool_call.function.arguments
-    tool_call_id = tool_call.id
-
-    if fn_name not in TOOL_REGISTRY:
-        # Return error payload to LLM — NEVER crash your app!
-        return {
-            "tool_call_id": tool_call_id,
-            "error": f"Tool '{fn_name}' does not exist. Available tools: {list(TOOL_REGISTRY.keys())}"
-        }
-
-    try:
-        parsed_args = json.loads(fn_args_raw)
-        result = TOOL_REGISTRY[fn_name](**parsed_args)
-        return {
-            "tool_call_id": tool_call_id,
-            "output": json.dumps(result)
-        }
-    except Exception as e:
-        # Crucial: pass the stack error back to the LLM so it can self-heal!
-        return {
-            "tool_call_id": tool_call_id,
-            "error": f"ExecutionError in {fn_name}: {str(e)}"
-        }</code></pre>
-
 <div class="callout remember">
   <b class="label">🧷 the golden rule of agent runtime engineering</b><br />
   <b>Never crash on a tool exception.</b> If an API returns a 404 or a SQL query has a syntax error, feed that error string straight back to the model as the tool result. High-end LLMs will inspect the error message, realize what argument was invalid, and self-correct on the next iteration!
@@ -611,41 +565,6 @@ messages = [
   <li><b>Token &amp; Cost Budget:</b> Abort if total consumed tokens across the session exceed a financial threshold (e.g., $0.50).</li>
   <li><b>Timeout Watchdog:</b> Set a wall-clock timeout (e.g., 60 seconds) on the entire loop.</li>
 </ul>
-
-<pre><code class="language-python"># Production-grade ReAct Agent Loop Implementation
-def run_agent_loop(client, model, tools, user_prompt, max_steps=8):
-    messages = [{"role": "user", "content": user_prompt}]
-    
-    for step in range(max_steps):
-        print(f"--- Step {step + 1} ---")
-        
-        response = client.chat.completions.create(
-            model=model,
-            messages=messages,
-            tools=tools,
-            tool_choice="auto"
-        )
-        msg = response.choices[0].message
-        messages.append(msg)
-        
-        # Base case: model returned final answer (no tool calls requested)
-        if not msg.tool_calls:
-            print("Final Answer Reached.")
-            return msg.content
-            
-        # Recursive step: model requested one or more tool calls
-        for tool_call in msg.tool_calls:
-            print(f"Agent requested tool: {tool_call.function.name}")
-            result = execute_tool_call(tool_call)
-            
-            # Append observation message
-            messages.append({
-                "role": "tool",
-                "tool_call_id": tool_call.id,
-                "content": result.get("output") or result.get("error")
-            })
-
-    raise TimeoutError("Agent exceeded maximum allowed step budget without convergence.")</code></pre>
 
 <!-- ============================================================ -->
 <!-- 8. TOOL PERMISSIONS, SAFETY & HITL -->
