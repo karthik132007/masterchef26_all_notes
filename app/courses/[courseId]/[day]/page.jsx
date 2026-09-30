@@ -48,6 +48,15 @@ export default async function DayPage({ params }) {
     redirect("/courses/genai-agentic-ai/rag-evaluation");
   }
 
+  if (
+    courseId === "genai-agentic-ai" &&
+    (day === "building-an-agent-in-langchain" ||
+      day === "building-an-agent-from-scratch" ||
+      day === "langchain-agent")
+  ) {
+    redirect("/courses/genai-agentic-ai/building-an-agent");
+  }
+
   if (courseId === "networking" && day === "load-balancer") {
     redirect("/courses/hld/load-balancer");
   }

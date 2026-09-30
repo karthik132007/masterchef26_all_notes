@@ -49,7 +49,7 @@ function escapeCodeHtml(value) {
 }
 
 function highlightCode(source) {
-  const tokenPattern = /(\"(?:\\.|[\"\\])*\"|'(?:\\.|[^'\\])*'|\/\/[^\n]*|#[^\n]*|--[^\n]*|\/\*[\s\S]*?\*\/|@\w+|\b\d+(?:\.\d+)?\b|\b(?:abstract|ALTER|ArrayList|boolean|class|const|CREATE|DELETE|DROP|else|extends|final|findAll|findById|FROM|for|GET|if|implements|import|INSERT|interface|int|new|null|Optional|package|POST|private|protected|public|PUT|return|SELECT|static|String|throw|try|UPDATE|void|WHERE|while)\b)/g;
+  const tokenPattern = /(\"\"\"[\s\S]*?\"\"\"|'''[\s\S]*?'''|\"(?:\\.|[^\"\n\\])*\"|'(?:\\.|[^'\n\\])*'|\/\/[^\n]*|#[^\n]*|--[^\n]*|\/\*[\s\S]*?\*\/|@\w+|\b\d+(?:\.\d+)?\b|\b(?:abstract|ALTER|and|ArrayList|as|async|await|boolean|class|const|CREATE|def|DELETE|DROP|elif|else|except|extends|False|final|findAll|findById|finally|for|FROM|from|GET|if|implements|import|in|INSERT|interface|int|is|lambda|new|None|not|null|Optional|or|package|pass|POST|private|protected|public|PUT|raise|return|SELECT|static|String|throw|True|try|UPDATE|void|WHERE|while|with|yield)\b)/g;
   let output = "";
   let cursor = 0;
 
@@ -60,7 +60,7 @@ function highlightCode(source) {
 
     let type = "keyword";
     if (/^(\/\/|#|--|\/\*)/.test(token)) type = "comment";
-    else if (/^[\"']/.test(token)) type = "string";
+    else if (/^(\"\"\"|'''|[\"'])/.test(token)) type = "string";
     else if (/^@/.test(token)) type = "annotation";
     else if (/^\d/.test(token)) type = "number";
 

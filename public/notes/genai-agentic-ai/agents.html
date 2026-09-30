@@ -221,7 +221,7 @@
 <!-- ============================================================ -->
 <h2>the 30-second idea</h2>
 <p><b>A standard LLM is a brain in a jar: it can think and talk, but it has no hands to touch the real world and no eyes to observe live changes. An AI Agent gives the brain hands (Tools), eyes (Observations), memory (State), and a decision loop (Planning).</b></p>
-<p>When you ask a standard LLM: <i>"What is the live exchange rate between USD and EUR, and transfer $50 from my account to Alice?"</i>, it either hallucinates an outdated number or confesses it cannot interact with the real world. It generates static text in a single pass.</p>
+<p>When you ask a standard LLM: <i>"What is the live exchange rate between USD and EUR, and transfer <span class="katex-ignore">$50</span> from my account to Alice?"</i>, it either hallucinates an outdated number or confesses it cannot interact with the real world. It generates static text in a single pass.</p>
 <p>An <b>AI Agent</b> breaks the problem down:</p>
 <ol>
   <li><b>Thinks (Reasoning):</b> "I need live currency data first. I will call my `get_fx_rate` tool with currency pair USD/EUR."</li>
@@ -562,7 +562,7 @@ messages = [
 <ul>
   <li><b>Max Iterations Limit:</b> Hard limit (e.g. <code>MAX_STEPS = 10</code>). Never run an unbounded <code>while True</code>.</li>
   <li><b>Deduplication / Action History Hash:</b> Track previous <code>(tool_name, arguments)</code> tuples. If the exact same call repeats 3 times consecutively, force abort.</li>
-  <li><b>Token &amp; Cost Budget:</b> Abort if total consumed tokens across the session exceed a financial threshold (e.g., $0.50).</li>
+  <li><b>Token &amp; Cost Budget:</b> Abort if total consumed tokens across the session exceed a financial threshold (e.g., <span class="katex-ignore">$0.50</span>).</li>
   <li><b>Timeout Watchdog:</b> Set a wall-clock timeout (e.g., 60 seconds) on the entire loop.</li>
 </ul>
 

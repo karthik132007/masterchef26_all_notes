@@ -622,7 +622,7 @@ $$\mathcal{T} = \Big( \text{Query},\; \mathcal{G}_{\text{context}},\; \mathcal{A
 
 <ul>
   <li><b>Lexical Metrics (BLEU, ROUGE-L):</b> Measures exact n-gram token overlap.
-    <br /><i>Gotcha:</i> Brittle! If the golden answer is <i>"The fee is $50"</i> and the LLM says <i>"You will be charged fifty dollars"</i>, ROUGE gives a near-zero score despite 100% semantic accuracy.
+    <br /><i>Gotcha:</i> Brittle! If the golden answer is <i>"The fee is <span class="katex-ignore">$50</span>"</i> and the LLM says <i>"You will be charged fifty dollars"</i>, ROUGE gives a near-zero score despite 100% semantic accuracy.
   </li>
   <li><b>Semantic Embedding Distance:</b> Computes cosine similarity between $\text{embed}(\hat{\mathcal{A}})$ and $\text{embed}(\mathcal{A}_{\text{golden}})$. Captures paraphrasing, but can miss numerical inaccuracies ($50$ vs $500$).</li>
   <li><b>LLM-as-a-Judge (The Modern Standard):</b> Use an evaluator prompt with a strict rubric on an frontier model:</li>
